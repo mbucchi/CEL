@@ -1,0 +1,82 @@
+/*
+ * Lexer Rules
+ */
+
+fragment LOWERCASE  : [a-z] ;
+fragment UPPERCASE  : [A-Z] ;
+fragment LETTER     : [a-zA-Z] ;
+fragment DIGIT      : [0-9] ;
+fragment SPACE      : [ \t] ;
+
+
+FILTER              : 'FILTER' ;
+AS                  : 'AS' ;
+OR                  : 'OR' ;
+AND                 : 'AND' ;
+UNLESS              : 'UNLESS' ;
+ALL                 : 'ALL' ;
+
+MAX                 : 'MAX' ;
+STRICT              : 'STRICT' ;
+ANY                 : 'ANY' ;
+NXT                 : 'NXT' ;
+LAST                : 'LAST' ;
+
+NOT                 : 'not' ;
+FILT_OP             : ( 'and' | 'or' ) ;
+PRED_OP             : ('<=' | '>=' | '<' | '>' | '=') ;
+
+PLUS                : '+' ;
+MINUS               : '-' ;
+MULT                : '*' ;
+DIV                 : '/' ;
+Lp                  : '(' ;
+Rp                  : ')' ;
+COLON               : ';' ;
+DOT                 : '.' ;
+
+RELATION            : UPPERCASE ( LOWERCASE | DIGIT | '_' )* ;
+WORD                : LOWERCASE ( LETTER | DIGIT | '_' )* ;
+
+NUMBER              : DIGIT+ ( '.' DIGIT+ )? ;
+
+WS                  : SPACE+ ->  skip ;
+NEWLINE             : ('\r'? '\n' | '\r')+ ;
+
+/*
+* Parser Rules
+*/
+
+cepl                : Lp cepl Rp unary_op filter_op cepl_op
+                    | RELATION AS WORD unary_op filter_op cepl_op
+                    ;
+
+unary_op            : PLUS 
+                    | EPSILON
+                    ;
+                
+
+cepl_op             : COLON cepl
+                    | OR cepl
+                    | EPSILON
+                    ;
+
+filter_op           : FILTER filter_formula 
+                    | EPSILON
+                    ;
+
+filter_formula      : Lp filter_formula Rp
+                    | NOT filter_formula
+                    | variable PRED_OP expression filter_continuation
+                    | expression PRED_OP variable filter_continuation
+                    ;
+
+filter_continuation : FILT_OP filter_formula
+                    | EPSILON
+                    ;
+
+variable            : WORD DOT WORD
+                    ;
+                    
+expression          : ...   // standard grammar for math expressions
+                    ;

@@ -62,30 +62,61 @@ class Token {
     private final String line;
     private final int line_n;
     private final int col_n;
+    private final String fileName;
 
 
-    public Token(TokenType type, String sequence, String line, int line_n, int col_n){
+    public Token(String fileName, TokenType type, String sequence, String line, int line_n, int col_n){
         this.type = type;
         this.sequence = sequence;
         this.line = line;
         this.line_n = line_n;
         this.col_n = ++col_n;
+        this.fileName = fileName;
     }
 
-    public void throwError(String fileName) throws ParserException{
+    public int getLineNo(){
+        return line_n;
+    }
+    
+    public int getColNo(){
+        return col_n;
+    }
+
+    public String getLine(){
+        return line;
+    }
+
+    public String getFileName(){
+        return fileName;
+    }
+
+    public void throwParseError(String msg) throws ParserException {
+        throw new ParserException(
+                "\nFile \"" + fileName + "\", line " + line_n + "\n" +
+                "\t" + line + "\n" +
+                String.format("\t%" + col_n + "s", "^\n") +
+                msg
+            );
+    }
+
+    public void throwParseError() throws ParserException {
         if (type == TokenType.EOF){
             throw new ParserException(
-                "File \"" + fileName + "\"\n" +
+                "\nFile \"" + fileName + "\"\n" +
                 "SyntaxError: unexpected EOF found"
             );
         }
         else{
-            throw new ParserException(
-                "File \"" + fileName + "\", line " + line_n + "\n" +
-                "\t" + line + "\n" +
-                String.format("\t%" + col_n + "s", "^\n") +
-                "SyntaxError: unexpected symbol found"
-            );
+            throwParseError("SyntaxError: unexpected symbol found");
         }
+    }
+
+    public void throwWellformedError() throws WellformedException {
+        throw new WellformedException(
+            "\nFile \"" + fileName + "\", line " + line_n + "\n" +
+            "\t" + line + "\n" +
+            String.format("\t%" + col_n + "s", "^\n") +
+            "Wellformness Error: Variable '" + sequence + "' is mentioned on a FILTER clause but not bound within the same scope."
+        );
     }
 }

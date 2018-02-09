@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 
 
-public class Tokenizer {
+class Tokenizer {
 
     private ArrayList<Token> tokens;
     private String fileName;
@@ -56,7 +56,7 @@ public class Tokenizer {
                             break;
                         }
 
-                        tokens.add(new Token(t_type, tok, line, line_n, col_n - tok.length()));
+                        tokens.add(new Token(fileName, t_type, tok, line, line_n, col_n - tok.length()));
 
                         break;
                     }
@@ -71,7 +71,7 @@ public class Tokenizer {
                 }
             }
         }
-        tokens.add(new Token(TokenType.EOF, "EOF", null, 0, 0));
+        tokens.add(new Token(fileName, TokenType.EOF, "EOF", null, 0, 0));
         
     }
 

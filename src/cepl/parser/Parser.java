@@ -2,29 +2,100 @@ package cepl.parser;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
-import com.sun.javafx.binding.StringFormatter;
-
-public class Parser {
+class Parser {
 
     private String fileName;
     private ArrayList<Token> tokens;
     private int c_tok;
     private Token lookahead;
+    private Set<String> relations;
+    private Map<String, String> varRelations;
 
-    public Parser(String fileName) throws IOException, ParserException {
+    public Parser(String fileName, Set<String> definedRelations) throws IOException, ParserException {
+        relations = definedRelations;
         this.fileName = fileName;
         Tokenizer tokenizer = new Tokenizer(fileName);
         tokens = tokenizer.getTokens();
+        varRelations = new HashMap<String, String>();
     }
 
     public ASTNode parse() throws ParserException {
         c_tok = 0;
         lookahead = tokens.get(0);
-        ASTNode node = parseCEPL();
+        ASTNode node = parseSemantic();
         if (lookahead.type != TokenType.EOF){
-            lookahead.throwError(fileName);
+            lookahead.throwParseError();
         }
+        return node;
+    }
+
+    public Map<String, String> getVarRelations(){
+        return varRelations;
+    }
+
+    private ASTNode parseSemantic() throws ParserException {
+        ASTNode node = new ASTNode();
+        switch (lookahead.type){
+            case Lp:
+                nextToken();
+                node = parseSemantic();
+                if (lookahead.type != TokenType.Rp){
+                    lookahead.throwParseError();
+                }
+                nextToken();
+                break;
+            case NXT: 
+                node.type = NodeType.NXT;
+                nextToken();
+                node.addChild(parseParCEPL());
+                break;
+            case LAST:
+                node.type = NodeType.LAST;
+                nextToken();
+                node.addChild(parseParCEPL());                    
+                break;
+            case STRICT:
+                node.type = NodeType.STRICT;
+                nextToken();
+                node.addChild(parseParCEPL());                    
+                break;
+            case MAX:
+                node.type = NodeType.MAX;
+                nextToken();
+                node.addChild(parseParCEPL());                    
+                break;
+            case ANY:
+                node.type = NodeType.ANY;
+                nextToken();
+                node.addChild(parseParCEPL());     
+                break;               
+            default:
+                node.type = NodeType.ANY;
+                node.addChild(parseCEPL());
+                break;
+        }
+        
+        if (node.isEmpty()) {
+            lookahead.throwParseError();
+        }
+        return node;
+    }
+
+    private ASTNode parseParCEPL() throws ParserException {
+        ASTNode node;
+        if (lookahead.type != TokenType.Lp){
+            lookahead.throwParseError();                
+        }
+        nextToken();
+        node = parseCEPL();
+        if (lookahead.type != TokenType.Rp){
+            lookahead.throwParseError();
+        }
+        nextToken();
         return node;
     }
 
@@ -35,33 +106,22 @@ public class Parser {
             nextToken();
             node = parseCEPL();
             if (lookahead.type != TokenType.Rp){
-                lookahead.throwError(fileName);
+                lookahead.throwParseError();
             }
             nextToken();
         }
         else if (lookahead.type == TokenType.RELATION ){
-            node.type = NodeType.ASSIGN;
-            node.children.add(new ASTNode(NodeType.RELATION, lookahead));
-            nextToken();
-            if (lookahead.type != TokenType.AS){
-                lookahead.throwError(fileName);
-            }
-            nextToken();
-            if (lookahead.type != TokenType.WORD){
-                lookahead.throwError(fileName);
-            }
-            node.children.add(new ASTNode(NodeType.VARIABLE, lookahead));            
-            nextToken();
+            node = parseAssignation();
         }
         
         if (node.isEmpty()) {
-            lookahead.throwError(fileName);
+            lookahead.throwParseError();
         }
 
         if (lookahead.type == TokenType.PLUS){
             nextToken();
             a = new ASTNode(NodeType.KLEENE);
-            a.children.add(node);
+            a.addChild(node);
             node = a;
         }
 
@@ -71,20 +131,43 @@ public class Parser {
         return node;
     }
 
+    private ASTNode parseAssignation() throws ParserException {
+        ASTNode node = new ASTNode(NodeType.ASSIGN);       
+        if (!relations.contains(lookahead.sequence)){
+            lookahead.throwParseError("UnknownRelationError: Relation was not declared before compilation of query.");
+        }
+        node.addChild(new ASTNode(NodeType.RELATION, lookahead));
+        String relation = lookahead.sequence;
+        nextToken();
+        if (lookahead.type != TokenType.AS){
+            lookahead.throwParseError();
+        }
+        nextToken();
+        if (lookahead.type != TokenType.WORD){
+            lookahead.throwParseError();
+        }
+        node.addChild(new ASTNode(NodeType.VARIABLE, lookahead));   
+        String variable = lookahead.sequence;           
+        nextToken();
+
+        varRelations.put(variable, relation);
+
+        return node;
+    }
 
     private ASTNode parseCEPLOP(ASTNode prev) throws ParserException {
         ASTNode node = new ASTNode();
         if (lookahead.type == TokenType.COLON){
             node.type = NodeType.SEQ;
             nextToken();
-            node.children.add(prev);
-            node.children.add(parseCEPL());
+            node.addChild(prev);
+            node.addChild(parseCEPL());
         }
         else if (lookahead.type == TokenType.OR){
             node.type = NodeType.OR;
             nextToken();
-            node.children.add(prev);            
-            node.children.add(parseCEPL());
+            node.addChild(prev);            
+            node.addChild(parseCEPL());
         }
         else {
             node = prev;
@@ -98,8 +181,8 @@ public class Parser {
         if (lookahead.type == TokenType.FILTER){
             node.type = NodeType.FILTER;
             nextToken();
-            node.children.add(prev);
-            node.children.add(parseFilterFormula());
+            node.addChild(prev);
+            node.addChild(parseFilterFormula());
         }
         else {
             node = prev;
@@ -112,37 +195,37 @@ public class Parser {
         if (lookahead.type == TokenType.NOT){
             node = new ASTNode(NodeType.PRED_NOT);
             nextToken();
-            node.children.add(parseFilterFormula());
+            node.addChild(parseFilterFormula());
         }
         else if (lookahead.type == TokenType.Lp){
             nextToken();
             node = parseFilterFormula();
             if (lookahead.type != TokenType.Rp){
-                lookahead.throwError(fileName);
+                lookahead.throwParseError();
             }
             nextToken();
             node = parseFilterContinuation(node);
         }
         else if (lookahead.type == TokenType.WORD){
             node = new ASTNode(NodeType.PREDICATE);
-            node.children.add(parseVariable());
+            node.addChild(parseVariable());
             if (lookahead.type != TokenType.PRED_OP){
-                lookahead.throwError(fileName);
+                lookahead.throwParseError();
             }
-            node.children.add(new ASTNode(NodeType.PRED_OP, lookahead));
+            node.addChild(new ASTNode(NodeType.PRED_OP, lookahead));
             nextToken();
-            node.children.add(parseExpression());
+            node.addChild(parseExpression());
             node = parseFilterContinuation(node);
         }
         else {
             node = new ASTNode(NodeType.PREDICATE);            
-            node.children.add(parseExpression());
+            node.addChild(parseExpression());
             if (lookahead.type != TokenType.PRED_OP){
-                lookahead.throwError(fileName);
+                lookahead.throwParseError();
             }
-            node.children.add(new ASTNode(NodeType.PRED_OP, lookahead));  
+            node.addChildFirst(new ASTNode(NodeType.PRED_OP, lookahead));  
             nextToken();
-            node.children.add(parseVariable());
+            node.addChildFirst(parseVariable());
             node = parseFilterContinuation(node);
         }
         return node;
@@ -153,8 +236,8 @@ public class Parser {
         if (lookahead.type == TokenType.FILT_OP){
             node.type = lookahead.sequence.equals("or") ? NodeType.PRED_OR : NodeType.PRED_AND;
             nextToken();
-            node.children.add(prev);
-            node.children.add(parseFilterFormula());
+            node.addChild(prev);
+            node.addChild(parseFilterFormula());
         }
         else {
             node = prev;
@@ -165,18 +248,18 @@ public class Parser {
     private ASTNode parseVariable() throws ParserException {
         ASTNode node = new ASTNode(NodeType.VAR_PROP);
         if (lookahead.type != TokenType.WORD){
-            lookahead.throwError(fileName);   
+            lookahead.throwParseError();   
         }
-        node.children.add(new ASTNode(NodeType.VARIABLE, lookahead));
+        node.addChild(new ASTNode(NodeType.VARIABLE, lookahead));
         nextToken();
         if (lookahead.type != TokenType.DOT){
-            lookahead.throwError(fileName);               
+            lookahead.throwParseError();               
         }
         nextToken();
         if (lookahead.type != TokenType.WORD){
-            lookahead.throwError(fileName);               
+            lookahead.throwParseError();               
         }
-        node.children.add(new ASTNode(NodeType.PROPERTY, lookahead));                    
+        node.addChild(new ASTNode(NodeType.PROPERTY, lookahead));                    
         nextToken();
         return node;
     }
@@ -192,7 +275,7 @@ public class Parser {
         else if (op == TokenType.MINUS){
             a -= b;
         }
-        node.value = new Token(null, "" + a, "", 0, 0);
+        node.value = new Token(fileName, null, "" + a, "", 0, 0);
         return node;
     }
 
@@ -269,7 +352,7 @@ public class Parser {
             double a = Double.parseDouble(parseExpression().value.sequence);
 
             if (lookahead.type != TokenType.Rp){
-                lookahead.throwError(fileName);
+                lookahead.throwParseError();
             }
             nextToken();
             return a;
@@ -281,7 +364,7 @@ public class Parser {
 
     private double parseValue() throws ParserException {
         if (lookahead.type != TokenType.NUMBER){
-            lookahead.throwError(fileName);
+            lookahead.throwParseError();
         }
         double a = Double.parseDouble(lookahead.sequence);
         nextToken();
@@ -291,17 +374,5 @@ public class Parser {
 
     private void nextToken(){
         lookahead = tokens.get(++c_tok);
-    }
-
-    public static void main(String[] argv) throws IOException, ParserException {
-        try {
-            Parser parser = new Parser(argv[0]);
-            ASTNode node = parser.parse();
-            node.setVars();
-            node.print();
-        }
-        catch (ParserException e){
-            System.out.println(e.getMessage());
-        }
     }
 }

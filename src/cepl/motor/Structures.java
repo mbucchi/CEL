@@ -138,45 +138,6 @@ class LLNodeIter<T> implements Iterator<T> {
 
 }
 
-class Match implements Iterable<Event> {
-    private LLNode<Event> first, last;
-
-    public LLNode<Event> push(Event element) {
-        LLNode<Event> newNode = new LLNode<Event>();
-        newNode.value = element;
-        if (first != null){
-            newNode.i = first.i + 1;
-            newNode.next = first;
-            first = newNode;
-        }
-        else {
-            newNode.i = 1;
-            first = last = newNode;
-        }
-        return newNode;
-    }
-
-    public void popUntil(LLNode<Event> node) {
-        first = node.next;
-    }
-
-    public Iterator<Event> iterator(){
-        return new LLNodeIter<Event>(first);
-    }
-
-    public int size(){
-        return first != null ? first.i : 0;
-    }
-
-    public void clear(){
-        first = last = null;
-    }
-
-    public void pop(){
-        first = first.next;
-    }
-}
-
 class Order extends LinkedList<LinkedList<Integer>> {
     private boolean[] state_is_present;
     private LinkedList<Integer> states;

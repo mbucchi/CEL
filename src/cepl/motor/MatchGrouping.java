@@ -2,7 +2,7 @@ package cepl.motor;
 
 import java.util.*;
 
-class MatchGrouping implements Iterable<Match> {
+public class MatchGrouping implements Iterable<Match> {
     private LinkedList<ExtensibleList> final_lists;
     private NXTNode final_node;
     private long totalMatches;
@@ -10,7 +10,7 @@ class MatchGrouping implements Iterable<Match> {
     private Hashtable<Integer, Event> usefulValues;
     private Event lastEvent;
 
-    public MatchGrouping(Semantic semantic, Hashtable<Integer, Event> usefulValues, int i){
+    protected MatchGrouping(Semantic semantic, Hashtable<Integer, Event> usefulValues, int i){
         this.semantic = semantic;
         this.usefulValues = usefulValues;
         this.lastEvent = usefulValues.get(i);
@@ -23,12 +23,12 @@ class MatchGrouping implements Iterable<Match> {
         }
     }
 
-    public void addFinal(ExtensibleList final_list){
+    protected void addFinal(ExtensibleList final_list){
         final_lists.add(final_list);
         totalMatches += final_list.totalMatches;
     }
 
-    public void addFinal(NXTNode final_node){
+    protected void addFinal(NXTNode final_node){
         this.final_node = final_node;
         this.totalMatches = 1;
     }
@@ -71,14 +71,14 @@ class MatchGroupingIterator implements Iterator<Match> {
     private boolean first_part;
 
 
-    public MatchGroupingIterator(NXTNode final_node, Hashtable<Integer, Event> usefulValues){
+    protected MatchGroupingIterator(NXTNode final_node, Hashtable<Integer, Event> usefulValues){
         this.usefulValues = usefulValues;
         this.final_node = final_node;
         matchStack = new Match();
         semantic = Semantic.NXT;
     }
 
-    public MatchGroupingIterator(LinkedList<ExtensibleList> final_lists, Hashtable<Integer, Event> usefulValues){
+    protected MatchGroupingIterator(LinkedList<ExtensibleList> final_lists, Hashtable<Integer, Event> usefulValues){
         this.usefulValues = usefulValues;
         final_list_iter = final_lists.iterator();
         curr_final_list = final_list_iter.next().iterator();
@@ -122,6 +122,9 @@ class MatchGroupingIterator implements Iterator<Match> {
                     it = nodeStack.pop();
                     lastEv = jumpStack.pop();
                     current = it.next();
+                    if (current.isEmpty()){
+                        return matchStack;
+                    }
                     if (it.hasNext()){
                         nodeStack.push(it);
                         jumpStack.push(lastEv);
@@ -151,6 +154,7 @@ class MatchGroupingIterator implements Iterator<Match> {
             while (first_part){
                 it = current.next.iterator();
                 current = it.next();
+
                 if (current.isEmpty()){
                     first_part = false;
                     return matchStack;

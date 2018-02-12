@@ -69,8 +69,15 @@ class ASTNode {
     public void print(String sep){
         String t = type.name();
         StringBuilder varStr = new StringBuilder();
-        for (String v: bound){
-            varStr.append(v + " ");
+        if (type == NodeType.PRED_AND || type == NodeType.PRED_NOT || type == NodeType.PRED_OR || type == NodeType.PREDICATE){
+            for (String v: var){
+                varStr.append(v + " ");
+            }
+        }
+        else {
+            for (String v: bound){
+                varStr.append(v + " ");
+            }
         }
         String v = value != null ? value.sequence : varStr.toString();
         System.out.println(sep + t + ": " + v);
@@ -171,6 +178,11 @@ class ASTNode {
             case PRED_NOT:
             case PRED_OP:
             case VAR_PROP:
+            case ANY:
+            case LAST:
+            case MAX:
+            case NXT:
+            case STRICT:
                 for (ASTNode child: children){
                     child.setVars();
                     var.addAll(child.var);
@@ -192,7 +204,11 @@ class ASTNode {
             case OR:
             case SEQ:
             case KLEENE:
-                // check children for wellformness in all four cases
+            case ANY:
+            case LAST:
+            case MAX:
+            case NXT:
+            case STRICT:
                 for (ASTNode child: children){
                     child.checkWellformness();
                 }
@@ -247,6 +263,11 @@ class ASTNode {
                 break;
             case FILTER:
             case KLEENE:
+            case ANY:
+            case LAST:
+            case MAX:
+            case NXT:
+            case STRICT:
                 children.getFirst().checkSafeness();
             default:
         }
@@ -271,13 +292,19 @@ class ASTNode {
             case SEQ:
                 return children.getFirst().pushPredictesUp() || children.getLast().pushPredictesUp();
             case KLEENE:
+            case ANY:
+            case LAST:
+            case MAX:
+            case NXT:
+            case STRICT:
                 return children.getFirst().pushPredictesUp();
             case FILTER:
                 boolean child = children.getFirst().pushPredictesUp();
+                if (child) return true;
                 ASTNode predicate = children.getLast();
                 ASTNode scope = findVarDef(predicate.var);
                 if (scope == this){
-                    return child;
+                    return false;
                 }
 
                 // making new scope
@@ -344,6 +371,11 @@ class ASTNode {
     private void pushPredicatesDown(){
         switch (type){
             case KLEENE:
+            case ANY:
+            case LAST:
+            case MAX:
+            case NXT:
+            case STRICT:
                 children.getFirst().pushPredicatesDown();
                 break;
             case SEQ:

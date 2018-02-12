@@ -157,6 +157,7 @@ class Parser {
 
     private ASTNode parseCEPLOP(ASTNode prev) throws ParserException {
         ASTNode node = new ASTNode();
+
         if (lookahead.type == TokenType.COLON){
             node.type = NodeType.SEQ;
             nextToken();

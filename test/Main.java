@@ -27,7 +27,7 @@ public class Main {
         compiler.compileQuery(args[0]);
 
         CELEngine matcher = compiler.getEngine();
-        matcher.setDiscardPartials(false);
+        matcher.setDiscardPartials(true);
         matcher.setMatchCallback(Main::matchTriggered);
 
         try {
@@ -62,18 +62,18 @@ public class Main {
         totalMem += Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - initialMem;
         totalMatches++;
         outputs += mg.size();
-        System.out.println("\n[" + mg.lastEvent() + "] triggered a total of " + mg.size() + " outputs.");
+        // System.out.println("\n[" + mg.lastEvent() + "] triggered a total of " + mg.size() + " outputs.");
 
         long startTime = System.nanoTime();
 
         for (Match m : mg){
-            System.out.print("\t");        
+            // System.out.print("\t");        
             for (Event e: m){
-                System.out.print( e + " ");
+                // System.out.print( e + " ");
             }
-            System.out.println("");
+            // System.out.println("");
         }
-        System.out.println("");
+        // System.out.println("");
 
         enumTime += System.nanoTime() - startTime;
     }

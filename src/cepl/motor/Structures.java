@@ -165,3 +165,33 @@ class Order extends LinkedList<LinkedList<Integer>> {
         return states;
     }
 }
+
+class MaxTuple {
+    public final Set<Integer> T;        
+    public final Set<Integer> U;
+    public boolean isFinal;
+
+    public MaxTuple(Set<Integer> T, Set<Integer> U){
+        this.T = new HashSet<Integer>(T);
+        this.U = new HashSet<Integer>(U);
+    }
+
+    @Override
+    public final int hashCode(){
+        return 31 + this.T.hashCode() + 17 * this.U.hashCode();
+    }
+
+    @Override
+    public final boolean equals(final Object obj){
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        final MaxTuple other = (MaxTuple) obj;
+        return T.equals(other.T) && U.equals(other.U);
+    }
+
+    @Override
+    public final String toString(){
+        return "MaxTuple(T=" + T + ", U=" + U + ")";
+    }
+}

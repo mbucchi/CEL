@@ -3,7 +3,10 @@ package cepl.motor;
 import java.util.Hashtable;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Stack;
 import java.util.Iterator;
 import java.util.function.Consumer;
@@ -46,6 +49,9 @@ public abstract class CELEngine {
     // used for NXT and LAST execution
     private Order order;
     private NXTNode[] node_states;
+
+    // used for MAX execution
+    private Map<MaxTuple, ExtensibleList> stateListMax;
 
     private boolean discardPartials = true;
 
@@ -101,6 +107,12 @@ public abstract class CELEngine {
         LinkedList<Integer> I = new LinkedList<Integer>();
         I.add(q0);
         order.add(I);
+
+        stateListMax = new HashMap<MaxTuple, ExtensibleList>();
+        MaxTuple maxI = new MaxTuple(new HashSet<Integer>(I), new HashSet<Integer>());
+        ExtensibleList maxStart = new ExtensibleList();
+        maxStart.add(Node.Empty);
+        stateListMax.put(maxI, maxStart);
     }
 
     public void newValue(Event e){
@@ -108,8 +120,6 @@ public abstract class CELEngine {
             newValueANY(e);
         }
         else if (semantic == Semantic.MAX){
-            System.err.println("Currently Reimplementing MAX semantic.");
-            System.exit(1);
             newValueMAX(e);            
         }
         else if (semantic == Semantic.NXT){
@@ -130,8 +140,7 @@ public abstract class CELEngine {
         boolean[] state_added = new boolean[stateN];                // so that we dont add a state twice to the active list   
         ExtensibleList[] _states = new ExtensibleList[stateN];      // represents list_q /forall q \in Q
         boolean match = false;
-        long totalMatches = 0;
-        
+
         for (int p : active_states){                                //  \forall p \in Q such that list_p is not empty
                
             int[] q_b = black_transition(p, e);
@@ -153,7 +162,6 @@ public abstract class CELEngine {
 
                 if (isFinal[q]){
                     match = true;
-                    totalMatches += _states[q].totalMatches;                    
                 }
             }
 
@@ -176,7 +184,7 @@ public abstract class CELEngine {
         
         totalTime += System.nanoTime() - startTime;  
 
-        if (match) enumerate(totalMatches);
+        if (match) enumerate();
         i++;
     }
 
@@ -295,7 +303,6 @@ public abstract class CELEngine {
         boolean[] state_added = new boolean[stateN];                
         ExtensibleList[] _states = new ExtensibleList[stateN];      
         boolean match = false;
-        long totalMatches = 0;
 
         int n_qInit = white_transition(qInit, e)[0];
         if (n_qInit != -1){
@@ -324,7 +331,6 @@ public abstract class CELEngine {
 
                 if (isFinal[q]){
                     match = true;
-                    totalMatches += _states[q].totalMatches;                    
                 }
             }
         }
@@ -335,15 +341,89 @@ public abstract class CELEngine {
         
         totalTime += System.nanoTime() - startTime;  
 
-        if (match) enumerate(totalMatches);
+        if (match) enumerate();
         i++;
     }
 
-    private void newValueMAX(Event e){
 
+    private Set<Integer> blackTransitionSet(Set<Integer> stateSet, Event e){
+        Set<Integer> newStateSet = new HashSet<Integer>();
+        for (Integer q: stateSet){
+            int[] ps = black_transition(q, e);
+            for (int i = 0; i < ps.length; i++){
+                newStateSet.add(ps[i]);
+            }
+        }
+        return newStateSet;
     }
 
-    private void enumerate(long totalMatches){
+    private Set<Integer> whiteTransitionSet(Set<Integer> stateSet, Event e){
+        Set<Integer> newStateSet = new HashSet<Integer>();
+        for (Integer q: stateSet){
+            int[] ps = white_transition(q, e);
+            for (int i = 0; i < ps.length; i++){
+                newStateSet.add(ps[i]);
+            }
+        }
+        return newStateSet;
+    }
+
+    private void newValueMAX(Event e){
+        long startTime = System.nanoTime();
+
+        Map<MaxTuple, ExtensibleList> newStateList = new HashMap<MaxTuple, ExtensibleList>();
+        boolean match = false;
+
+        for (MaxTuple t: stateListMax.keySet()){
+            Set<Integer> TB = blackTransitionSet(t.T, e);
+            Set<Integer> UB = blackTransitionSet(t.U, e);
+            Set<Integer> TW = whiteTransitionSet(t.T, e);
+            Set<Integer> UW = whiteTransitionSet(t.U, e);
+
+            Set<Integer> newUB = UB;
+            Set<Integer> newTB = new HashSet<Integer>(TB);
+            newTB.removeAll(newUB);
+
+            if (newTB.size() > 0){
+                usefulValues.put(i, e);
+                MaxTuple newTup = new MaxTuple(newTB, newUB);
+                if (!newStateList.containsKey(newTup)){
+                    newStateList.put(newTup, new ExtensibleList());
+                }
+                for(int q: newTup.T){
+                    if (isFinal[q]){
+                        match = true;
+                        newTup.isFinal = true;
+                        break;
+                    }
+                }
+                newStateList.get(newTup).add(new Node(i, stateListMax.get(t)));
+            }
+
+            Set<Integer> newUW = new HashSet<Integer>(UB);
+            newUW.addAll(UW);
+            newUW.addAll(TB);
+            Set<Integer> newTW = TW;
+            TW.removeAll(newUW);
+
+            if (newTW.size() > 0){
+                MaxTuple newTup = new MaxTuple(newTW, newUW);
+                if (!newStateList.containsKey(newTup)){
+                    newStateList.put(newTup, new ExtensibleList());
+                }
+                newStateList.get(newTup).extend(stateListMax.get(t));
+            }
+
+        }
+
+        stateListMax = newStateList;
+
+        totalTime += System.nanoTime() - startTime;  
+        if (match) enumerateMAX();
+        i++;
+    }
+
+    private void enumerate(){
         if (sendMatch != null){
             MatchGrouping m = new MatchGrouping(semantic, usefulValues, i);
             for (int q: active_states){
@@ -365,6 +445,23 @@ public abstract class CELEngine {
             for (int q: order.getStates()){
                 if (isFinal[q]){
                     m.addFinal(node_states[q]);
+                    sendMatch.accept(m);
+                    break;
+                }
+            }
+        }
+
+        if (discardPartials){
+            restartMachine();
+        }
+    }
+
+    private void enumerateMAX(){
+        if (sendMatch != null){
+            MatchGrouping m = new MatchGrouping(semantic, usefulValues, i);
+            for (MaxTuple t: stateListMax.keySet()){
+                if (t.isFinal){
+                    m.addFinal(stateListMax.get(t));
                     sendMatch.accept(m);
                     break;
                 }

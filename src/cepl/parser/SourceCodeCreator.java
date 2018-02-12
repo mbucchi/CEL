@@ -1,5 +1,9 @@
 package cepl.parser;
 
+import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -84,7 +88,7 @@ class SourceCodeCreator {
             if (q < stateN - 1) engine.append(", ");
         }
         engine.append("});\n");
-        engine.append("        set" + automata.getSemantic() + "();");
+        engine.append("        set" + automata.getSemantic() + "();\n");
         engine.append("    }\n");
 
 
@@ -92,14 +96,39 @@ class SourceCodeCreator {
         engine.append("    protected int[] black_transition(int state, Event e){\n");
 
         /* black transitions */
-        for (Transition t: automata.getBlackTransitions()){
-            engine.append("        if (state == " + t.from + " " + t.formula + ") return new int[]{");
-            Integer[] to = t.getTo();
-            for (int i = 0; i < to.length; i++){
-                engine.append(to[i]);
-                if (i < to.length - 1) engine.append(", ");
+        List<Map<String, List<Transition>>> blackList = unifyTransitions(automata.getBlackTransitions(), stateN);
+        boolean moreThanOne = false;
+        for (int q = 0; q < stateN; q ++ ){
+            Map<String, List<Transition>> stateMap = blackList.get(q);
+            if (stateMap.size() == 0) continue;
+
+            if (!moreThanOne) engine.append("        if (state == " + q + "){\n");
+            else engine.append("        else if (state == " + q + "){\n");
+            moreThanOne = true;
+
+            String evTypes[] = stateMap.keySet().toArray(new String[0]);
+            engine.append("            ");
+            for (int idx = 0; idx < evTypes.length; idx++){
+                String evType = evTypes[idx];
+                engine.append("if (e instanceof " + evType + ") {\n"); 
+                for (Transition t: stateMap.get(evType)){
+                    engine.append("                ");
+                    String formula = t.getFormula();
+                    if (formula.length() > 0) engine.append("if (" + formula + ") ");
+                    engine.append("return new int[]{");
+                    Integer[] to = t.getTo();
+                    for (int i = 0; i < to.length; i++){
+                        engine.append(to[i]);
+                        if (i < to.length - 1) engine.append(", ");
+                    }
+                    engine.append("};\n");
+                }       
+                engine.append("            }\n");
+                engine.append("            ");
+                if (idx < evTypes.length - 1) engine.append("else ");
             }
-            engine.append("};\n");
+            engine.append("return new int[0];\n");
+            engine.append("        }\n");            
         }
 
         engine.append("        return new int[0];\n");
@@ -111,19 +140,75 @@ class SourceCodeCreator {
         engine.append("    protected int[] white_transition(int state, Event e){\n");
 
         /* white transitions */
-        for (Transition t: automata.getWhiteTransitions()){
-            engine.append("        if (state == " + t.from + ") return new int[]{");
-            Integer[] to = t.getTo();
-            for (int i = 0; i < to.length; i++){
-                engine.append(to[i]);
-                if (i < to.length - 1) engine.append(", ");
+        List<Map<String, List<Transition>>> whiteList = unifyTransitions(automata.getWhiteTransitions(), stateN);
+        moreThanOne = false;
+        for (int q = 0; q < stateN; q ++ ){
+            Map<String, List<Transition>> stateMap = whiteList.get(q);
+            if (stateMap.size() == 0) continue;
+
+            if (!moreThanOne) engine.append("        if (state == " + q + "){\n");
+            else engine.append("        else if (state == " + q + "){\n");
+            moreThanOne = true;
+
+            String evTypes[] = stateMap.keySet().toArray(new String[0]);
+            engine.append("            ");
+            for (int idx = 0; idx < evTypes.length; idx++){
+                String evType = evTypes[idx];
+                engine.append("if (e instanceof " + evType + ") {\n"); 
+                for (Transition t: stateMap.get(evType)){
+                    engine.append("                ");
+                    String formula = t.getFormula();
+                    if (formula.length() > 0) engine.append("if (" + formula + ") ");
+                    engine.append("return new int[]{");
+                    Integer[] to = t.getTo();
+                    for (int i = 0; i < to.length; i++){
+                        engine.append(to[i]);
+                        if (i < to.length - 1) engine.append(", ");
+                    }
+                    engine.append("};\n");
+                }       
+                engine.append("            }\n");
+                engine.append("            ");
+                if (idx < evTypes.length - 1) engine.append("else ");
             }
-            engine.append("};\n");
+            engine.append("return new int[0];\n");
+            engine.append("        }\n");            
         }
+
         engine.append("        return new int[0];\n");
         engine.append("    }\n");
     
         engine.append("}");
         return engine.toString();
+    }
+
+    private static List<Map<String, List<Transition>>> unifyTransitions(List<Transition> transitions, int stateN){
+        List<Map<String, List<Transition>>> stateTrans = new ArrayList<Map<String, List<Transition>>>(stateN);
+
+        for (int q = 0; q < stateN; q++){
+            stateTrans.add(new HashMap<String, List<Transition>>());
+        }
+
+        for (Transition t: transitions) {
+            boolean collapsed = false;
+            Map<String, List<Transition>> stateMap = stateTrans.get(t.from);
+            if (!stateMap.containsKey(t.evType)){
+                stateMap.put(t.evType, new ArrayList<Transition>());
+            }
+            List<Transition> stateEventList = stateMap.get(t.evType);
+
+            for (Transition t2: stateEventList){
+                if (t.getEvType().equals(t2.getEvType()) && t.getFormula() == t2.getFormula()){
+                    t2.to.addAll(t.to);
+                    collapsed = true;
+                    break;
+                }
+            }
+
+            if (!collapsed){
+                stateEventList.add(0, t);
+            }
+        }
+        return stateTrans;
     }
 }

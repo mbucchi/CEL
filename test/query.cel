@@ -1,1 +1,1 @@
-LAST ( A AS a + ; B AS b + ; C AS c + )
+MAX ( A AS a + ; B AS b + ; C AS c )

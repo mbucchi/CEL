@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -17,37 +18,43 @@ class Automata {
     private ArrayList<Transition> whites;
     private Map<String, String> varRelationMap;
     private NodeType semantic;
+    private Set<String> relations;
 
 
-    public Automata(ASTNode node, Map<String, String> varRelationMap) throws Exception{
+    public Automata(ASTNode node, Map<String, String> varRelationMap, Set<String> relations) throws Exception{
         q0 = stateN = 0;
         finalStates = new HashSet<Integer>();
         blacks = new ArrayList<Transition>();
         whites = new ArrayList<Transition>();
         this.varRelationMap = varRelationMap;
+        this.relations = relations;
 
         switch(node.type){
             case MAX:
+                copyFrom(new Automata(node.children.getFirst(), varRelationMap, relations));
+                semantic = NodeType.ANY;
+                maxify();
+                break;
             case ANY:
             case NXT:
             case LAST:
             case STRICT:
-                copyFrom(new Automata(node.children.getFirst(), varRelationMap));
+                copyFrom(new Automata(node.children.getFirst(), varRelationMap, relations));
                 semantic = node.type;
                 break;
             case OR:
-                ORAutomata(new Automata(node.children.getFirst(), varRelationMap), 
-                           new Automata(node.children.getLast(), varRelationMap));
+                ORAutomata(new Automata(node.children.getFirst(), varRelationMap, relations), 
+                           new Automata(node.children.getLast(), varRelationMap, relations));
                 break;
             case SEQ:
-                SEQAutomata(new Automata(node.children.getFirst(), varRelationMap), 
-                            new Automata(node.children.getLast(), varRelationMap));
+                SEQAutomata(new Automata(node.children.getFirst(), varRelationMap, relations), 
+                            new Automata(node.children.getLast(), varRelationMap, relations));
                 break;
             case KLEENE:
-                KleeneAutomata(new Automata(node.children.getFirst(), varRelationMap));
+                KleeneAutomata(new Automata(node.children.getFirst(), varRelationMap, relations));
                 break;
             case FILTER:
-                FilterAutomata(new Automata(node.children.getFirst(), varRelationMap), node.children.getLast());
+                FilterAutomata(new Automata(node.children.getFirst(), varRelationMap, relations), node.children.getLast());
                 break;
             case ASSIGN:
                 AssignAutomata(node);
@@ -67,8 +74,7 @@ class Automata {
         whites = a.whites;
     }
 
-    private void removeUselessStates(){
-        // calculate reachable states
+    private Map<Integer, Set<Integer>> getReachableFromMap(){
 
         Map<Integer, Set<Integer>> reachableFrom = new HashMap<Integer, Set<Integer>>();
         for (int q = 0; q < stateN; q++){
@@ -93,6 +99,13 @@ class Automata {
                 updated = updated || reachableP.addAll(newReachable);
             }
         }
+
+        return reachableFrom;
+    }
+
+    private void removeUselessStates(){
+        // calculate reachable states
+        Map<Integer, Set<Integer>> reachableFrom = getReachableFromMap();
 
         // useful states
         Set<Integer> reachableQ0 = reachableFrom.get(0);
@@ -128,7 +141,8 @@ class Automata {
 
         for (Transition t: blacks){
             if (usefulStates.contains(t.from)){
-                Transition posibleNew = new Transition(newNames[t.from], t.formula);
+                Transition posibleNew = new Transition(newNames[t.from], t.evType);
+                posibleNew.formula = t.formula;
                 for (int q: t.to){
                     if (usefulStates.contains(q)) posibleNew.addTo(newNames[q]);
                 }
@@ -138,7 +152,8 @@ class Automata {
 
         for (Transition t: whites){
             if (usefulStates.contains(t.from)){
-                Transition posibleNew = new Transition(newNames[t.from]);
+                Transition posibleNew = new Transition(newNames[t.from], t.evType);
+                posibleNew.formula = t.formula;                
                 for (int q: t.to){
                     if (usefulStates.contains(q)) posibleNew.addTo(newNames[q]);
                 }
@@ -167,7 +182,8 @@ class Automata {
         
         for (Transition t: left.blacks){
             if (t.from == 0){
-                Transition newT = new Transition(0, t.formula, t.to);
+                Transition newT = new Transition(0, t.evType, t.to);
+                newT.formula = t.formula;
                 newT.displaceTo(1);
                 blacks.add(newT);
             }
@@ -181,7 +197,8 @@ class Automata {
 
         for (Transition t: right.blacks){
             if (t.from == 0){
-                Transition newT = new Transition(0, t.formula, t.to);
+                Transition newT = new Transition(0, t.evType, t.to);
+                newT.formula = t.formula;
                 newT.displaceTo(displace);
                 blacks.add(newT);
             }
@@ -193,7 +210,9 @@ class Automata {
             whites.add(t);
         }
 
-        whites.add(new Transition(0, 0));
+        for (String ev: relations){
+            whites.add(new Transition(0, ev, 0));
+        }
 
     }
 
@@ -252,9 +271,11 @@ class Automata {
         stateN = 2;
         q0 = 0;
         finalStates.add(1);
-        whites.add(new Transition(0, 0));
+        for (String ev: relations){
+            whites.add(new Transition(0, ev, 0));
+        }
         Transition prev = left.blacks.get(0);        
-        prev.formula += " && " + getPredicate(predicate);
+        prev.addFormula(getPredicate(predicate));
         blacks.add(prev);
     }
 
@@ -262,9 +283,11 @@ class Automata {
         stateN = 2;
         q0 = 0;
         finalStates.add(1);
-        String formula = "&& e instanceof " + node.children.getFirst().value.sequence;
-        blacks.add(new Transition(0, formula, 1));
-        whites.add(new Transition(0, 0));
+        String evType = node.children.getFirst().value.sequence;
+        blacks.add(new Transition(0, evType, 1));
+        for (String ev: relations){
+            whites.add(new Transition(0, ev, 0));
+        }
     }
 
     private String getPredicate(ASTNode predicate) throws Exception {
@@ -284,6 +307,150 @@ class Automata {
             default:
                 throw new Exception("Error building filter formula!");
         }
+    }
+
+    private void maxify(){
+        Set<MaxTuple> visited = new HashSet<MaxTuple>();
+        List<MaxTuple> current = new LinkedList<MaxTuple>();
+        List<MaxTuple> states = new LinkedList<MaxTuple>();
+        
+        MaxTuple init = new MaxTuple(new HashSet<Integer>(), new HashSet<Integer>());
+        init.T.add(q0);
+        
+        current.add(init);
+        states.add(init);
+        
+        Map<String, Map<String, List<Transition>>> blackMap = new HashMap<String, Map<String, List<Transition>>>();
+        List<MaxTuple> finals = new LinkedList<MaxTuple>();
+
+        Set<String> evTypes = relations;
+
+        List<MaxTransition> maxBlacks = new LinkedList<MaxTransition>();
+        List<MaxTransition> maxWhites = new LinkedList<MaxTransition>();
+
+        for (String ev: evTypes){
+            blackMap.put(ev, new HashMap<String, List<Transition>>());
+            blackMap.get(ev).put("", new LinkedList<Transition>());
+        }
+
+        for (Transition t: blacks){
+            Map<String, List<Transition>> evMap = blackMap.get(t.evType);
+            if (!evMap.containsKey(t.getFormula())){
+                evMap.put(t.getFormula(), new LinkedList<Transition>());
+            }
+            evMap.get(t.getFormula()).add(t);
+        }
+
+        while (current.size() > 0){
+            MaxTuple curr = current.remove(0);
+            if (curr.isFinal){
+                finals.add(curr);
+                continue;
+            }
+
+            Set<Integer> TW = new HashSet<Integer>();
+            Set<Integer> UW = new HashSet<Integer>();
+
+            for (Transition wt: whites){
+                if (curr.T.contains(wt.from)){
+                    TW.addAll(wt.to);
+                }
+                if (curr.U.contains(wt.from)){
+                    UW.addAll(wt.to);
+                }
+            }
+
+            for (String ev: evTypes){
+                
+                Map<String, List<Transition>> evMap = blackMap.get(ev);
+                
+                for (String form: evMap.keySet()){
+                    Set<Integer> TB = new HashSet<Integer>();
+                    Set<Integer> UB = new HashSet<Integer>();
+
+                    for (Transition bt: evMap.get(form)){
+                        if (curr.T.contains(bt.from)){
+                            TB.addAll(bt.to);
+                        }
+                        if (curr.U.contains(bt.from)){
+                            UB.addAll(bt.to);
+                        }
+                    }
+
+                    Set<Integer> newUB = new HashSet<Integer>(UB);
+                    Set<Integer> newTB = new HashSet<Integer>(TB);
+                    newTB.removeAll(newUB);
+
+                    if (newTB.size() > 0){
+                        MaxTuple newTup = new MaxTuple(newTB, newUB);
+                        
+                        for (int q: newTup.T){
+                            if (finalStates.contains(q)){
+                                newTup.isFinal = true;
+                                break;
+                            }
+                        }
+
+                        if (!visited.contains(newTup)){
+                            visited.add(newTup);
+                            current.add(newTup);
+                            states.add(newTup);
+                        }
+
+                        maxBlacks.add(new MaxTransition(curr, ev, form, newTup));
+                    }
+
+                    Set<Integer> newUW = new HashSet<Integer>(UB);
+                    newUW.addAll(UW);
+                    newUW.addAll(TB);
+                    Set<Integer> newTW = new HashSet<Integer>(TW);
+                    newTW.removeAll(newUW);
+        
+                    if (newTW.size() > 0){
+                        MaxTuple newTup = new MaxTuple(newTW, newUW);
+                        
+                        for (int q: newTup.T){
+                            if (finalStates.contains(q)){
+                                newTup.isFinal = true;
+                                break;
+                            }
+                        }
+    
+                        if (!visited.contains(newTup)){
+                            visited.add(newTup);
+                            current.add(newTup);
+                            states.add(newTup);
+                        }
+                        maxWhites.add(new MaxTransition(curr, ev, form, newTup)); 
+                    }
+                }
+            }
+        }
+
+        stateN = states.size();
+        q0 = 0;
+        finalStates = new HashSet<Integer>();
+
+
+        for (MaxTuple mt: finals){
+            finalStates.add(states.indexOf(mt));
+        }
+
+        blacks = new ArrayList<Transition>();
+        whites = new ArrayList<Transition>();
+
+        for (MaxTransition mt: maxBlacks){
+            Transition trans = new Transition(states.indexOf(mt.from), mt.evType, states.indexOf(mt.to));
+            trans.formula = mt.formula;
+            blacks.add(trans);
+        }
+
+        for (MaxTransition mt: maxWhites){
+            Transition trans = new Transition(states.indexOf(mt.from), mt.evType, states.indexOf(mt.to));
+            trans.formula = mt.formula;            
+            whites.add(trans);
+        }
+
     }
 
     public int getQ0(){
@@ -330,23 +497,25 @@ class Transition {
     int from;
     String formula;
     Set<Integer> to;
-    public Transition(int p, String formula, int q){
+    String evType;
+
+    public Transition(int p, String evType, int q){
         to = new HashSet<Integer>();
         from = p;
-        this.formula = formula;
+        this.evType = evType;
         to.add(q);
     }
 
-    public Transition(int p, String formula, Set<Integer> to){
+    public Transition(int p, String evType, Set<Integer> to){
         this.to = to;
         from = p;
-        this.formula = formula;
+        this.evType = evType;
     }
 
-    public Transition(int p, String formula){
+    public Transition(int p, String evType){
         to = new HashSet<Integer>();
         from = p;
-        this.formula = formula;
+        this.evType = evType;
     }
 
     public Transition(int p, int q){
@@ -356,6 +525,7 @@ class Transition {
         to = new HashSet<Integer>();
         from = p;
         formula = null;
+        evType = null;
     }
 
     public void addTo(int q){
@@ -379,20 +549,61 @@ class Transition {
         return to.toArray(new Integer[0]);
     }
 
+    public void addFormula(String formula){
+        if (this.formula == null){
+            this.formula = formula;
+        }
+        else {
+            this.formula += " && " + formula;
+        }
+    }
+
+    public String getFormula(){
+        return formula == null ? "" : formula;
+    }
+
+    public String getEvType(){
+        return evType == null ? "" : evType;
+    }
+
 }
 
 
-class MAXNode {
-    public Set<Integer> U;
-    public Set<Integer> T;
+class MaxTuple {
+    public final Set<Integer> T;        
+    public final Set<Integer> U;
+    public boolean isFinal;
 
-    public MAXNode(){
-        U = new HashSet<Integer>();
-        T = new HashSet<Integer>();
+    public MaxTuple(Set<Integer> T, Set<Integer> U){
+        this.T = new HashSet<Integer>(T);
+        this.U = new HashSet<Integer>(U);
     }
 
-    public MAXNode(Set<Integer> U, Set<Integer> T){
-        U = new HashSet<Integer>(U);
-        T = new HashSet<Integer>(T);
+    @Override
+    public final int hashCode(){
+        return 31 + this.T.hashCode() + 17 * this.U.hashCode();
+    }
+
+    @Override
+    public final boolean equals(final Object obj){
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        final MaxTuple other = (MaxTuple) obj;
+        return T.equals(other.T) && U.equals(other.U);
+    }
+}
+
+class MaxTransition {
+    MaxTuple from;
+    String evType;
+    String formula;
+    MaxTuple to;
+
+    public MaxTransition(MaxTuple from, String evType, String formula, MaxTuple to){
+        this.from = from;
+        this.to = to;
+        this.evType = evType;
+        this.formula = formula;
     }
 }

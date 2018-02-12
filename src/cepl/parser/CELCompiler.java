@@ -93,7 +93,7 @@ public class CELCompiler {
 		}
 
 		javac.addSource("cepl.motor.Engine", SourceCodeCreator.createEngine(
-			new Automata(root, varRelationMap)
+			new Automata(root, varRelationMap, events)
 		));
 	}
 

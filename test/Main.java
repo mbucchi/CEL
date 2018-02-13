@@ -19,11 +19,11 @@ public class Main {
         initialMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
         
         CELCompiler compiler = new CELCompiler();
-        compiler.addEventDefinition("A", "id", int.class);
-        compiler.addEventDefinition("B", "id", int.class);
-        compiler.addEventDefinition("C", "id", int.class);
-        compiler.addEventDefinition("D", "id", int.class);
-        compiler.addEventDefinition("E", "id", int.class);
+        compiler.addEventDefinition("A", "id", Integer.class);
+        compiler.addEventDefinition("B", "id", Integer.class);
+        compiler.addEventDefinition("C", "id", Integer.class);
+        compiler.addEventDefinition("D", "id", Integer.class);
+        compiler.addEventDefinition("E", "id", Integer.class);
         compiler.compileQuery(args[0]);
 
         CELEngine matcher = compiler.getEngine();
@@ -58,22 +58,34 @@ public class Main {
     }
     
 
-    static void matchTriggered(MatchGrouping mg){
+    static void matchTriggeredPrint(MatchGrouping mg){
         totalMem += Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - initialMem;
         totalMatches++;
         outputs += mg.size();
-        // System.out.println("\n[" + mg.lastEvent() + "] triggered a total of " + mg.size() + " outputs.");
+        System.out.println("\n[" + mg.lastEvent() + "] triggered a total of " + mg.size() + " outputs.");
 
         long startTime = System.nanoTime();
 
         for (Match m : mg){
-            // System.out.print("\t");        
+            System.out.print("\t");        
             for (Event e: m){
-                // System.out.print( e + " ");
+                System.out.print( e + " ");
             }
-            // System.out.println("");
+            System.out.println("");
         }
-        // System.out.println("");
+        System.out.println("");
+
+        enumTime += System.nanoTime() - startTime;
+    }
+
+    static void matchTriggered(MatchGrouping mg){
+        totalMem += Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - initialMem;
+        totalMatches++;
+        outputs += mg.size();
+
+        long startTime = System.nanoTime();
+
+        for (Match m : mg) for (Event e: m);
 
         enumTime += System.nanoTime() - startTime;
     }

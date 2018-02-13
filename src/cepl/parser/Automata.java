@@ -303,7 +303,16 @@ class Automata {
                 String var = first.children.getFirst().value.sequence;
                 String value = last.value.sequence;
                 String op = predicate.children.get(1).value.sequence;
-                return "((" + varRelationMap.get(var) +  ")e)." + property + " " + op + " " + value;
+                
+                if (op.equals("=")){
+                    return "((" + varRelationMap.get(var) +  ")e)." + property + ".equals(" + value + ")";
+                }
+                else if (op.equals("!=")){
+                    return "!((" + varRelationMap.get(var) +  ")e)." + property + ".equals(" + value + ")";
+                }
+                else {
+                    return "((" + varRelationMap.get(var) +  ")e)." + property + " " + op + " " + value;
+                }
             default:
                 throw new Exception("Error building filter formula!");
         }

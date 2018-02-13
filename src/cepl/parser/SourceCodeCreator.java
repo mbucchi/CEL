@@ -24,9 +24,9 @@ class SourceCodeCreator {
         event.append("    private static Map<String, Class> fieldDescriptions = Map.ofEntries(");
         for (int i = 0; i < fieldNames.length; i++){
             String fName = fieldNames[i];
-            fieldDescription.append("entry(\"" + fName + "\", " + fieldTypes[i] + ".class)");
-            properties.append("    " + fieldTypes[i] + " " + fName + ";\n");
-            setters.append("        " + fName + " = (" + fieldTypes[i] + ")args[" + i + "];\n");
+            fieldDescription.append("entry(\"" + fName + "\", " + fieldTypes[i].getName() + ".class)");
+            properties.append("    protected " + fieldTypes[i].getName() + " " + fName + ";\n");
+            setters.append("        " + fName + " = (" + fieldTypes[i].getName() + ")args[" + i + "];\n");
             getters.append("        if (field.equals(\"" + fName + "\")) return " + fName + ";\n");
             toString.append(fName + "=\" + " + fName + " + \"");
             if (i < fieldNames.length - 1){
@@ -36,7 +36,7 @@ class SourceCodeCreator {
         }
         event.append(fieldDescription.toString() + ");\n");
         event.append(properties.toString());
-        event.append("    public " + name + "(){super();}\n");
+        event.append("    protected " + name + "(){super();}\n");
 
         event.append("    protected void setValues(Object... args) throws IllegalAccessError {\n");
         event.append("        if (args.length > " + fieldNames.length + ") throw new IllegalAccessError(\"Tried to assign more fields than declared on event of type \\\"" + name + "\\\"\");\n");
@@ -179,6 +179,7 @@ class SourceCodeCreator {
         engine.append("    }\n");
     
         engine.append("}");
+
         return engine.toString();
     }
 

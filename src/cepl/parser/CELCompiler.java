@@ -69,6 +69,13 @@ public class CELCompiler {
 											   + name + "\" must be of type <Class>.");				
 			}
 		}
+
+		for (Class cls : types){
+			if (cls.isPrimitive()){
+				throw new EventDefinitionError("Field types on adittion of events cannot be primitive types. " 
+											   + "Use the wrapper class for type <" + cls.getName() + "> instead.");
+			}
+		}
 	
 	}
 

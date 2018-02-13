@@ -197,7 +197,7 @@ public class Match implements Iterable<cepl.motor.Event> {
 }
 ```
 
-`Event` objects represent each and every event on the stream as declared by you to the compiler. An example can be seen [here](#declaring-events). The class exposes the following methods (besides a few others that are not useful for this section):
+`Event` objects represent each and every event on the stream as declared by you to the compiler. An example can be seen [here](#declaring-event-types). The class exposes the following methods (besides a few others that are not useful for this section):
 
 ```Java
 public abstract class Event {

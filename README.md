@@ -141,7 +141,7 @@ class MyResultConsumerClass {
 Which is then instanced into an object called `myResultConsumer`, you would then have to do:
 
 ```Java
-matcher.setMatchCallback(myResultConsumer::matchTriggered);
+engine.setMatchCallback(myResultConsumer::matchTriggered);
 ```
 
 And voila! Your engine is ready to recieve events and hand you your results!

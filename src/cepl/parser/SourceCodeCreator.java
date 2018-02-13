@@ -36,7 +36,7 @@ class SourceCodeCreator {
         }
         event.append(fieldDescription.toString() + ");\n");
         event.append(properties.toString());
-        event.append("    protected " + name + "(){super();}\n");
+        event.append("    public " + name + "(){super();}\n");
 
         event.append("    protected void setValues(Object... args) throws IllegalAccessError {\n");
         event.append("        if (args.length > " + fieldNames.length + ") throw new IllegalAccessError(\"Tried to assign more fields than declared on event of type \\\"" + name + "\\\"\");\n");

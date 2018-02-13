@@ -42,32 +42,54 @@ class Tokenizer {
             col_n = 1;
             while (!s.equals("")){
                 boolean match = false;
-                for (TokenType t_type: TokenType.values()) {
-                    Matcher m = t_type.getMatcher(s);
-                    if (m.find()){
-                        match = true;
-                        
-                        String tok = m.group();
-                        col_n += tok.length();
-                        s = m.replaceFirst("");
-
-                        // consume white space
-                        if (t_type == TokenType.WS) {
+                if (s.charAt(0) == '\'' || s.charAt(0) == '"'){
+                    char delim = s.charAt(0);
+                    for (int idx = 1; idx < s.length(); idx++){
+                        if (s.charAt(idx) == delim && s.charAt(idx-1) != '\\'){
+                            match = true;
+                            tokens.add(new Token(fileName, TokenType.STRING, "\"" + s.substring(1, idx) +  "\"", line, line_n, col_n));
+                            col_n += idx+1;
+                            s = s.substring(idx+1, s.length());
                             break;
                         }
-
-                        tokens.add(new Token(fileName, t_type, tok, line, line_n, col_n - tok.length()));
-
-                        break;
+                    }
+                    if (!match) {
+                        throw new ParserException(
+                            "File \"" + fileName + "\", line " + line_n + "\n" +
+                            "\t" + line + "\n" +
+                            String.format("\t %" + ( col_n + s.length() ) + "s", "^\n") +
+                            "SyntaxError: EOL while scanning string literal"
+                        );
                     }
                 }
-                if (!match) {
-                    throw new ParserException(
-                        "File \"" + fileName + "\", line " + line_n + "\n" +
-                        "\t" + line + "\n" +
-                        String.format("\t %" + col_n + "s", "^\n") +
-                        "SyntaxError: invalid syntax"
-                    );
+                else {
+                    for (TokenType t_type: TokenType.values()) {
+                        Matcher m = t_type.getMatcher(s);
+                        if (m.find()){
+                            match = true;
+                            
+                            String tok = m.group();
+                            col_n += tok.length();
+                            s = m.replaceFirst("");
+    
+                            // consume white space
+                            if (t_type == TokenType.WS) {
+                                break;
+                            }
+    
+                            tokens.add(new Token(fileName, t_type, tok, line, line_n, col_n - tok.length()));
+    
+                            break;
+                        }
+                    }
+                    if (!match) {
+                        throw new ParserException(
+                            "File \"" + fileName + "\", line " + line_n + "\n" +
+                            "\t" + line + "\n" +
+                            String.format("\t %" + col_n + "s", "^\n") +
+                            "SyntaxError: invalid syntax"
+                        );
+                    }
                 }
             }
         }

@@ -179,7 +179,6 @@ class SourceCodeCreator {
         engine.append("    }\n");
     
         engine.append("}");
-
         return engine.toString();
     }
 

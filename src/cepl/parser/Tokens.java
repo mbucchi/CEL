@@ -41,6 +41,9 @@ enum TokenType {
     WS                  ( "[ \\t]+" ),
     NEWLINE             ( "(\\r?\\n|\\r)+"  ),
 
+    
+    // Non matching tokens
+    STRING              ( "[~.]" ),
     EOF                 ( "[~.]" );
     
 

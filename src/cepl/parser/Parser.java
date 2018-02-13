@@ -214,18 +214,32 @@ class Parser {
                 lookahead.throwParseError();
             }
             node.addChild(new ASTNode(NodeType.PRED_OP, lookahead));
+
+            Token op = lookahead;
             nextToken();
+            if (lookahead.type == TokenType.STRING && !op.sequence.equals("=")){
+                op.throwParseError("SyntaxError: Can only use equality and inequality operator over strings");
+            }
+            
             node.addChild(parseExpression());
             node = parseFilterContinuation(node);
         }
         else {
-            node = new ASTNode(NodeType.PREDICATE);            
+            node = new ASTNode(NodeType.PREDICATE);  
+            TokenType vartype = lookahead.type;          
             node.addChild(parseExpression());
             if (lookahead.type != TokenType.PRED_OP){
                 lookahead.throwParseError();
             }
+            
+            if (vartype == TokenType.STRING && !lookahead.sequence.equals("=")){
+                lookahead.throwParseError("SyntaxError: Can only use equality and inequality operator over strings");
+            }
+
             node.addChildFirst(new ASTNode(NodeType.PRED_OP, lookahead));  
+
             nextToken();
+
             node.addChildFirst(parseVariable());
             node = parseFilterContinuation(node);
         }
@@ -267,6 +281,13 @@ class Parser {
 
     private ASTNode parseExpression() throws ParserException {
         ASTNode node = new ASTNode(NodeType.VALUE);
+
+        if (lookahead.type == TokenType.STRING){
+            node.value = lookahead;
+            nextToken();
+            return node;
+        }
+
         double a = parseSignedTerm();
         TokenType op = lookahead.type;
         double b = parseSumOp();

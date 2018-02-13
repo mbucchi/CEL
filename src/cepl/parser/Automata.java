@@ -18,10 +18,10 @@ class Automata {
     private ArrayList<Transition> whites;
     private Map<String, String> varRelationMap;
     private NodeType semantic;
-    private Set<String> relations;
+    private  Map<String, Set<String>> relations;
 
 
-    public Automata(ASTNode node, Map<String, String> varRelationMap, Set<String> relations) throws Exception{
+    public Automata(ASTNode node, Map<String, String> varRelationMap, Map<String, Set<String>> relations) throws Exception{
         q0 = stateN = 0;
         finalStates = new HashSet<Integer>();
         blacks = new ArrayList<Transition>();
@@ -210,7 +210,7 @@ class Automata {
             whites.add(t);
         }
 
-        for (String ev: relations){
+        for (String ev: relations.keySet()){
             whites.add(new Transition(0, ev, 0));
         }
 
@@ -271,7 +271,7 @@ class Automata {
         stateN = 2;
         q0 = 0;
         finalStates.add(1);
-        for (String ev: relations){
+        for (String ev: relations.keySet()){
             whites.add(new Transition(0, ev, 0));
         }
         Transition prev = left.blacks.get(0);        
@@ -285,7 +285,7 @@ class Automata {
         finalStates.add(1);
         String evType = node.children.getFirst().value.sequence;
         blacks.add(new Transition(0, evType, 1));
-        for (String ev: relations){
+        for (String ev: relations.keySet()){
             whites.add(new Transition(0, ev, 0));
         }
     }
@@ -299,19 +299,24 @@ class Automata {
             case PRED_OR:
                 return "(" + getPredicate(first) + " || " + getPredicate(last) + ")";        
             case PREDICATE:
-                String property = first.children.getLast().value.sequence;
+                Token property = first.children.getLast().value;
                 String var = first.children.getFirst().value.sequence;
+                String rel = varRelationMap.get(var);
                 String value = last.value.sequence;
                 String op = predicate.children.get(1).value.sequence;
+
+                if (!relations.get(rel).contains(property.sequence)){
+                    property.throwParseError("AttributeError: Event of type \"" + rel + "\" has no attribute \"" + property.sequence + "\"");
+                }
                 
                 if (op.equals("=")){
-                    return "((" + varRelationMap.get(var) +  ")e)." + property + ".equals(" + value + ")";
+                    return "((" + rel +  ")e)." + property.sequence + ".equals(" + value + ")";
                 }
                 else if (op.equals("!=")){
-                    return "!((" + varRelationMap.get(var) +  ")e)." + property + ".equals(" + value + ")";
+                    return "!((" + rel +  ")e)." + property.sequence + ".equals(" + value + ")";
                 }
                 else {
-                    return "((" + varRelationMap.get(var) +  ")e)." + property + " " + op + " " + value;
+                    return "((" + rel +  ")e)." + property.sequence + " " + op + " " + value;
                 }
             default:
                 throw new Exception("Error building filter formula!");
@@ -332,7 +337,7 @@ class Automata {
         Map<String, Map<String, List<Transition>>> blackMap = new HashMap<String, Map<String, List<Transition>>>();
         List<MaxTuple> finals = new LinkedList<MaxTuple>();
 
-        Set<String> evTypes = relations;
+        Set<String> evTypes = relations.keySet();
 
         List<MaxTransition> maxBlacks = new LinkedList<MaxTransition>();
         List<MaxTransition> maxWhites = new LinkedList<MaxTransition>();

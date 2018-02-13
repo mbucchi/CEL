@@ -1,1 +1,1 @@
-A AS a ; B AS b ; C AS c FILTER not c.id = 0
+MAX ( A AS a + ; B AS b + ; C AS c )

@@ -19,7 +19,7 @@ public class CELCompiler {
 
 	private CELEngine engine;
 
-	private Set<String> events;
+	private Map<String, Set<String>> events;
 	private Map<String, String[]> fieldNames;
 	private Map<String, Class[]> fieldTypes;
 
@@ -31,24 +31,27 @@ public class CELCompiler {
 
 
 	public CELCompiler(){
-		events = new HashSet<String>();
+		events = new HashMap<String, Set<String>>();
 		fieldNames = new HashMap<String, String[]>();
 		fieldTypes = new HashMap<String, Class[]>();
 		javac = InMemoryJavaCompiler.newInstance();
 	}
 
 	public void addEventDefinition(String name, Object... fieldDefinitions) throws EventDefinitionError {
-		if (events.contains(name)){
+		if (events.containsKey(name)){
 			throw new EventDefinitionError("An event of name \"" + name + "\" has already been declared.");
 		}
 
-		events.add(name);
 		int i = 0;
 		ArrayList<String> names = new ArrayList<String>();
 		ArrayList<Class> types = new ArrayList<Class>();
 		try {
 			while(i < fieldDefinitions.length){
-				names.add((String)fieldDefinitions[i++]);
+				String pname = (String)fieldDefinitions[i++];
+				if (names.contains(name)){
+					throw new EventDefinitionError("Defining \"" + pname + "\" twice on adittion of event \"" + name + "\"");
+				}
+				names.add(pname);
 				types.add((Class)fieldDefinitions[i++]);
 			}
 			fieldNames.put(name, names.toArray(new String[0]));
@@ -69,6 +72,8 @@ public class CELCompiler {
 											   + name + "\" must be of type <Class>.");				
 			}
 		}
+
+		events.put(name, new HashSet<String>(names));
 
 		for (Class cls : types){
 			if (cls.isPrimitive()){
@@ -94,7 +99,7 @@ public class CELCompiler {
 	private void makeSourceCodes() throws Exception {
 
 		// Adding event types source codes
-		for (String eventName: events){
+		for (String eventName: events.keySet()){
 			String source = SourceCodeCreator.createEvent(eventName, fieldNames.get(eventName), fieldTypes.get(eventName));
 			javac.addSource("cepl.motor." + eventName, source);
 		}
@@ -108,7 +113,7 @@ public class CELCompiler {
 
 
 		Map<String, Class<?>> binaries = javac.compileAll();
-		for (String eventName: events){
+		for (String eventName: events.keySet()){
 			Event.addClass(eventName, binaries.get("cepl.motor." + eventName));
 		}
 		
@@ -117,11 +122,5 @@ public class CELCompiler {
 	
     public CELEngine getEngine() throws Exception{
         return engine;
-    }
-}
-
-class EventDefinitionError extends Exception {
-    public EventDefinitionError(String msg){
-        super(msg);
     }
 }

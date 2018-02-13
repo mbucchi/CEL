@@ -14,9 +14,11 @@ class Parser {
     private Token lookahead;
     private Set<String> relations;
     private Map<String, String> varRelations;
+    private Map<String, Set<String>> relationProperties;
 
-    public Parser(String fileName, Set<String> definedRelations) throws IOException, ParserException {
-        relations = definedRelations;
+    public Parser(String fileName, Map<String, Set<String>> relationProperties) throws IOException, ParserException {
+        this.relationProperties = relationProperties;
+        relations = relationProperties.keySet();
         this.fileName = fileName;
         Tokenizer tokenizer = new Tokenizer(fileName);
         tokens = tokenizer.getTokens();
@@ -218,7 +220,7 @@ class Parser {
             Token op = lookahead;
             nextToken();
             if (lookahead.type == TokenType.STRING && !op.sequence.equals("=")){
-                op.throwParseError("SyntaxError: Can only use equality and inequality operator over strings");
+                op.throwParseError("ComparisonError: Can only use equality and inequality operator over strings");
             }
             
             node.addChild(parseExpression());
@@ -233,7 +235,7 @@ class Parser {
             }
             
             if (vartype == TokenType.STRING && !lookahead.sequence.equals("=")){
-                lookahead.throwParseError("SyntaxError: Can only use equality and inequality operator over strings");
+                lookahead.throwParseError("ComparisonError: Can only use equality and inequality operator over strings");
             }
 
             node.addChildFirst(new ASTNode(NodeType.PRED_OP, lookahead));  
@@ -266,6 +268,7 @@ class Parser {
             lookahead.throwParseError();   
         }
         node.addChild(new ASTNode(NodeType.VARIABLE, lookahead));
+
         nextToken();
         if (lookahead.type != TokenType.DOT){
             lookahead.throwParseError();               
@@ -274,6 +277,7 @@ class Parser {
         if (lookahead.type != TokenType.WORD){
             lookahead.throwParseError();               
         }
+
         node.addChild(new ASTNode(NodeType.PROPERTY, lookahead));                    
         nextToken();
         return node;

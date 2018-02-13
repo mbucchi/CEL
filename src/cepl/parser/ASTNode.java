@@ -273,7 +273,7 @@ class ASTNode {
         }
     }
 
-    public void lpNormalize(){
+    public void lpNormalize() throws WellformedException {
         setVars();
         checkWellformness();
         checkSafeness();
@@ -507,13 +507,6 @@ class ASTNode {
     }
 }
 
-
-
-class WellformedException extends RuntimeException {
-    public WellformedException(String msg){
-        super(msg);
-    }
-}
 
 class SafeFormulaWarning {
 

@@ -3,7 +3,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-import cepl.parser.CELCompiler;
+import cepl.parser.*;
 import cepl.motor.*;
 
 public class Main {
@@ -12,7 +12,7 @@ public class Main {
     static long totalMatches = 0;
     static long totalMem = 0;
     static long initialMem = 0;
-
+    static long compileTime = 0;
     static long enumTime = 0;
 
     public static void main(String[] args) throws Exception{
@@ -24,35 +24,49 @@ public class Main {
         compiler.addEventDefinition("C", "id", Integer.class);
         compiler.addEventDefinition("D", "id", Integer.class);
         compiler.addEventDefinition("E", "id", Integer.class);
-        compiler.compileQuery(args[0]);
 
-        CELEngine matcher = compiler.getEngine();
-        matcher.setDiscardPartials(true);
-        matcher.setMatchCallback(Main::matchTriggered);
+
+        compileTime = System.nanoTime();
+        try {
+            compiler.compileQuery(args[0]);
+        }
+        catch (ParserException | WellformedException ex){
+            System.err.println(ex.getMessage());
+            System.exit(1);
+        }
+        compileTime = System.nanoTime() - compileTime;
+        CELEngine engine = compiler.getEngine();
+        
+        engine.setDiscardPartials(true);
+        engine.setMatchCallback(Main::matchTriggered);
 
         try {
             FileReader file = new FileReader(args[1]);
             BufferedReader stream = new BufferedReader(file);
             
             String line;
-            int id;
+            Event e;
 
             while ((line = stream.readLine()) != null){
-                String name = line.substring(0, 1);
-                id = Integer.parseInt(line.substring(5, line.length() - 1));
-                Event e = Event.newEvent(name, id);
-                matcher.newValue(e);
+                String values[] = line.split("[\\(\\)]");
+                String name = values[0];
+                values = values[1].split("=");
+                e = Event.newEvent(name, Integer.parseInt(values[1]));
+                engine.newValue(e);
             }
         }
         catch (FileNotFoundException ex){
-            System.out.println("Unable to open file '" + args[0] + "'");
+            System.err.println("Unable to open file '" + args[1] + "'");
+            System.exit(1);
         }
         catch (IOException ex) {
-            System.out.println("Unable to read file '" + args[0] + "'");
+            System.err.println("Unable to read file '" + args[1] + "'");
+            System.exit(1);
         }
         totalMatches = totalMatches > 0 ? totalMatches : 1;
+        System.out.println("Query compilation time: " + ((double)compileTime / 1000000000));
         System.out.println("Total outputs: " + outputs);
-        System.out.println("Total execution time: " + matcher.getExecutionTime());
+        System.out.println("Total execution time: " + engine.getExecutionTime());
         System.out.println("Total enumeration time: " + ((double)enumTime / 1000000000));
         System.out.println("Average memory usage before match: " + (totalMem / totalMatches) +  " Bytes.");
     }

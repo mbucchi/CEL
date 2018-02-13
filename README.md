@@ -249,7 +249,7 @@ which would allow you to compile your program with no need to reference `CEL.jar
 
 ## Creating _CEL_ queries
 
-Before creating a _CEL_ query, you must now the nature of the stream that will be fed into the _CEL_ engine. All you need to know are the properties and names of the events that form part of the stream. These should be the same as the events you declared to the engine instance (see previous section).
+Before creating a _CEL_ query, you must now the nature of the stream that will be fed into the _CEL_ engine. All you need to know are the properties and names of the events that form part of the stream. These should be the same as the events you declared to the engine instance (see [here](#declaring-event-types)).
 
 ### Assignment
 The most important part within a _CEL_ queries are assignments. These define what events will be selected from the stream to form part of a complex event. The syntax is pretty straight forward:

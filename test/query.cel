@@ -1,1 +1,5 @@
-MAX ( A AS a + ; B AS b + ; C AS c )
+SELECT *
+FROM S1, S2, S3
+WHERE A ; B ; C
+FILTER A.opinion = 10
+CONSUME BY PARTITION

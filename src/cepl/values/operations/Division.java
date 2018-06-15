@@ -3,18 +3,10 @@ package cepl.values.operations;
 import cepl.values.Value;
 import cepl.values.ValueType;
 
-public class Division extends Operation {
-    private Value lhs, rhs;
+public class Division extends BinaryOperation {
 
     public Division(Value lhs, Value rhs) throws IncompatibleValueType {
-        // TODO: optimizations
-        this.lhs = lhs;
-        this.rhs = rhs;
-
-        valueTypes = ValueType.ANY();
-        valueTypes.retainAll(lhs.getTypes());
-        valueTypes.retainAll(rhs.getTypes());
-
+        super(lhs, rhs);
         // division is only valid over numeric types
         if (!valueTypes.contains(ValueType.NUMERIC)){
             throw new IncompatibleValueType();

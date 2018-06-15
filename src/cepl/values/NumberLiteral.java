@@ -1,13 +1,11 @@
 package cepl.values;
 
-import java.util.EnumSet;
-
 public class NumberLiteral extends Literal {
 
     private double value;
 
-    public NumberLiteral(double value){
-        valueTypes = EnumSet.of(ValueType.NUMERIC);
+    private NumberLiteral(double value){
+        super(ValueType.NUMERIC);
         this.value = value;
     }
 

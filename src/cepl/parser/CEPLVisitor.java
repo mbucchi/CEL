@@ -352,20 +352,6 @@ public interface CEPLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitNumber_range(CEPLParser.Number_rangeContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code number_range_lower}
-	 * labeled alternative in {@link CEPLParser#number_seq}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitNumber_range_lower(CEPLParser.Number_range_lowerContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code number_range_upper}
-	 * labeled alternative in {@link CEPLParser#number_seq}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitNumber_range_upper(CEPLParser.Number_range_upperContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link CEPLParser#string_seq}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

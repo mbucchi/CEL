@@ -44,6 +44,10 @@ public class Transition {
         return predicate.containsLabel(label);
     }
 
+    public boolean isBlack(){
+        return transitionType == TransitionType.BLACK;
+    }
+
     public void addFilter(EventFilter filter){
         predicate.addFilter(filter);
     }
@@ -52,15 +56,26 @@ public class Transition {
         return predicate.getFilterCollection();
     }
 
-    public void addLabel(Label label){
+    void addLabel(Label label){
         predicate.addLabel(label);
     }
 
-    public Transition copy() {
+    Transition copy() {
         return new Transition(fromState, toState, predicate.copy(), transitionType);
     }
 
-    public TransitionType getType() {
+    TransitionType getType() {
         return transitionType;
+    }
+
+    @Override
+    public String toString() {
+        return transitionType.toString() + "Transition(" +
+                fromState +
+                ", " +
+                toState +
+                ", " +
+                predicate.toString() +
+                ")";
     }
 }

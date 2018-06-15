@@ -19,83 +19,20 @@ public class InequalityEventFilter extends SimpleEventFilter {
     @Override
     public boolean equivalentTo(FilterComparable filter) {
         if (this == filter) return true;
-        if (filter instanceof InequalityEventFilter){
-            return logicalOperation.equals(((InequalityEventFilter) filter).logicalOperation) &&
-                    lhs.equals(((InequalityEventFilter) filter).lhs) &&
-                    rhs.equals(((InequalityEventFilter) filter).rhs);
-        }
-        // compound filters already have their comparisons implemented
         if (filter instanceof CompoundEventFilter) return filter.equivalentTo(this);
+
+        // TODO: compare other kinds of filters
         return false;
     }
 
     @Override
     public boolean dominates(FilterComparable filter) {
         if (equivalentTo(filter)) return true;
-        if (filter instanceof InequalityEventFilter) {
-            if (!lhs.equals(((InequalityEventFilter) filter).lhs)){
-                return false;
-            }
-            switch (logicalOperation){
-                case LESS:
-                    switch (((InequalityEventFilter) filter).logicalOperation){
-                        case LESS_EQUALS:
-                            if (rhs.equals(((InequalityEventFilter) filter).rhs)) return true;
-                        case EQUALS:
-                            return rhs.lessThan(((InequalityEventFilter) filter).rhs);
-                    }
-                    return false;
-                case LESS_EQUALS:
-                    switch (((InequalityEventFilter) filter).logicalOperation){
-                        case LESS_EQUALS:
-                        case LESS:
-                            return rhs.lessThan(((InequalityEventFilter) filter).rhs);
-                    }
-                    return false;
-                case GREATER:
-                    switch (((InequalityEventFilter) filter).logicalOperation){
-                        case GREATER_EQUALS:
-                            if (rhs.equals(((InequalityEventFilter) filter).rhs)) return true;
-                        case GREATER:
-                            return rhs.greaterThan(((InequalityEventFilter) filter).rhs);
-                    }
-                    return false;
-                case GREATER_EQUALS:
-                    switch (((InequalityEventFilter) filter).logicalOperation){
-                        case GREATER_EQUALS:
-                        case GREATER:
-                            return rhs.greaterThan(((InequalityEventFilter) filter).rhs);
-                    }
-                    return false;
-            }
-        }
-        if (filter instanceof EqualityEventFilter){
-            if (!lhs.equals(((EqualityEventFilter) filter).lhs)){
-                return false;
-            }
-            if (((EqualityEventFilter) filter).logicalOperation == LogicalOperation.NOT_EQUALS){
-                switch (logicalOperation){
-                    case LESS_EQUALS:
-                        if (rhs.equals(((EqualityEventFilter) filter).rhs)) return false;
-                    // fall through
-                    case LESS:
-                        return rhs.lessThan(((EqualityEventFilter) filter).rhs);
-                    case GREATER_EQUALS:
-                        if (rhs.equals(((EqualityEventFilter) filter).rhs)) return false;
-                        // fall through
-                    case GREATER:
-                        return rhs.greaterThan(((EqualityEventFilter) filter).rhs);
-                }
-            }
-            // no way an inequality dominates a strict equality.
-            return false;
-        }
-
         if (filter instanceof CompoundEventFilter) {
             return ((CompoundEventFilter) filter).dominatedBy(this);
         }
 
-        // incomparable maybe ??
+        // TODO: compare other kinds of filters
         return false;
     }
 

@@ -1,24 +1,13 @@
 package cepl.values;
 
-import java.util.EnumSet;
-
 public class Attribute extends Literal {
 
     private String name;
 
-    public Attribute(String name, ValueType valueType) {
-        this.name = name;
-        this.valueTypes = EnumSet.of(valueType);
-    }
-
-    public Attribute(String name, EnumSet<ValueType> valueType) {
-        this.name = name;
-        this.valueTypes = valueType;
-    }
-
     public Attribute(String name) {
+        super();
         this.name = name;
-        valueTypes = ValueType.ANY();
+        attributes.add(this);
     }
 
     public String getName() {
@@ -33,6 +22,11 @@ public class Attribute extends Literal {
     }
 
     @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
+    @Override
     public boolean lessThan(Value otherValue) {
         return false;
     }
@@ -40,5 +34,10 @@ public class Attribute extends Literal {
     @Override
     public boolean greaterThan(Value otherValue) {
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

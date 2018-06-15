@@ -14,46 +14,20 @@ public class EqualityEventFilter extends SimpleEventFilter {
     @Override
     public boolean equivalentTo(FilterComparable filter) {
         if (this == filter) return true;
-        if (filter instanceof EqualityEventFilter){
-            return logicalOperation.equals(((EqualityEventFilter) filter).logicalOperation) &&
-                    lhs.equals(((EqualityEventFilter) filter).lhs) &&
-                    rhs.equals(((EqualityEventFilter) filter).rhs);
-        }
-//        if (filter instanceof InequalityEventFilter) return false;
-
-        // compound filters already have their comparisons implemented
         if (filter instanceof CompoundEventFilter) return filter.equivalentTo(this);
+
+        // TODO: compare other kinds of filters
         return false;
     }
 
     @Override
     public boolean dominates(FilterComparable filter) {
         if (equivalentTo(filter)) return true;
-        if (filter instanceof InequalityEventFilter) {
-            if (!lhs.equals(((InequalityEventFilter) filter).lhs)){
-                return false;
-            }
-            if (logicalOperation == LogicalOperation.EQUALS){
-                switch (((InequalityEventFilter) filter).logicalOperation){
-                    case LESS_EQUALS:
-                        if (rhs.equals(((InequalityEventFilter) filter).rhs)) return true;
-                    case LESS:
-                        return rhs.lessThan(((InequalityEventFilter) filter).rhs);
-                    case GREATER_EQUALS:
-                        if (rhs.equals(((InequalityEventFilter) filter).rhs)) return true;
-                    case GREATER:
-                        return rhs.greaterThan(((InequalityEventFilter) filter).rhs);
-                }
-            }
-            else { // NOT_EQUALS can't dominate any inequality
-                return false;
-            }
-        }
         if (filter instanceof CompoundEventFilter) {
             return ((CompoundEventFilter) filter).dominatedBy(this);
         }
 
-        // incomparable ?
+        // TODO: compare other kinds of filters
         return false;
     }
 

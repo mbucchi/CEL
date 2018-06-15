@@ -3,19 +3,12 @@ package cepl.values.operations;
 import cepl.values.Value;
 import cepl.values.ValueType;
 
-public class Addition extends Operation {
-    private Value lhs, rhs;
+public class Addition extends BinaryOperation {
 
     public Addition(Value lhs, Value rhs) throws IncompatibleValueType {
-        // TODO: optimizations
-        this.lhs = lhs;
-        this.rhs = rhs;
-
-        valueTypes = ValueType.ANY();
-        valueTypes.retainAll(lhs.getTypes());
-        valueTypes.retainAll(rhs.getTypes());
-
-        if (valueTypes.size() == 0){
+        super(lhs, rhs);
+        // additions is compatible with strings and numbers
+        if (!valueTypes.contains(ValueType.NUMERIC) && !valueTypes.contains(ValueType.STRING)){
             throw new IncompatibleValueType();
         }
     }

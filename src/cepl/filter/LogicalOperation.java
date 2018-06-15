@@ -1,17 +1,23 @@
 package cepl.filter;
 
 public enum LogicalOperation {
-    EQUALS,
-    GREATER,
-    GREATER_EQUALS,
-    IN,
-    LESS_EQUALS,
-    LESS,
-    LIKE,
-    NOT_LIKE,
-    NOT_EQUALS,
-    NOT_IN,
-    OR;
+    EQUALS("=="),
+    GREATER(">"),
+    GREATER_EQUALS(">="),
+    IN("IN"),
+    LESS_EQUALS("<="),
+    LESS("<"),
+    LIKE("LIKE"),
+    NOT_LIKE("NOT LIKE"),
+    NOT_EQUALS("!="),
+    NOT_IN("NOT IN"),
+    OR("||");
+
+    private String symbol;
+
+    LogicalOperation(String symbol) {
+        this.symbol = symbol;
+    }
 
     LogicalOperation negate(){
         switch (this) {
@@ -57,5 +63,10 @@ public enum LogicalOperation {
             default:
                 throw new Error("Impossible to flip logical operation " + this.name());
         }
+    }
+
+    @Override
+    public String toString() {
+        return symbol;
     }
 }

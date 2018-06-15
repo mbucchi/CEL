@@ -1,9 +1,11 @@
 package cepl.compiler.visitors;
 
 import cepl.cea.utils.Label;
+import cepl.cea.utils.NoSuchLabelException;
 import cepl.filter.*;
 import cepl.parser.CEPLBaseVisitor;
 import cepl.parser.CEPLParser;
+import cepl.runtime.errors.ParseError;
 
 public class FilterVisitor extends CEPLBaseVisitor<PatternFilter> {
 
@@ -21,10 +23,15 @@ public class FilterVisitor extends CEPLBaseVisitor<PatternFilter> {
 
     @Override
     public PatternFilter visitEvent_filter(CEPLParser.Event_filterContext ctx) {
-        Label label = Label.forName(ctx.event_name().getText());
-        EventFilter eventFilter = ctx.bool_expr().accept(new BoolExprVisitor(label));
-
-        return eventFilter;
+        String labelName = ctx.event_name().getText();
+        try {
+            Label label = Label.get(labelName);
+            EventFilter eventFilter = ctx.bool_expr().accept(new BoolExprVisitor(label));
+            return eventFilter;
+        }
+        catch (NoSuchLabelException exc){
+            throw new ParseError("NameError: event or label '" + labelName + "' was never declared");
+        }
     }
 
     @Override

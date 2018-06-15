@@ -110,7 +110,7 @@ bool_expr
  | string_literal ( EQ | NEQ ) string_literal                  # equality_string_expr
  | bool_expr K_AND bool_expr                                   # and_expr
  | bool_expr K_OR bool_expr                                    # or_expr
- | attribute_name K_LIKE REGEXP                                # regex_expr
+ | attribute_name K_LIKE string                                # regex_expr
  | attribute_name ( K_IN | K_NOT K_IN ) value_seq              # containment_expr
  ;
 
@@ -136,8 +136,8 @@ value_seq
 number_seq
  : '[' number (',' number)* ']'            # number_list
  | '[' number '..' number ']'              # number_range
- | '[' number '..' ']'                     # number_range_lower
- | '[' '..' number ']'                     # number_range_upper
+// | '[' number '..' ']'                     # number_range_lower
+// | '[' '..' number ']'                     # number_range_upper
  ;
 
 string_seq
@@ -272,7 +272,7 @@ EQ  : '==' | '='  ;
 NEQ : '!=' | '<>' ;
 
 IDENTIFIER
- :  '`' (~'`' | '``')* '`'
+ :  '`' (~'`')* '`'
  | [a-zA-Z_] [a-zA-Z_0-9]*
  ;
 
@@ -291,12 +291,9 @@ NUMERICAL_EXPONENT
  : E '-'? DIGIT+
  ;
 
-REGEXP
- : STRING_LITERAL
- ;
-
 STRING_LITERAL
- : '\'' ( ~'\'' | '\'\'' )* '\''
+ : '\'' ( '\\\'' | ~'\'' )* '\''
+ | '"' (  '\\"' | ~'"' )* '"'
  ;
 
 SINGLE_LINE_COMMENT

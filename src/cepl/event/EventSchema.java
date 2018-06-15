@@ -1,20 +1,18 @@
 package cepl.event;
 
 import cepl.cea.utils.Label;
+import cepl.cea.utils.NoSuchLabelException;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 public class EventSchema {
 
     private static Map<String, EventSchema> allSchemas = new HashMap<>();
-    public static final String TIMESTAMP_ATTR = "__ts";
-    public static final String STREAM_ID_ATTR = "__stream";
-    public static final String INDEX_ATTR = "__idx";
-    public static final String TYPE_ATTR = "__type";
+    private static final String TIMESTAMP_ATTR = "__ts";
+    private static final String STREAM_ID_ATTR = "__stream";
+    private static final String INDEX_ATTR = "__idx";
+    private static final String TYPE_ATTR = "__type";
 
     private static final Map<String, Class> restrictedAttributes = Map.ofEntries(
             Map.entry(TIMESTAMP_ATTR, long.class),      // timestamp
@@ -22,8 +20,6 @@ public class EventSchema {
             Map.entry(INDEX_ATTR, long.class),          // event position in event feed
             Map.entry(TYPE_ATTR, int.class)             // event type as int
     );
-
-
 
     public static EventSchema tryGetSchemaFor(String eventName) {
         // can return null
@@ -79,6 +75,8 @@ public class EventSchema {
         this.attributes.putAll(restrictedAttributes);
         allSchemas.put(name, this);
         eventType = allSchemas.size();
+
+        Label.forName(name, Set.of(this));
     }
 
     public EventSchema(String name) throws EventException {
@@ -91,11 +89,20 @@ public class EventSchema {
     }
 
     public Label getNameLabel() {
-        return Label.forName(name);
+        try {
+            return Label.get(name);
+        }
+        catch (NoSuchLabelException exc) {
+            return Label.forName(name, Set.of(this));
+        }
     }
 
     public int getEventType() {
         return eventType;
+    }
+
+    public Map<String, Class> getAttributes() {
+        return attributes;
     }
 
     @Override

@@ -1,13 +1,16 @@
 package cepl.values;
 
-import java.util.EnumSet;
+import cepl.parser.utils.StringCleaner;
 
 public class StringLiteral extends Literal {
 
     private String value;
 
     public StringLiteral(String value){
-        valueTypes = EnumSet.of(ValueType.STRING);
+        super(ValueType.STRING);
+        if (StringCleaner.hasQuotes(value)){
+            value = StringCleaner.removeQuotes(value);
+        }
         this.value = value;
     }
 

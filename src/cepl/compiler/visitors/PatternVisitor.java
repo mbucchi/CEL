@@ -1,6 +1,6 @@
 package cepl.compiler.visitors;
 
-import cepl.cea.CEA;
+import cepl.cea.*;
 import cepl.cea.utils.Label;
 import cepl.filter.PatternFilter;
 import cepl.parser.CEPLBaseVisitor;
@@ -47,10 +47,10 @@ public class PatternVisitor extends CEPLBaseVisitor<CEA> {
         // binary could be either `OR` or `;`.
 
         if (ctx.K_OR() != null){
-            return CEA.createOrCEA(left, right);
+            return new OrCEA(left, right);
         }
         else {
-            return CEA.createSeqCEA(left, right);
+            return new SequenceCEA(left, right);
         }
     }
 
@@ -61,7 +61,7 @@ public class PatternVisitor extends CEPLBaseVisitor<CEA> {
 
         CEA inner = ctx.cel_pattern().accept(newVisitor);
 
-        return CEA.createKleeneCEA(inner);
+        return new KleeneCEA(inner);
     }
 
     @Override
@@ -69,11 +69,12 @@ public class PatternVisitor extends CEPLBaseVisitor<CEA> {
         // the context remains the same, no need for creating a new visitor
         PatternVisitor newVisitor = this;
 
-        String newLabel = ctx.event_name().getText();
-        Label label = Label.forName(newLabel);
         CEA inner = ctx.cel_pattern().accept(newVisitor);
 
-        return inner.relabelCEA(label);
+        String newLabel = ctx.event_name().getText();
+        Label label = Label.forName(newLabel, inner.getEventSchemas());
+
+        return new AssignCEA(inner, label);
     }
 
     @Override
@@ -99,7 +100,7 @@ public class PatternVisitor extends CEPLBaseVisitor<CEA> {
             }
 
             // Create a selection CEA that filters for the given stream
-            return CEA.createSelectionCEA(streamSchema, EventSchema.getSchemaFor(eventName));
+            return new SelectionCEA(streamSchema, EventSchema.getSchemaFor(eventName));
         }
         else {
             // no stream is defined, just check that the event is declared within the scope of the
@@ -109,7 +110,7 @@ public class PatternVisitor extends CEPLBaseVisitor<CEA> {
                 // TODO: `NameError: Event <name> is not defined within any of the query streams`
             }
             // Create a selection CEA with no filters
-            return CEA.createSelectionCEA(EventSchema.getSchemaFor(eventName));
+            return new SelectionCEA(EventSchema.getSchemaFor(eventName));
         }
     }
 

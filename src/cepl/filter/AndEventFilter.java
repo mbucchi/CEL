@@ -14,7 +14,7 @@ public class AndEventFilter extends CompoundEventFilter {
         addEventFilter(right);
     }
 
-    public AndEventFilter(Label label, Collection<EventFilter> eventFilters){
+    AndEventFilter(Label label, Collection<EventFilter> eventFilters){
         super(label);
         for (EventFilter eventFilter : eventFilters){
             addEventFilter(eventFilter);
@@ -39,9 +39,26 @@ public class AndEventFilter extends CompoundEventFilter {
         return new OrEventFilter(label, negatedInnerFilters);
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof AndEventFilter)) return false;
+        for (EventFilter thisFilter : eventFilterCollection) {
+            boolean anyEqual = false;
+            for (EventFilter otherFilter : ((AndEventFilter) obj).eventFilterCollection) {
+                if (thisFilter.equals(otherFilter)){
+                    anyEqual = true;
+                    break;
+                }
+            }
+            if (!anyEqual) return false;
+        }
+        return true;
+    }
+
     void addEventFilter(EventFilter eventFilter){
         if (!eventFilter.label.equals(label)){
-            throw new Error("Inner filters must have the same labels and attributes");
+            throw new Error("Inner filters must have the same labels");
         }
         if (eventFilter instanceof AndEventFilter){
             for (EventFilter ev : ((AndEventFilter) eventFilter).eventFilterCollection) {
@@ -60,14 +77,15 @@ public class AndEventFilter extends CompoundEventFilter {
             }
             newEventFilters.add(eventFilter);
             eventFilterCollection = newEventFilters;
+            // new event may be more restrictive, we need to update value types
+            valueTypes.retainAll(eventFilter.valueTypes);
         }
     }
 
     @Override
     public boolean equivalentTo(FilterComparable filter) {
-        if (this == filter) return true;
+        return this.equals(filter);
         // TODO: not yet sure how to check this
-        return false;
     }
 
     @Override

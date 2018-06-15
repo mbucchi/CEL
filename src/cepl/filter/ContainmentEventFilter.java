@@ -13,7 +13,7 @@ public class ContainmentEventFilter extends ComplexEventFilter {
 
     private Collection<Literal> literalCollection;
 
-    public ContainmentEventFilter(Label label,
+    private ContainmentEventFilter(Label label,
                                   Attribute attribute,
                                   ValueType valueType,
                                   LogicalOperation logicalOperation){
@@ -38,7 +38,7 @@ public class ContainmentEventFilter extends ComplexEventFilter {
         }
     }
 
-    void addLiteral(Literal literal){
+    private void addLiteral(Literal literal){
         if (literal.isOfType(valueType)){
             throw new Error("Wrong type of values");
         }

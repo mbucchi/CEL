@@ -20,12 +20,14 @@ public class LikeEventFilter extends SimpleEventFilter {
 
     @Override
     public boolean equivalentTo(FilterComparable filter) {
-        return false;
+        return this.equals(filter);
+        // TODO: compare other kinds of filters
     }
 
     @Override
     public boolean dominates(FilterComparable filter) {
-        return false;
+        return equivalentTo(filter);
+        // TODO: compare other kinds of filters
     }
 
     @Override

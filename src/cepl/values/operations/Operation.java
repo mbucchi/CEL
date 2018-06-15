@@ -2,6 +2,20 @@ package cepl.values.operations;
 import cepl.values.Value;
 
 public abstract class Operation extends Value {
+    Operation(Value lhs, Value rhs) {
+        super();
+        valueTypes.retainAll(lhs.getTypes());
+        valueTypes.retainAll(rhs.getTypes());
+        attributes.addAll(lhs.getAttributes());
+        attributes.addAll(rhs.getAttributes());
+    }
+
+    Operation(Value inner) {
+        super();
+        valueTypes.retainAll(inner.getTypes());
+        attributes.addAll(inner.getAttributes());
+    }
+
     public abstract String toString();
 
     @Override

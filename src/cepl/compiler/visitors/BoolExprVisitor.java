@@ -51,12 +51,6 @@ class BoolExprVisitor extends CEPLBaseVisitor<EventFilter> {
 //        else if (ctx instanceof CEPLParser.Number_rangeContext){
 //
 //        }
-//        else if (ctx instanceof CEPLParser.Number_range_lowerContext) {
-//
-//        }
-//        else if (ctx instanceof CEPLParser.Number_range_upperContext) {
-//
-//        }
         throw new Error("not implemented yet");
     }
 
@@ -98,25 +92,6 @@ class BoolExprVisitor extends CEPLBaseVisitor<EventFilter> {
         }
     }
 
-
-//    private String attributeFromMathExpr(CEPLParser.Math_exprContext left, CEPLParser.Math_exprContext right) {
-//
-//        while (left instanceof CEPLParser.Par_math_exprContext) {
-//            left = ((CEPLParser.Par_math_exprContext) left).math_expr();
-//        }
-//        if (left instanceof CEPLParser.Attribute_math_exprContext){
-//            return ((CEPLParser.Attribute_math_exprContext) left).attribute_name().getText();
-//        }
-//
-//        while (right instanceof CEPLParser.Par_math_exprContext) {
-//            right = ((CEPLParser.Par_math_exprContext) right).math_expr();
-//        }
-//        if (right instanceof CEPLParser.Attribute_math_exprContext){
-//            return ((CEPLParser.Attribute_math_exprContext) right).attribute_name().getText();
-//        }
-//
-//        return null;
-//    }
 
     @Override
     public EventFilter visitInequality_expr(CEPLParser.Inequality_exprContext ctx) {
@@ -171,11 +146,36 @@ class BoolExprVisitor extends CEPLBaseVisitor<EventFilter> {
         throw new Error("Unknown inequality type");
     }
 
+    @Override
+    public EventFilter visitEquality_string_expr(CEPLParser.Equality_string_exprContext ctx) {
+        Attribute attribute;
+        StringLiteral stringLiteral;
+
+        CEPLParser.String_literalContext left = ctx.string_literal(0);
+        CEPLParser.String_literalContext right = ctx.string_literal(1);
+
+        if (left.attribute_name() != null){
+            attribute = new Attribute(left.getText());
+            stringLiteral = new StringLiteral(right.getText());
+        }
+        else {
+            stringLiteral = new StringLiteral(left.getText());
+            attribute = new Attribute(right.getText());
+        }
+
+        if (ctx.EQ() != null) {
+            return new EqualityEventFilter(label, attribute, LogicalOperation.EQUALS, stringLiteral);
+        }
+        else if (ctx.NEQ() != null) {
+            return new EqualityEventFilter(label, attribute, LogicalOperation.NOT_EQUALS, stringLiteral);
+        }
+        throw new Error("Unknown inequality type");
+    }
 
     @Override
     public EventFilter visitRegex_expr(CEPLParser.Regex_exprContext ctx) {
         Attribute attribute = new Attribute(ctx.attribute_name().getText());
-        StringLiteral regex = new StringLiteral(ctx.REGEXP().getText());
+        StringLiteral regex = new StringLiteral(ctx.string().getText());
         return new LikeEventFilter(label, attribute, regex);
     }
 }

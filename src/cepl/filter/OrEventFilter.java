@@ -2,6 +2,7 @@ package cepl.filter;
 
 import cepl.cea.Transition;
 import cepl.cea.utils.Label;
+import cepl.event.Event;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,7 +15,7 @@ public class OrEventFilter extends CompoundEventFilter {
         addEventFilter(right);
     }
 
-    public OrEventFilter(Label label, Collection<EventFilter> eventFilters){
+    OrEventFilter(Label label, Collection<EventFilter> eventFilters){
         super(label);
         for (EventFilter eventFilter : eventFilters){
             addEventFilter(eventFilter);
@@ -34,7 +35,24 @@ public class OrEventFilter extends CompoundEventFilter {
             negatedInnerFilters.add(ev.negate());
         }
 
-        return new OrEventFilter(label, negatedInnerFilters);
+        return new AndEventFilter(label, negatedInnerFilters);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof OrEventFilter)) return false;
+        for (EventFilter thisFilter : eventFilterCollection) {
+            boolean anyEqual = false;
+            for (EventFilter otherFilter : ((OrEventFilter) obj).eventFilterCollection) {
+                if (thisFilter.equals(otherFilter)){
+                    anyEqual = true;
+                    break;
+                }
+            }
+            if (!anyEqual) return false;
+        }
+        return true;
     }
 
     void addEventFilter(EventFilter eventFilter){
@@ -58,6 +76,9 @@ public class OrEventFilter extends CompoundEventFilter {
             }
             newEventFilters.add(eventFilter);
             eventFilterCollection = newEventFilters;
+            // new event may add value types, we need to update value types
+            valueTypes.addAll(eventFilter.valueTypes);
+            attributes.addAll(eventFilter.attributes);
         }
     }
 
@@ -67,6 +88,7 @@ public class OrEventFilter extends CompoundEventFilter {
         for (EventFilter ef : eventFilterCollection){
             if (!ef.equivalentTo(filter)) return false;
         }
+        // TODO: not yet sure how to check this
         return true;
     }
 
@@ -85,5 +107,20 @@ public class OrEventFilter extends CompoundEventFilter {
             if (filter.dominates(ef)) return true;
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        boolean filtersAdded = false;
+        for (EventFilter eventFilter : eventFilterCollection) {
+            if (filtersAdded) stringBuilder.append(" or ");
+            stringBuilder
+                    .append("(")
+                    .append(eventFilter.toString())
+                    .append(")");
+            filtersAdded = true;
+        }
+        return stringBuilder.toString();
     }
 }

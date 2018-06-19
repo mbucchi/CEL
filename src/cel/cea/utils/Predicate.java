@@ -1,0 +1,125 @@
+package cel.cea.utils;
+
+import cel.event.EventSchema;
+import cel.event.Label;
+import cel.filter.EventFilter;
+import cel.stream.StreamSchema;
+import cel.values.Attribute;
+import cel.values.ValueType;
+
+import java.util.*;
+
+public class Predicate {
+    public static final Predicate TRUE_PREDICATE = new Predicate();
+
+    private Collection<EventFilter> filterCollection;
+    private StreamSchema streamSchema;
+    private EventSchema eventSchema;
+
+    EventSchema getEventSchema() {
+        return eventSchema;
+    }
+
+    Set<Label> getLabelSet() {
+        return labelSet;
+    }
+
+    private Set<Label> labelSet;
+    private boolean satisfiable;
+
+    private Predicate() {
+        filterCollection = new ArrayList<>();
+        labelSet = new HashSet<>();
+        satisfiable = true;
+    }
+
+    public Predicate(EventSchema eventSchema) {
+        this();
+        this.eventSchema = eventSchema;
+        addLabel(eventSchema.getNameLabel());
+    }
+
+    public Predicate(StreamSchema streamSchema, EventSchema eventSchema) {
+        this(eventSchema);
+        this.streamSchema = streamSchema;
+    }
+
+    Collection<EventFilter> getFilterCollection() {
+        return filterCollection;
+    }
+
+    boolean addFilter(EventFilter filter) {
+        if (!satisfiable){
+            return false;
+        }
+        else if (validForAttributeTypes(filter)){
+            filterCollection.add(filter);
+            return true;
+        }
+        else {
+            makeFalsePredicate();
+            return false;
+        }
+    }
+
+    private boolean validForAttributeTypes(EventFilter filter) {
+        Map<String, Class> attributeClassMap = eventSchema.getAttributes();
+
+        for (Attribute attribute : filter.getAttributes()){
+            Class cls = attributeClassMap.getOrDefault(attribute.getName(),null);
+            if (cls == null){
+                // Attribute does not exist
+                return false;
+            }
+            boolean validAttribute = false;
+            for (ValueType valueType : filter.getValueTypes()){
+                if (valueType.validForDataType(cls)) {
+                    validAttribute = true;
+                    break;
+                }
+            }
+            if (!validAttribute) return false;
+        }
+        return true;
+    }
+
+    private void makeFalsePredicate() {
+        filterCollection.clear();
+        satisfiable = false;
+    }
+
+    void addLabel(Label label) {
+        labelSet.add(label);
+    }
+
+    boolean containsLabel(Label label){
+        return labelSet.contains(label);
+    }
+
+    Predicate copy() {
+        if (this == TRUE_PREDICATE) return TRUE_PREDICATE;
+        Predicate newPredicate = new Predicate(streamSchema, eventSchema);
+        newPredicate.labelSet.addAll(labelSet);
+        newPredicate.filterCollection.addAll(filterCollection);
+        return newPredicate;
+    }
+
+    @Override
+    public String toString() {
+        String streamName = streamSchema != null ? streamSchema.getName() : "*";
+        String eventName = eventSchema != null ? eventSchema.getName() : "*";
+        StringBuilder stringBuilder = new StringBuilder("Predicate(" + streamName + ", " + eventName + ", ");
+        boolean hasFilters = false;
+        for (EventFilter eventFilter : filterCollection) {
+            if (hasFilters) stringBuilder.append(", ");
+            stringBuilder.append(eventFilter.toString());
+            hasFilters = true;
+        }
+
+        if (!satisfiable) stringBuilder.append("FALSE");
+        else if (!hasFilters) stringBuilder.append("TRUE");
+
+        stringBuilder.append(")");
+        return stringBuilder.toString();
+    }
+}

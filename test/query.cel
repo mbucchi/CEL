@@ -1,5 +1,14 @@
-SELECT *
-FROM S1, S2, S3
-WHERE A ; B ; C
-FILTER A.opinion = 10
+DECLARE EVENT T(temp double, id int)
+DECLARE EVENT H(income int, cost int, id int)
+DECLARE STREAM S(T, H)
+
+SELECT MAX *
+WHERE ( S>T AS T1 ; H + ; T AS T2 )
+FILTER
+    T1[temp < 10 * 2]
+    AND
+    ( T2[temp > 50] OR H[income > 2 * cost] )
+PARTITION BY
+    [id]
+WITHIN 10 hours 20 seconds
 CONSUME BY PARTITION

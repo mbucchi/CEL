@@ -51,7 +51,7 @@ event_list
 
 cel_query
  : K_SELECT selection_strategy? result_values
-   ( K_FROM stream_name ( ',' stream_name )* )?
+   ( K_FROM stream_list )?
    K_WHERE cel_pattern
    ( K_PARTITION K_BY partition_list )?
    ( K_WITHIN time_window )?
@@ -60,15 +60,19 @@ cel_query
 
 selection_strategy
  : K_ALL                        # ss_all
- | K_ANY                        # ss_any
+ | K_LAST                       # ss_last
  | K_MAX                        # ss_max
  | K_NEXT                       # ss_next
  | K_STRICT                     # ss_strict
  ;
 
+stream_list
+ : stream_name ( ',' stream_name )*
+ ;
+
 result_values
- : '*'
- | s_event_name ( ',' s_event_name )*
+ : STAR
+ | event_name ( ',' event_name )*
  ;
 
 
@@ -82,7 +86,7 @@ cel_pattern
  ;
 
 partition_list
- : '[' attribute_list ']' (',' partition_list)?
+ : '[' attribute_list ']' ( ',' attribute_list ) *
  ;
 
 attribute_list
@@ -150,11 +154,25 @@ time_window
  ;
 
 event_span
- : integer K_EVENTS
+ : number K_EVENTS
  ;
 
 time_span
- : ( integer K_HOURS )? ( integer K_MINUTES )? ( integer K_SECONDS )?
+ : hours minutes? seconds?
+ | minutes seconds?
+ | seconds
+ ;
+
+hours
+ : number K_HOURS
+ ;
+
+minutes
+ : number K_MINUTES
+ ;
+
+seconds
+ : number K_SECONDS
  ;
 
 named_event
@@ -179,10 +197,6 @@ attribute_name
 
 number
  : NUMERIC_LITERAL
- ;
-
-integer
- : INTEGER_LITERAL
  ;
 
 string

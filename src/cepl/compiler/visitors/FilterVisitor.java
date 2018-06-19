@@ -1,11 +1,11 @@
 package cepl.compiler.visitors;
 
-import cepl.cea.utils.Label;
-import cepl.cea.utils.NoSuchLabelException;
+import cepl.event.Label;
+import cepl.event.errors.NoSuchLabelException;
+import cepl.compiler.errors.NameError;
 import cepl.filter.*;
 import cepl.parser.CEPLBaseVisitor;
 import cepl.parser.CEPLParser;
-import cepl.runtime.errors.ParseError;
 
 public class FilterVisitor extends CEPLBaseVisitor<PatternFilter> {
 
@@ -30,7 +30,7 @@ public class FilterVisitor extends CEPLBaseVisitor<PatternFilter> {
             return eventFilter;
         }
         catch (NoSuchLabelException exc){
-            throw new ParseError("NameError: event or label '" + labelName + "' was never declared");
+            throw new NameError("event or label '" + labelName + "' was never declared");
         }
     }
 

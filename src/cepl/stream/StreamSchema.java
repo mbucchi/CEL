@@ -1,6 +1,7 @@
 package cepl.stream;
 
 import cepl.event.EventSchema;
+import cepl.stream.errors.StreamException;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -67,6 +68,9 @@ public class StreamSchema {
         return containsEvent(e.getName());
     }
 
+    public Collection<EventSchema> getEvents() {
+        return events;
+    }
 
     public String getName() {
         return name;

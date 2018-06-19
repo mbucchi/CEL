@@ -1,8 +1,7 @@
-package cepl.cea;
+package cepl.cea.utils;
 
-import cepl.event.Event;
 import cepl.event.EventSchema;
-import cepl.cea.utils.Label;
+import cepl.event.Label;
 import cepl.filter.EventFilter;
 import cepl.stream.StreamSchema;
 import cepl.values.Attribute;
@@ -10,12 +9,21 @@ import cepl.values.ValueType;
 
 import java.util.*;
 
-class Predicate {
-    static final Predicate TRUE_PREDICATE = new Predicate();
+public class Predicate {
+    public static final Predicate TRUE_PREDICATE = new Predicate();
 
     private Collection<EventFilter> filterCollection;
     private StreamSchema streamSchema;
     private EventSchema eventSchema;
+
+    public EventSchema getEventSchema() {
+        return eventSchema;
+    }
+
+    public Set<Label> getLabelSet() {
+        return labelSet;
+    }
+
     private Set<Label> labelSet;
     private boolean satisfiable;
 
@@ -25,13 +33,13 @@ class Predicate {
         satisfiable = true;
     }
 
-    Predicate(EventSchema eventSchema) {
+    public Predicate(EventSchema eventSchema) {
         this();
         this.eventSchema = eventSchema;
         addLabel(eventSchema.getNameLabel());
     }
 
-    Predicate(StreamSchema streamSchema, EventSchema eventSchema) {
+    public Predicate(StreamSchema streamSchema, EventSchema eventSchema) {
         this(eventSchema);
         this.streamSchema = streamSchema;
     }

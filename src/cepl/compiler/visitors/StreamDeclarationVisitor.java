@@ -1,10 +1,10 @@
 package cepl.compiler.visitors;
 
-import cepl.compiler.utils.DataType;
+import cepl.compiler.errors.DeclarationError;
 import cepl.event.EventSchema;
 import cepl.parser.CEPLBaseVisitor;
 import cepl.parser.CEPLParser;
-import cepl.stream.StreamException;
+import cepl.stream.errors.StreamException;
 import cepl.stream.StreamSchema;
 
 import java.util.*;
@@ -20,7 +20,7 @@ public class StreamDeclarationVisitor extends CEPLBaseVisitor<StreamSchema> {
         }
         catch (StreamException exc){
             // TODO: throw detailed error
-            throw new Error(exc.getMessage());
+            throw new DeclarationError(exc.getMessage());
         }
     }
 }

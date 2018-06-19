@@ -1,11 +1,10 @@
 package cepl.compiler.visitors;
 
-import cepl.cea.utils.Label;
+import cepl.event.Label;
 import cepl.values.*;
 import cepl.filter.*;
 import cepl.parser.CEPLBaseVisitor;
 import cepl.parser.CEPLParser;
-import cepl.runtime.errors.ParseError;
 
 import java.util.Collection;
 import java.util.stream.Collectors;

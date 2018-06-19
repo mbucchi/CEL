@@ -101,7 +101,7 @@ public class CEPLBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements C
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitSs_any(CEPLParser.Ss_anyContext ctx) { return visitChildren(ctx); }
+	@Override public T visitSs_last(CEPLParser.Ss_lastContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -123,6 +123,13 @@ public class CEPLBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements C
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitSs_strict(CEPLParser.Ss_strictContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitStream_list(CEPLParser.Stream_listContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -402,6 +409,27 @@ public class CEPLBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements C
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitHours(CEPLParser.HoursContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitMinutes(CEPLParser.MinutesContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitSeconds(CEPLParser.SecondsContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitNamed_event(CEPLParser.Named_eventContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
@@ -438,13 +466,6 @@ public class CEPLBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements C
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitNumber(CEPLParser.NumberContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitInteger(CEPLParser.IntegerContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

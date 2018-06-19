@@ -1,8 +1,8 @@
 package cepl.filter;
 
 import cepl.cea.CEA;
-import cepl.cea.Transition;
-import cepl.cea.utils.Label;
+import cepl.cea.utils.Transition;
+import cepl.event.Label;
 import cepl.values.Attribute;
 import cepl.values.ValueType;
 

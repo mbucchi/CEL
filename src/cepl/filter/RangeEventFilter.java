@@ -1,7 +1,7 @@
 package cepl.filter;
 
 import cepl.cea.CEA;
-import cepl.cea.utils.Label;
+import cepl.event.Label;
 import cepl.values.Attribute;
 import cepl.values.ValueType;
 

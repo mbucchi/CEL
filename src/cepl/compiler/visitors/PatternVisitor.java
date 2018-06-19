@@ -1,7 +1,8 @@
 package cepl.compiler.visitors;
 
 import cepl.cea.*;
-import cepl.cea.utils.Label;
+import cepl.event.Label;
+import cepl.compiler.errors.NameError;
 import cepl.filter.PatternFilter;
 import cepl.parser.CEPLBaseVisitor;
 import cepl.parser.CEPLParser;
@@ -14,11 +15,6 @@ public class PatternVisitor extends CEPLBaseVisitor<CEA> {
 
     private Collection<String> definedStreams;
     private Collection<String> definedEvents;
-
-    public PatternVisitor(PatternVisitor copyFrom){
-        definedStreams = copyFrom.definedStreams;
-        definedEvents = copyFrom.definedEvents;
-    }
 
     public PatternVisitor(Collection<String> definedStreams, Collection<String> definedEvents){
         this.definedStreams = definedStreams;
@@ -89,28 +85,34 @@ public class PatternVisitor extends CEPLBaseVisitor<CEA> {
             String streamName = ctx.s_event_name().stream_name().getText();
 
             if (!definedStreams.contains(streamName)){
-                // TODO: once decided how to deal with errors, throw a
-                // TODO: `NameError: Stream <name> is not defined`
+                throw new NameError("Stream `" + streamName + "` is not defined");
             }
             StreamSchema streamSchema = StreamSchema.getSchemaFor(streamName);
 
             if (!streamSchema.containsEvent(eventName)){
-                // TODO: once decided how to deal with errors, throw a
-                // TODO: `NameError: Event <name> is not defined within Stream <name>`
+                throw new NameError("Event `" + eventName + "` is not defined within stream `" + streamName + "`");
             }
 
             // Create a selection CEA that filters for the given stream
-            return new SelectionCEA(streamSchema, EventSchema.getSchemaFor(eventName));
+            EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
+            if (eventSchema == null){
+                throw new NameError("Event `" + eventName + "` is not defined");
+            }
+            return new SelectionCEA(streamSchema, eventSchema);
         }
         else {
             // no stream is defined, just check that the event is declared within the scope of the
             // query
             if (!definedEvents.contains(eventName)) {
-                // TODO: once decided how to deal with errors, throw a
-                // TODO: `NameError: Event <name> is not defined within any of the query streams`
+                throw new NameError("Event `" + eventName + "` is not defined within any of the query streams");
             }
+
             // Create a selection CEA with no filters
-            return new SelectionCEA(EventSchema.getSchemaFor(eventName));
+            EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
+            if (eventSchema == null){
+                throw new NameError("Event `" + eventName + "` is not defined");
+            }
+            return new SelectionCEA(eventSchema);
         }
     }
 

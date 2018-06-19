@@ -1,6 +1,7 @@
 package cepl.cea;
 
-import cepl.cea.utils.Label;
+import cepl.cea.utils.Transition;
+import cepl.event.Label;
 
 public class AssignCEA extends CEA {
     public AssignCEA(CEA cea, Label label) {

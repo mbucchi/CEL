@@ -1,6 +1,6 @@
 package cepl.compiler;
 
-import cepl.compiler.errors.UknownStatementError;
+import cepl.compiler.errors.UnknownStatementError;
 import cepl.compiler.visitors.EventDeclarationVisitor;
 import cepl.compiler.visitors.StreamDeclarationVisitor;
 import cepl.parser.CEPLParser;
@@ -24,7 +24,7 @@ public class DeclarationCompiler extends BaseCompiler {
         else {
             // This means someone has modified the grammar to implement another kind of declaration.
             // This method should be modified to include that kind of declaration.
-            throw new UknownStatementError("No knowledge on how to compile given declaration statement.");
+            throw new UnknownStatementError("No knowledge on how to compile given declaration statement.");
         }
     }
 

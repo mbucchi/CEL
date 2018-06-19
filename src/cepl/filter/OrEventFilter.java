@@ -1,8 +1,7 @@
 package cepl.filter;
 
-import cepl.cea.Transition;
-import cepl.cea.utils.Label;
-import cepl.event.Event;
+import cepl.cea.utils.Transition;
+import cepl.event.Label;
 
 import java.util.ArrayList;
 import java.util.Collection;

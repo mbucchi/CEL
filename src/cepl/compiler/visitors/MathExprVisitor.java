@@ -1,5 +1,7 @@
 package cepl.compiler.visitors;
 
+import cepl.compiler.errors.UnknownStatementError;
+import cepl.compiler.errors.ValueError;
 import cepl.values.Attribute;
 import cepl.values.NumberLiteral;
 import cepl.values.Value;
@@ -12,7 +14,7 @@ class MathExprVisitor extends CEPLBaseVisitor<Value> {
 
     private void ensureTypes(Value value){
         if (!value.isOfType(ValueType.NUMERIC)){
-            throw new Error("ValueError: Can only perform math operations over numeric values");
+            throw new ValueError("Can only perform math operations over numeric values");
         }
     }
 
@@ -36,7 +38,7 @@ class MathExprVisitor extends CEPLBaseVisitor<Value> {
             else if (ctx.PERCENT() != null){  // modulo
                 return new Modulo(leftValue, rightValue);
             }
-            throw new Error("Unknown operation");
+            throw new UnknownStatementError("Unknown math operation");
         }
         catch (IncompatibleValueType err) {
             return null;
@@ -61,7 +63,7 @@ class MathExprVisitor extends CEPLBaseVisitor<Value> {
             else if (ctx.PLUS() != null){  // division
                 return new Addition(leftValue, rightValue);
             }
-            throw new Error("Unknown operation");
+            throw new UnknownStatementError("Unknown math operation");
         }
         catch (IncompatibleValueType err) {
             return null;

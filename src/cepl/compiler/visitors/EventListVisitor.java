@@ -1,5 +1,7 @@
 package cepl.compiler.visitors;
 
+import cepl.compiler.errors.DeclarationError;
+import cepl.compiler.errors.NameError;
 import cepl.event.EventSchema;
 import cepl.parser.CEPLBaseVisitor;
 import cepl.parser.CEPLParser;
@@ -19,18 +21,17 @@ class EventListVisitor extends CEPLBaseVisitor<Collection<EventSchema>> {
 
             // Event is declared more than once in the stream declaration
             if (eventNames.containsKey(eventName)) {
-                // TODO: throw detailed error
-                continue;
+                throw new DeclarationError("Event `" + eventName +
+                        "` is referenced more than once within stream declaration");
             }
 
-            EventSchema eventSchema = EventSchema.getSchemaFor(eventName);
+            EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
 
             // Event has not been declared
             if (eventSchema == null){
-
+                throw new NameError("Event `" + eventName + "` is not defined");
             }
-
-            eventNames.put(eventName, EventSchema.getSchemaFor(eventName));
+            eventNames.put(eventName, eventSchema);
         }
 
         return eventNames.values();

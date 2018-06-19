@@ -1,4 +1,4 @@
-package cepl.event;
+package cepl.event.errors;
 
 public class EventException extends Exception {
     public EventException(String msg){

@@ -1,4 +1,4 @@
-package cepl.stream;
+package cepl.stream.errors;
 
 public class StreamError extends Error {
     public StreamError(String msg) {

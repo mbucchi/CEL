@@ -1,6 +1,6 @@
 package cepl.filter;
 
-import cepl.cea.utils.Label;
+import cepl.event.Label;
 import cepl.values.Value;
 
 public class EqualityEventFilter extends SimpleEventFilter {

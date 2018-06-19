@@ -32,7 +32,7 @@ public class CELMotor {
 
         try {
             // try to parse and compile given the already declared events and streams
-            queryCompiler.compile(query, EventSchema.getAllSchemas(), StreamSchema.getAllSchemas());
+            queryCompiler.compile(query);
         }
         catch (ParseCancellationException exc) {
             throw new ParseError("Can't parse the given string as a correct CEL query statement.");

@@ -1,6 +1,6 @@
-package cepl.cea.utils;
+package cepl.event;
 
-import cepl.event.EventSchema;
+import cepl.event.errors.NoSuchLabelException;
 
 import java.util.*;
 

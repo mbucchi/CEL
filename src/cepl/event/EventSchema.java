@@ -1,7 +1,7 @@
 package cepl.event;
 
-import cepl.cea.utils.Label;
-import cepl.cea.utils.NoSuchLabelException;
+import cepl.event.errors.EventException;
+import cepl.event.errors.NoSuchLabelException;
 
 import java.util.*;
 
@@ -26,10 +26,10 @@ public class EventSchema {
         return allSchemas.get(eventName);
     }
 
-    public static EventSchema getSchemaFor(String eventName) {
+    public static EventSchema getSchemaFor(String eventName) throws EventException {
         EventSchema eventSchema = allSchemas.get(eventName);
         if (eventSchema == null) {
-            throw new Error("There is no existing schema for event of name \"" + eventName + "\"");
+            throw new EventException("There is no existing schema for event of name `" + eventName + "`");
         }
         return eventSchema;
     }
@@ -40,7 +40,7 @@ public class EventSchema {
 
     private static void ensureUnique(String name) throws EventException {
         if (allSchemas.keySet().contains(name)) {
-            throw new EventException("Event of name \"" + name + "\" has already been declared");
+            throw new EventException("Event of name `" + name + "` has already been declared");
         }
     }
 
@@ -49,10 +49,10 @@ public class EventSchema {
         intersection.retainAll(attrNames);
 
         if (intersection.size() > 0) {
-            String restricted = String.join("\", \"", intersection);
-            throw new EventException("Event of name \"" + evName + "\" " +
+            String restricted = String.join("`, `", intersection);
+            throw new EventException("Event of name `" + evName + "` " +
                     "declares attributes with restricted names " +
-                    "(\"" + restricted + "\")");
+                    "(`" + restricted + "`)");
         }
 
     }

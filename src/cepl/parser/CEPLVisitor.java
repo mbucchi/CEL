@@ -84,12 +84,12 @@ public interface CEPLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitSs_all(CEPLParser.Ss_allContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code ss_any}
+	 * Visit a parse tree produced by the {@code ss_last}
 	 * labeled alternative in {@link CEPLParser#selection_strategy}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitSs_any(CEPLParser.Ss_anyContext ctx);
+	T visitSs_last(CEPLParser.Ss_lastContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code ss_max}
 	 * labeled alternative in {@link CEPLParser#selection_strategy}.
@@ -111,6 +111,12 @@ public interface CEPLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitSs_strict(CEPLParser.Ss_strictContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link CEPLParser#stream_list}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStream_list(CEPLParser.Stream_listContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link CEPLParser#result_values}.
 	 * @param ctx the parse tree
@@ -376,6 +382,24 @@ public interface CEPLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitTime_span(CEPLParser.Time_spanContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link CEPLParser#hours}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitHours(CEPLParser.HoursContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link CEPLParser#minutes}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMinutes(CEPLParser.MinutesContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link CEPLParser#seconds}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSeconds(CEPLParser.SecondsContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link CEPLParser#named_event}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -411,12 +435,6 @@ public interface CEPLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitNumber(CEPLParser.NumberContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link CEPLParser#integer}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitInteger(CEPLParser.IntegerContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link CEPLParser#string}.
 	 * @param ctx the parse tree

@@ -6,8 +6,9 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
-public class BaseCompiler {
-    protected CEPLParser parse(String cmd){
+class BaseCompiler {
+
+    CEPLParser parse(String cmd){
         CharStream charStream = CharStreams.fromString(cmd);
         CEPLLexer ceplLexer = new CEPLLexer(charStream);
         CommonTokenStream commonTokenStream = new CommonTokenStream(ceplLexer);

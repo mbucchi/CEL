@@ -2,7 +2,6 @@ package cepl.filter;
 
 import cepl.cea.CEA;
 import cepl.cea.OrCEA;
-import cepl.cea.utils.Label;
 
 public class OrPatternFilter implements PatternFilter {
     private PatternFilter left;

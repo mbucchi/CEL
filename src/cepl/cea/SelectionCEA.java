@@ -1,5 +1,7 @@
 package cepl.cea;
 
+import cepl.cea.utils.Predicate;
+import cepl.cea.utils.Transition;
 import cepl.cea.utils.TransitionType;
 import cepl.event.EventSchema;
 import cepl.stream.StreamSchema;

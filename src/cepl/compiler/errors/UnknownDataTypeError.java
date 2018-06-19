@@ -1,5 +1,7 @@
 package cepl.compiler.errors;
 
-public class UnknownDataTypeError extends Error {
-    public UnknownDataTypeError(String msg){ super(msg); }
+public class UnknownDataTypeError extends CompilerError{
+    public UnknownDataTypeError(String msg) {
+        super("UnknownDataTypeError: " + msg);
+    }
 }

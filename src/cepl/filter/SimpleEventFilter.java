@@ -1,10 +1,7 @@
 package cepl.filter;
 
-import cepl.cea.utils.Label;
+import cepl.event.Label;
 import cepl.values.Value;
-import cepl.values.ValueType;
-
-import java.util.EnumSet;
 
 abstract class SimpleEventFilter extends EventFilter {
     LogicalOperation logicalOperation;

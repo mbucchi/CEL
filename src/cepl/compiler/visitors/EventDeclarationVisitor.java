@@ -1,13 +1,11 @@
 package cepl.compiler.visitors;
 
-import cepl.compiler.utils.DataType;
-import cepl.event.EventException;
+import cepl.compiler.errors.DeclarationError;
+import cepl.event.errors.EventException;
 import cepl.event.EventSchema;
 import cepl.parser.CEPLBaseVisitor;
 import cepl.parser.CEPLParser;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class EventDeclarationVisitor extends CEPLBaseVisitor<EventSchema> {
@@ -20,8 +18,7 @@ public class EventDeclarationVisitor extends CEPLBaseVisitor<EventSchema> {
             return new EventSchema(eventName, attributeMap);
         }
         catch (EventException exc){
-            // TODO: throw detailed error
-            throw new Error(exc.getMessage());
+            throw new DeclarationError(exc.getMessage());
         }
     }
 }

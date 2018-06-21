@@ -138,14 +138,14 @@ value_seq
  ;
 
 number_seq
- : '[' number (',' number)* ']'            # number_list
- | '[' number '..' number ']'              # number_range
+ : '{' number (',' number)* '}'            # number_list
+ | '{' number '..' number '}'              # number_range
 // | '[' number '..' ']'                     # number_range_lower
 // | '[' '..' number ']'                     # number_range_upper
  ;
 
 string_seq
- : '[' string (',' string)* ']'
+ : '{' string (',' string)* '}'
  ;
 
 time_window

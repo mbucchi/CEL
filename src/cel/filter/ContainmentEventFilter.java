@@ -39,7 +39,7 @@ public class ContainmentEventFilter extends ComplexEventFilter {
     }
 
     private void addLiteral(Literal literal){
-        if (literal.isOfType(valueType)){
+        if (!literal.interoperableWith(valueType)){
             throw new Error("Wrong type of values");
         }
         literalCollection.add(literal);

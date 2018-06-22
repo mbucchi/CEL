@@ -13,8 +13,21 @@ public abstract class Value {
         attributes = new HashSet<>();
     }
 
+    public Value(ValueType valueType) {
+        attributes = new HashSet<>();
+        valueTypes = valueType.getEnumSet();
+    }
+
+    public Value(EnumSet<ValueType> valueTypes) {
+        attributes = new HashSet<>();
+        this.valueTypes = EnumSet.noneOf(ValueType.class);
+        for (ValueType valueType : valueTypes) {
+            this.valueTypes.addAll(valueType.getEnumSet());
+        }
+    }
+
     public EnumSet<ValueType> getTypes() {
-        return valueTypes;
+        return valueTypes.clone();
     }
 
     public Set<Attribute> getAttributes() {
@@ -27,7 +40,10 @@ public abstract class Value {
 
     public abstract boolean greaterThan(Value otherValue);
 
-    public boolean isOfType(ValueType valueType){
-        return this.valueTypes.contains(valueType);
+    public boolean interoperableWith(ValueType valueType){
+        for (ValueType myValueType : valueTypes) {
+            if (myValueType.interoperableWith(valueType)) return true;
+        }
+        return false;
     }
 }

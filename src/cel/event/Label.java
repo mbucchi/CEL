@@ -1,6 +1,7 @@
 package cel.event;
 
 import cel.event.errors.NoSuchLabelException;
+import cel.values.ValueType;
 
 import java.util.*;
 
@@ -43,24 +44,24 @@ public class Label {
         return new HashSet<>(eventSchemas);
     }
 
-    public Map<String, Set<Class>> getAttributes(){
-        // returns all the attributes and their respective classes defined on eventSchemas
+    public Map<String, EnumSet<ValueType>> getAttributes(){
+        // returns all the attributes and their respective ValueTypes defined on eventSchemas
         // within this label.
 
-        Map<String, Set<Class>> attributeClassSetMap = new HashMap<>();
+        Map<String, EnumSet<ValueType>> attributeValueTypes = new HashMap<>();
 
         for (EventSchema eventSchema : eventSchemas ){
-            Map<String, Class> evAttMap = eventSchema.getAttributes();
+            Map<String, ValueType> evAttMap = eventSchema.getAttributes();
             for (String attrName : evAttMap.keySet()){
-                if (!attributeClassSetMap.containsKey(attrName)){
-                    attributeClassSetMap.put(attrName, new HashSet<>());
+                if (!attributeValueTypes.containsKey(attrName)){
+                    attributeValueTypes.put(attrName, EnumSet.noneOf(ValueType.class));
                 }
-                Class attributeClass = evAttMap.get(attrName);
-                attributeClassSetMap.get(attrName).add(attributeClass);
+                ValueType valueType = evAttMap.get(attrName);
+                attributeValueTypes.get(attrName).add(valueType);
             }
         }
 
-        return attributeClassSetMap;
+        return attributeValueTypes;
     }
 
     @Override

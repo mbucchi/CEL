@@ -1,12 +1,13 @@
 package cel.values;
 
+import java.util.EnumSet;
+
 public abstract class Literal extends Value {
     Literal(ValueType valueType) {
-        super();
-        valueTypes.add(valueType);
+        super(valueType);
     }
 
-    Literal(){
-        super();
+    Literal(EnumSet<ValueType> valueTypes){
+        super(valueTypes);
     }
 }

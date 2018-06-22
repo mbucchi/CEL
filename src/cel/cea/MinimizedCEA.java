@@ -58,6 +58,9 @@ public class MinimizedCEA extends CEA {
                 newEventSchemas.add(transition.getEventSchema());
             }
         }
+        // Sort transitions
+        newTransitions.sort(Transition::compareTo);
+
 
         // update automata
         nStates = newStateN;

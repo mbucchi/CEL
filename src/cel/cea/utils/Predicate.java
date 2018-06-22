@@ -63,17 +63,17 @@ public class Predicate {
     }
 
     private boolean validForAttributeTypes(EventFilter filter) {
-        Map<String, Class> attributeClassMap = eventSchema.getAttributes();
+        Map<String, ValueType> attributeTypes = eventSchema.getAttributes();
 
         for (Attribute attribute : filter.getAttributes()){
-            Class cls = attributeClassMap.getOrDefault(attribute.getName(),null);
-            if (cls == null){
+            ValueType valueType= attributeTypes.getOrDefault(attribute.getName(),null);
+            if (valueType == null){
                 // Attribute does not exist
                 return false;
             }
             boolean validAttribute = false;
-            for (ValueType valueType : filter.getValueTypes()){
-                if (valueType.validForDataType(cls)) {
+            for (ValueType filterValueType : filter.getValueTypes()){
+                if (valueType.interoperableWith(filterValueType)) {
                     validAttribute = true;
                     break;
                 }
@@ -101,6 +101,7 @@ public class Predicate {
         Predicate newPredicate = new Predicate(streamSchema, eventSchema);
         newPredicate.labelSet.addAll(labelSet);
         newPredicate.filterCollection.addAll(filterCollection);
+        newPredicate.satisfiable = satisfiable;
         return newPredicate;
     }
 
@@ -108,7 +109,7 @@ public class Predicate {
     public String toString() {
         String streamName = streamSchema != null ? streamSchema.getName() : "*";
         String eventName = eventSchema != null ? eventSchema.getName() : "*";
-        StringBuilder stringBuilder = new StringBuilder("Predicate(" + streamName + ", " + eventName + ", ");
+        StringBuilder stringBuilder = new StringBuilder("Predicate(" + streamName + ", " + eventName + ", [");
         boolean hasFilters = false;
         for (EventFilter eventFilter : filterCollection) {
             if (hasFilters) stringBuilder.append(", ");
@@ -119,7 +120,7 @@ public class Predicate {
         if (!satisfiable) stringBuilder.append("FALSE");
         else if (!hasFilters) stringBuilder.append("TRUE");
 
-        stringBuilder.append(")");
+        stringBuilder.append("])");
         return stringBuilder.toString();
     }
 }

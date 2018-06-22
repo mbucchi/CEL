@@ -8,7 +8,7 @@ public class Modulo extends BinaryOperation {
     public Modulo(Value lhs, Value rhs) throws IncompatibleValueType {
         super(lhs, rhs);
         // modulo is only valid over numeric types
-        if (!valueTypes.contains(ValueType.NUMERIC)){
+        if (!interoperableWith(ValueType.NUMERIC)){
             throw new IncompatibleValueType();
         }
     }

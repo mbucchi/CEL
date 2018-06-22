@@ -9,16 +9,14 @@ import cel.compiler.errors.UnknownStatementError;
 import cel.compiler.visitors.PatternVisitor;
 import cel.compiler.visitors.TimeSpanVisitor;
 import cel.event.EventSchema;
-import cel.parser.CEPLParser;
+import cel.parser.CELParser;
+import cel.parser.utils.StringCleaner;
 import cel.query.*;
 import cel.stream.StreamSchema;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class QueryCompiler extends BaseCompiler<Query> {
@@ -26,21 +24,21 @@ public class QueryCompiler extends BaseCompiler<Query> {
     @Override
     public Query compile(String queryString) throws ParseCancellationException {
 
-        CEPLParser ceplParser = parse(queryString);
+        CELParser CELParser = parse(queryString);
 
         // a query can only be valid if it parses on this parser rule
-        CEPLParser.Cel_queryContext tree = ceplParser.cel_query();
+        CELParser.Cel_queryContext tree = CELParser.cel_query();
 
         return compileContext(tree);
     }
 
     @Override
     Query compileContext(ParserRuleContext ctx){
-        if (!(ctx instanceof CEPLParser.Cel_queryContext)){
+        if (!(ctx instanceof CELParser.Cel_queryContext)){
             throw new Error("FATAL ERROR");
         }
 
-        CEPLParser.Cel_queryContext queryContext = (CEPLParser.Cel_queryContext) ctx;
+        CELParser.Cel_queryContext queryContext = (CELParser.Cel_queryContext) ctx;
 
         SelectionStrategy selectionStrategy = parseSelectionStrategy(queryContext.selection_strategy());
 
@@ -55,7 +53,7 @@ public class QueryCompiler extends BaseCompiler<Query> {
         CEA patternCEA = queryContext.cel_pattern().accept(new PatternVisitor(definedStreams.keySet(), definedEvents));
 
         // partitions
-        Collection<Partition> partitions = parsePartitionList(queryContext.partition_list());
+        Collection<Partition> partitions = parsePartitionList(queryContext.partition_list(), patternCEA.getEventSchemas());
 
         // time window
         TimeWindow timeWindow = parseTimeWindow(queryContext.time_window());
@@ -74,20 +72,20 @@ public class QueryCompiler extends BaseCompiler<Query> {
                 consumptionPolicy);
     }
 
-    private SelectionStrategy parseSelectionStrategy(CEPLParser.Selection_strategyContext ctx) {
+    private SelectionStrategy parseSelectionStrategy(CELParser.Selection_strategyContext ctx) {
         if (ctx == null ) {
             return SelectionStrategy.getDefault();
         }
-        if (ctx instanceof CEPLParser.Ss_allContext) {
+        if (ctx instanceof CELParser.Ss_allContext) {
             return SelectionStrategy.ALL;
         }
-        else if (ctx instanceof CEPLParser.Ss_lastContext) {
+        else if (ctx instanceof CELParser.Ss_lastContext) {
             return SelectionStrategy.LAST;
         }
-        else if (ctx instanceof CEPLParser.Ss_maxContext) {
+        else if (ctx instanceof CELParser.Ss_maxContext) {
             return SelectionStrategy.MAX;
         }
-        else if (ctx instanceof CEPLParser.Ss_nextContext) {
+        else if (ctx instanceof CELParser.Ss_nextContext) {
             return SelectionStrategy.NEXT;
         }
         else {
@@ -95,7 +93,7 @@ public class QueryCompiler extends BaseCompiler<Query> {
         }
     }
 
-    private ProjectionList parseProjectionList(CEPLParser.Result_valuesContext ctx) {
+    private ProjectionList parseProjectionList(CELParser.Result_valuesContext ctx) {
         if (ctx.STAR() != null) {
             return ProjectionList.ALL_EVENTS;
         }
@@ -117,27 +115,56 @@ public class QueryCompiler extends BaseCompiler<Query> {
         }
     }
 
-    private Collection<Partition> parsePartitionList(CEPLParser.Partition_listContext ctx) {
+    private Collection<Partition> parsePartitionList(CELParser.Partition_listContext ctx, Set<EventSchema> eventSchemas) {
         if (ctx == null){
             return new ArrayList<>();
         }
-        return ctx.attribute_list()
-                .stream()
-                .map(attribute_listContext -> attribute_listContext.attribute_name().stream()
-                        .map(CEPLParser.Attribute_nameContext::getText)
-                        .collect(Collectors.toList()))
-                .map(Partition::new)
-                .collect(Collectors.toList());
+
+        ArrayList<Partition> partitionList = new ArrayList<>();
+        Set<String> definedAttributes = eventSchemas.stream()
+                .map(EventSchema::getAttributes)
+                .map(Map::keySet)
+                .flatMap(Set::stream)
+                .collect(Collectors.toSet());
+
+        for (CELParser.Attribute_listContext partitionCtx : ctx.attribute_list()) {
+            HashSet<String> attributeNames = new HashSet<>();
+            for (CELParser.Attribute_nameContext attrNameCtx : partitionCtx.attribute_name()){
+                String attrName = StringCleaner.tryRemoveQuotes(attrNameCtx.getText());
+
+                if (!definedAttributes.contains(attrName)) {
+                    throw new ValueError("Attribute `" + attrName +
+                            "` is not defined on any event named on query", attrNameCtx);
+                }
+
+                if (attributeNames.contains(attrName)) {
+                    throw new ValueError("Attribute `" + attrName +
+                            "` is defined more than once on partition list", attrNameCtx);
+                }
+                attributeNames.add(attrName);
+            }
+
+            for (EventSchema eventSchema : eventSchemas){
+                Set<String> schemaAttributes = new HashSet<>(eventSchema.getAttributes().keySet());
+                schemaAttributes.retainAll(attributeNames);
+                if (schemaAttributes.size() == 0) {
+                    throw new ValueError("Partition list does not contain any attribute for events of type "
+                            + eventSchema.getName(), partitionCtx);
+                }
+            }
+            partitionList.add(new Partition(attributeNames));
+        }
+        return partitionList;
     }
 
-    private Map<String, StreamSchema> parseStreamList(CEPLParser.Stream_listContext ctx) {
+    private Map<String, StreamSchema> parseStreamList(CELParser.Stream_listContext ctx) {
         if (ctx == null){
             return StreamSchema.getAllSchemas();
         }
 
         Map<String, StreamSchema> streamSchemaMap = new HashMap<>();
 
-        for (CEPLParser.Stream_nameContext nameContext : ctx.stream_name()) {
+        for (CELParser.Stream_nameContext nameContext : ctx.stream_name()) {
             String streamName = nameContext.getText();
             StreamSchema streamSchema = StreamSchema.tryGetSchemaFor(streamName);
             if (streamSchema == null){
@@ -160,7 +187,7 @@ public class QueryCompiler extends BaseCompiler<Query> {
                 .collect(Collectors.toSet());
     }
 
-    private TimeWindow parseTimeWindow(CEPLParser.Time_windowContext ctx) {
+    private TimeWindow parseTimeWindow(CELParser.Time_windowContext ctx) {
         if (ctx == null)
             return TimeWindow.NONE;
         if (ctx.event_span() != null) {
@@ -177,17 +204,17 @@ public class QueryCompiler extends BaseCompiler<Query> {
 
     }
 
-    private ConsumptionPolicy parseConsumptionPolicy(CEPLParser.Consumption_policyContext ctx) {
+    private ConsumptionPolicy parseConsumptionPolicy(CELParser.Consumption_policyContext ctx) {
         if (ctx == null ) {
             return ConsumptionPolicy.getDefault();
         }
-        if (ctx instanceof CEPLParser.Cp_anyContext) {
+        if (ctx instanceof CELParser.Cp_anyContext) {
             return ConsumptionPolicy.ANY;
         }
-        else if (ctx instanceof CEPLParser.Cp_noneContext) {
+        else if (ctx instanceof CELParser.Cp_noneContext) {
             return ConsumptionPolicy.NONE;
         }
-        else if (ctx instanceof CEPLParser.Cp_partitionContext) {
+        else if (ctx instanceof CELParser.Cp_partitionContext) {
             return ConsumptionPolicy.PARTITION;
         }
         else {

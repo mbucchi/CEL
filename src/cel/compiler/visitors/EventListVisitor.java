@@ -3,21 +3,22 @@ package cel.compiler.visitors;
 import cel.compiler.errors.DeclarationError;
 import cel.compiler.errors.NameError;
 import cel.event.EventSchema;
-import cel.parser.CEPLBaseVisitor;
-import cel.parser.CEPLParser;
+import cel.parser.CELBaseVisitor;
+import cel.parser.CELParser;
+import cel.parser.utils.StringCleaner;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-class EventListVisitor extends CEPLBaseVisitor<Collection<EventSchema>> {
+class EventListVisitor extends CELBaseVisitor<Collection<EventSchema>> {
 
-    public Collection<EventSchema> visitEvent_list(CEPLParser.Event_listContext ctx){
+    public Collection<EventSchema> visitEvent_list(CELParser.Event_listContext ctx){
 
         Map<String, EventSchema> eventNames = new HashMap<>();
 
-        for (CEPLParser.Event_nameContext event : ctx.event_name()) {
-            String eventName = event.getText();
+        for (CELParser.Event_nameContext event : ctx.event_name()) {
+            String eventName = StringCleaner.tryRemoveQuotes(event.getText());
 
             // Event is declared more than once in the stream declaration
             if (eventNames.containsKey(eventName)) {

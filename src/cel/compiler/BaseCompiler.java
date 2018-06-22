@@ -1,8 +1,8 @@
 package cel.compiler;
 
 import cel.compiler.errors.ErrorListener;
-import cel.parser.CEPLLexer;
-import cel.parser.CEPLParser;
+import cel.parser.CELLexer;
+import cel.parser.CELParser;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -29,17 +29,17 @@ public abstract class BaseCompiler<T> {
         return lines[lineNumber-1];
     }
 
-    CEPLParser parse(String cmd){
+    CELParser parse(String cmd){
         input = cmd;
         CharStream charStream = CharStreams.fromString(cmd);
-        CEPLLexer ceplLexer = new CEPLLexer(charStream);
-        CommonTokenStream commonTokenStream = new CommonTokenStream(ceplLexer);
-        CEPLParser ceplParser = new CEPLParser(commonTokenStream);
+        CELLexer CELLexer = new CELLexer(charStream);
+        CommonTokenStream commonTokenStream = new CommonTokenStream(CELLexer);
+        CELParser CELParser = new CELParser(commonTokenStream);
 
-        ceplParser.removeErrorListeners();
-        ceplParser.addErrorListener(new ErrorListener());
+        CELParser.removeErrorListeners();
+        CELParser.addErrorListener(new ErrorListener());
 
-        return ceplParser;
+        return CELParser;
     }
 
     public abstract T compile(String statement);

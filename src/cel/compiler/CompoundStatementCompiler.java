@@ -1,6 +1,6 @@
 package cel.compiler;
 
-import cel.parser.CEPLParser;
+import cel.parser.CELParser;
 import cel.query.Query;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
@@ -20,8 +20,8 @@ public class CompoundStatementCompiler extends BaseCompiler<Collection<Query>> {
 
     public Collection<Query> compile(String statements){
 
-        CEPLParser ceplParser = parse(statements);
-        CEPLParser.ParseContext ctx = ceplParser.parse();
+        CELParser CELParser = parse(statements);
+        CELParser.ParseContext ctx = CELParser.parse();
 
         return compileContext(ctx);
     }
@@ -29,15 +29,15 @@ public class CompoundStatementCompiler extends BaseCompiler<Collection<Query>> {
     @Override
     Collection<Query> compileContext(ParserRuleContext ctx) {
 
-        if (!(ctx instanceof CEPLParser.ParseContext)){
+        if (!(ctx instanceof CELParser.ParseContext)){
             throw new Error("FATAL ERROR!");
         }
 
-        CEPLParser.ParseContext parseContext = (CEPLParser.ParseContext) ctx;
+        CELParser.ParseContext parseContext = (CELParser.ParseContext) ctx;
 
         Collection<Query> queries = new ArrayList<>();
 
-        for (CEPLParser.Cel_stmtContext statementCtx : parseContext.cel_stmt()){
+        for (CELParser.Cel_stmtContext statementCtx : parseContext.cel_stmt()){
             if (statementCtx.cel_declaration() != null){
                 declarationCompiler.compileContext(statementCtx.cel_declaration());
             }

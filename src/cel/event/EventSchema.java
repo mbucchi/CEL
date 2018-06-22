@@ -2,6 +2,7 @@ package cel.event;
 
 import cel.event.errors.EventException;
 import cel.event.errors.NoSuchLabelException;
+import cel.values.ValueType;
 
 import java.util.*;
 
@@ -14,11 +15,11 @@ public class EventSchema {
     private static final String INDEX_ATTR = "__idx";
     private static final String TYPE_ATTR = "__type";
 
-    private static final Map<String, Class> restrictedAttributes = Map.ofEntries(
-            Map.entry(TIMESTAMP_ATTR, long.class),      // timestamp
-            Map.entry(STREAM_ID_ATTR, int.class),       // stream from which the event is coming
-            Map.entry(INDEX_ATTR, long.class),          // event position in event feed
-            Map.entry(TYPE_ATTR, int.class)             // event type as int
+    private static final Map<String, ValueType> restrictedAttributes = Map.ofEntries(
+            Map.entry(TIMESTAMP_ATTR, ValueType.LONG),      // timestamp
+            Map.entry(STREAM_ID_ATTR, ValueType.INTEGER),   // stream from which the event is coming
+            Map.entry(INDEX_ATTR, ValueType.LONG),          // event position in event feed
+            Map.entry(TYPE_ATTR, ValueType.INTEGER)         // event type as int
     );
 
     public static EventSchema tryGetSchemaFor(String eventName) {
@@ -58,10 +59,10 @@ public class EventSchema {
     }
 
     private String name;
-    private Map<String, Class> attributes;
+    private Map<String, ValueType> attributes;
     private int eventType;
 
-    public EventSchema(String name, Map<String, Class> attributes) throws EventException {
+    public EventSchema(String name, Map<String, ValueType> attributes) throws EventException {
 
         // perform some needed checks
         ensureUnique(name);
@@ -101,7 +102,7 @@ public class EventSchema {
         return eventType;
     }
 
-    public Map<String, Class> getAttributes() {
+    public Map<String, ValueType> getAttributes() {
         return attributes;
     }
 

@@ -8,7 +8,7 @@ public class Multiplication extends BinaryOperation {
     public Multiplication(Value lhs, Value rhs) throws IncompatibleValueType {
         super(lhs, rhs);
         // multiplication is only valid over numeric types
-        if (!valueTypes.contains(ValueType.NUMERIC)){
+        if (!interoperableWith(ValueType.NUMERIC)){
             throw new IncompatibleValueType();
         }
     }

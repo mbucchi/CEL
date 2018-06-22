@@ -57,4 +57,33 @@ public class CEA {
     public Set<EventSchema> getEventSchemas(){
         return new HashSet<>(eventSchemas);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder("CEA(\n")
+                .append("  nStates=").append(nStates).append(",\n")
+                .append("  initState=").append(initState).append(",\n")
+                .append("  finalState=").append(finalState).append(",\n")
+                .append("  transitions=[");
+
+        if (transitions.size() > 0){
+            stringBuilder.append("\n    ");
+        }
+
+        Transition[] transitionArray = transitions.toArray(new Transition[0]);
+
+
+        int i;
+        for (i=0; i<transitions.size()-1; i++){
+            Transition transition = transitionArray[i];
+            stringBuilder.append(transition).append(",\n    ");
+        }
+
+        if (transitions.size() > 0) {
+            stringBuilder.append(transitionArray[i]).append("\n  ");
+        }
+
+        stringBuilder.append("]\n)");
+        return stringBuilder.toString();
+    }
 }

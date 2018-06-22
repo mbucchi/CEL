@@ -1,14 +1,16 @@
 DECLARE EVENT T(temp double, id int)
 DECLARE EVENT H(income int, cost int, id int)
 DECLARE STREAM S(T, H)
+DECLARE STREAM S2(T)
 
 SELECT MAX *
-WHERE ( S>T AS T1 ; H + ; T AS T2 )
+FROM S, S2
+WHERE ( S>T ; H + ; T AS t2 ) AS all_events
 FILTER
-    T1[temp < 10 * 2]
+    all_events[id NOT IN { 123, 125 }]
     AND
-    ( T2[temp > 50] OR H[income > 2 * cost] )
+    ( t2[temp > 50 or temp < 20] OR H[income > 2 * cost] )
 PARTITION BY
     [id]
-WITHIN 10 hours 20 seconds
-CONSUME BY PARTITION
+WITHIN 10 hours 30 minutes
+CONSUME BY ALL

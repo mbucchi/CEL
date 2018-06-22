@@ -2,6 +2,9 @@ package cel.filter;
 
 import cel.event.Label;
 import cel.values.Value;
+import cel.values.ValueType;
+
+import java.util.EnumSet;
 
 abstract class AtomicEventFilter extends EventFilter {
     LogicalOperation logicalOperation;
@@ -38,5 +41,20 @@ abstract class AtomicEventFilter extends EventFilter {
         if (!rhs.equals(((AtomicEventFilter) obj).rhs)) return false;
 
         return true;
+    }
+
+    @Override
+    public boolean notApplicable() {
+        for (ValueType leftValueType : lhs.getTypes()) {
+            for (ValueType rightValueType: rhs.getTypes()) {
+                if (leftValueType.interoperableWith(rightValueType)) return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean isConstant() {
+        return attributes.size() == 0;
     }
 }

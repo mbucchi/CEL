@@ -2,35 +2,36 @@ package cel.compiler.visitors;
 
 import cel.compiler.errors.DeclarationError;
 import cel.compiler.errors.UnknownDataTypeError;
-import cel.compiler.utils.DataType;
-import cel.parser.CEPLBaseVisitor;
-import cel.parser.CEPLParser;
+import cel.parser.CELBaseVisitor;
+import cel.parser.CELParser;
+import cel.parser.utils.StringCleaner;
+import cel.values.ValueType;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class AttributeDeclarationVisitor extends CEPLBaseVisitor<Map<String, Class>> {
-    public Map<String, Class> visitAttribute_dec_list(CEPLParser.Attribute_dec_listContext ctx) {
-        List<CEPLParser.Attribute_declarationContext> attributes = ctx.attribute_declaration();
+class AttributeDeclarationVisitor extends CELBaseVisitor<Map<String, ValueType>> {
+    public Map<String, ValueType> visitAttribute_dec_list(CELParser.Attribute_dec_listContext ctx) {
+        List<CELParser.Attribute_declarationContext> attributes = ctx.attribute_declaration();
 
-        HashMap<String, Class> attributeMap = new HashMap<>();
+        HashMap<String, ValueType> attributeMap = new HashMap<>();
 
-        for (CEPLParser.Attribute_declarationContext attr : attributes) {
-            String attributeName = attr.attribute_name().getText();
+        for (CELParser.Attribute_declarationContext attr : attributes) {
+            String attributeName = StringCleaner.tryRemoveQuotes(attr.attribute_name().getText());
             String dataType = attr.datatype().getText();
 
             if (attributeMap.containsKey(attributeName)) {
                 throw new DeclarationError("Attribute `" + attributeName + "` is declared more than once", ctx);
             }
 
-            Class attrClass = DataType.getClassFor(dataType);
+            ValueType attrType = ValueType.getValueFor(dataType);
 
-            if (attrClass == null) {
+            if (attrType == null) {
                 throw new UnknownDataTypeError("`" + dataType + "` is not a valid data type", attr.datatype());
             }
 
-            attributeMap.put(attributeName, DataType.getClassFor(dataType));
+            attributeMap.put(attributeName, ValueType.getValueFor(dataType));
         }
 
         return attributeMap;

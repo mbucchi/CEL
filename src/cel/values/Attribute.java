@@ -1,11 +1,13 @@
 package cel.values;
 
+import cel.event.Label;
+
 public class Attribute extends Literal {
 
     private String name;
 
-    public Attribute(String name) {
-        super();
+    public Attribute(String name, Label label) {
+        super(label.getAttributes().get(name));
         this.name = name;
         attributes.add(this);
     }

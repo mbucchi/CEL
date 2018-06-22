@@ -1,13 +1,13 @@
 package cel.compiler.visitors;
 
 import cel.compiler.errors.ValueError;
-import cel.parser.CEPLBaseVisitor;
-import cel.parser.CEPLParser;
+import cel.parser.CELBaseVisitor;
+import cel.parser.CELParser;
 
-public class TimeSpanVisitor extends CEPLBaseVisitor<Long> {
+public class TimeSpanVisitor extends CELBaseVisitor<Long> {
 
     @Override
-    public Long visitTime_span(CEPLParser.Time_spanContext ctx) {
+    public Long visitTime_span(CELParser.Time_spanContext ctx) {
         if (ctx.children.size() == 0) {
             throw new ValueError("TimeWindow must state a value", ctx);
         }

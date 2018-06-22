@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.toList;
 public class SequenceCEA extends CEA {
 
     public SequenceCEA(CEA first, CEA second) {
+        // TODO : copy transitions instead of just moving them
         initState = 0;
         nStates = first.nStates + second.nStates - 1;
         finalState = nStates - 1;

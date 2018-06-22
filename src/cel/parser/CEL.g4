@@ -1,4 +1,4 @@
-grammar CEPL;
+grammar CEL;
 
 parse
  : (cel_stmt | error )* EOF
@@ -81,12 +81,12 @@ cel_pattern
  | s_event_name                                         # event_cel_pattern
  | cel_pattern K_AS event_name                          # assign_cel_pattern
  | cel_pattern '+'                                      # kleene_cel_pattern
- | cel_pattern ( K_OR | ';' ) cel_pattern               # binary_cel_pattern
+ | cel_pattern ( K_OR | SEMICOLON ) cel_pattern         # binary_cel_pattern
  | cel_pattern K_FILTER filter                          # filter_cel_pattern
  ;
 
 partition_list
- : '[' attribute_list ']' ( ',' attribute_list ) *
+ : '[' attribute_list ']' ( ',' '[' attribute_list ']') *
  ;
 
 attribute_list
@@ -173,10 +173,6 @@ minutes
 
 seconds
  : number K_SECONDS
- ;
-
-named_event
- : s_event_name ( K_AS event_name )?
  ;
 
 s_event_name
@@ -277,6 +273,8 @@ PLUS    : '+';
 MINUS   : '-';
 STAR    : '*';
 SLASH   : '/';
+
+SEMICOLON : ';';
 
 LE  : '<'  ;
 LEQ : '<=' ;

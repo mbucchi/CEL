@@ -51,4 +51,8 @@ public abstract class EventFilter implements PatternFilter, FilterComparable {
     public abstract EventFilter negate();
 
     public abstract boolean equals(Object obj);
+
+    public abstract boolean notApplicable();
+
+    public abstract boolean isConstant();
 }

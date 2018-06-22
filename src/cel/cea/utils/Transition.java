@@ -7,7 +7,7 @@ import cel.filter.EventFilter;
 import java.util.Collection;
 import java.util.Set;
 
-public class Transition {
+public class Transition implements Comparable<Transition> {
 
     private int fromState;
     private int toState;
@@ -80,10 +80,22 @@ public class Transition {
     @Override
     public String toString() {
         return "Transition(" +
-                transitionType.getSymbol() + "," +
+                transitionType.getSymbol() + ", " +
                 fromState + ", " +
                 toState + ", " +
                 predicate.toString() +
                 ")";
+    }
+
+    @Override
+    public int compareTo(Transition o) {
+        // Black < white
+        if (transitionType != o.transitionType) {
+            if (transitionType == TransitionType.BLACK) return -1;
+            else return 1;
+        }
+        if (fromState < o.fromState) return -1;
+        if (fromState > o.fromState) return 1;
+        return Integer.compare(toState, o.toState);
     }
 }

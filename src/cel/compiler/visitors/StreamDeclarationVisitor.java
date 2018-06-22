@@ -2,17 +2,18 @@ package cel.compiler.visitors;
 
 import cel.compiler.errors.DeclarationError;
 import cel.event.EventSchema;
-import cel.parser.CEPLBaseVisitor;
-import cel.parser.CEPLParser;
+import cel.parser.CELBaseVisitor;
+import cel.parser.CELParser;
+import cel.parser.utils.StringCleaner;
 import cel.stream.errors.StreamException;
 import cel.stream.StreamSchema;
 
 import java.util.*;
 
-public class StreamDeclarationVisitor extends CEPLBaseVisitor<StreamSchema> {
+public class StreamDeclarationVisitor extends CELBaseVisitor<StreamSchema> {
 
-    public StreamSchema visitStream_declaration(CEPLParser.Stream_declarationContext ctx){
-        String streamName = ctx.stream_name().getText();
+    public StreamSchema visitStream_declaration(CELParser.Stream_declarationContext ctx){
+        String streamName = StringCleaner.tryRemoveQuotes(ctx.stream_name().getText());
         Collection<EventSchema> eventSchemas = ctx.event_list().accept(new EventListVisitor());
 
         try {

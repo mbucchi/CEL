@@ -8,7 +8,7 @@ public class Subtraction extends BinaryOperation {
     public Subtraction(Value lhs, Value rhs) throws IncompatibleValueType {
         super(lhs, rhs);
         // subtraction is only valid over numeric types
-        if (!valueTypes.contains(ValueType.NUMERIC)){
+        if (!interoperableWith(ValueType.NUMERIC)){
             throw new IncompatibleValueType();
         }
     }

@@ -4,38 +4,40 @@ import cel.event.Label;
 import cel.event.errors.NoSuchLabelException;
 import cel.compiler.errors.NameError;
 import cel.filter.*;
-import cel.parser.CEPLBaseVisitor;
-import cel.parser.CEPLParser;
+import cel.parser.CELBaseVisitor;
+import cel.parser.CELParser;
+import cel.parser.utils.StringCleaner;
 
-public class FilterVisitor extends CEPLBaseVisitor<PatternFilter> {
+public class FilterVisitor extends CELBaseVisitor<PatternFilter> {
 
     @Override
-    public PatternFilter visitPar_filter(CEPLParser.Par_filterContext ctx) {
+    public PatternFilter visitPar_filter(CELParser.Par_filterContext ctx) {
         return ctx.filter().accept(this);
     }
 
     @Override
-    public PatternFilter visitAnd_filter(CEPLParser.And_filterContext ctx) {
+    public PatternFilter visitAnd_filter(CELParser.And_filterContext ctx) {
         PatternFilter left = ctx.filter(0).accept(this);
         PatternFilter right = ctx.filter(1).accept(this);
         return new AndPatternFilter(left, right);
     }
 
     @Override
-    public PatternFilter visitEvent_filter(CEPLParser.Event_filterContext ctx) {
-        String labelName = ctx.event_name().getText();
+    public PatternFilter visitEvent_filter(CELParser.Event_filterContext ctx) {
+        String labelName = StringCleaner.tryRemoveQuotes(ctx.event_name().getText());
+        EventFilter eventFilter;
         try {
             Label label = Label.get(labelName);
-            EventFilter eventFilter = ctx.bool_expr().accept(new BoolExprVisitor(label));
-            return eventFilter;
+            eventFilter = ctx.bool_expr().accept(new BoolExprVisitor(label));
         }
         catch (NoSuchLabelException exc){
             throw new NameError("event or label '" + labelName + "' was never declared", ctx);
         }
+        return eventFilter;
     }
 
     @Override
-    public PatternFilter visitOr_filter(CEPLParser.Or_filterContext ctx) {
+    public PatternFilter visitOr_filter(CELParser.Or_filterContext ctx) {
         PatternFilter left = ctx.filter(0).accept(this);
         PatternFilter right = ctx.filter(1).accept(this);
         return new OrPatternFilter(left, right);

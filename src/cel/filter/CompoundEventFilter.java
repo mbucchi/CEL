@@ -17,4 +17,20 @@ abstract class CompoundEventFilter extends EventFilter {
     abstract boolean dominatedBy(FilterComparable filter);
 
     abstract void addEventFilter(EventFilter eventFilter);
+
+    @Override
+    public boolean notApplicable() {
+        for (EventFilter eventFilter : eventFilterCollection) {
+            if (eventFilter.notApplicable()) return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isConstant() {
+        for (EventFilter eventFilter : eventFilterCollection){
+            if (eventFilter.isConstant()) return true;
+        }
+        return false;
+    }
 }

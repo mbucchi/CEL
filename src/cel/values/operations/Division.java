@@ -8,7 +8,7 @@ public class Division extends BinaryOperation {
     public Division(Value lhs, Value rhs) throws IncompatibleValueType {
         super(lhs, rhs);
         // division is only valid over numeric types
-        if (!valueTypes.contains(ValueType.NUMERIC)){
+        if (!interoperableWith(ValueType.NUMERIC)){
             throw new IncompatibleValueType();
         }
     }

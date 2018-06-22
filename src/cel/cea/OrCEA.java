@@ -14,28 +14,29 @@ public class OrCEA extends CEA {
         initState = 0;
         finalState = nStates - 1;
 
-        // copy all but final original transitions from left CEA, displacing them one state
+        // copy all transitions from left CEA, displacing them one state
         int toDisplaceLeft = 1;
         transitions.addAll(
                 left.transitions
                         .stream()
-                        .filter(transition -> transition.getToState() != left.finalState)
                         .map(transition -> transition.displaceTransition(toDisplaceLeft))
                         .collect(toList())
         );
 
-        // copy all black transitions from initial state in left CEA and displace
+        // copy all black transitions from initial state in left CEA and alter them to come from
+        // the new initial state
         transitions.addAll(
                 left.transitions
                         .stream()
                         .filter(transition -> transition.getFromState() == left.initState)
                         .filter(transition -> transition.getType() == TransitionType.BLACK)
                         .map(transition -> transition.displaceTransition(toDisplaceLeft)
-                                .replaceFromState(0))
+                                .replaceFromState(initState))
                         .collect(toList())
         );
 
-        // copy all black transitions to final state in left CEA and displace
+        // copy all black transitions to final state in left CEA and alter them to lead to
+        // the new final state
         transitions.addAll(
                 left.transitions
                         .stream()

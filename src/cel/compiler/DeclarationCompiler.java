@@ -3,7 +3,7 @@ package cel.compiler;
 import cel.compiler.errors.UnknownStatementError;
 import cel.compiler.visitors.EventDeclarationVisitor;
 import cel.compiler.visitors.StreamDeclarationVisitor;
-import cel.parser.CEPLParser;
+import cel.parser.CELParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
@@ -12,10 +12,10 @@ public class DeclarationCompiler extends BaseCompiler<Void> {
 
     @Override
     public Void compile(String declaration) throws ParseCancellationException {
-        CEPLParser ceplParser = parse(declaration);
+        CELParser CELParser = parse(declaration);
 
         // a declaration can only be valid if it parses on this parser rule
-        CEPLParser.Cel_declarationContext ctx = ceplParser.cel_declaration();
+        CELParser.Cel_declarationContext ctx = CELParser.cel_declaration();
 
 
         return compileContext(ctx);
@@ -23,11 +23,11 @@ public class DeclarationCompiler extends BaseCompiler<Void> {
 
     @Override
     Void compileContext(ParserRuleContext ctx) {
-        if (!(ctx instanceof CEPLParser.Cel_declarationContext)){
+        if (!(ctx instanceof CELParser.Cel_declarationContext)){
             throw new Error("FATAL ERROR!");
         }
 
-        CEPLParser.Cel_declarationContext declarationContext = (CEPLParser.Cel_declarationContext) ctx;
+        CELParser.Cel_declarationContext declarationContext = (CELParser.Cel_declarationContext) ctx;
 
         // check what kind of declaration it is and compile it
         if (declarationContext.event_declaration() != null){
@@ -45,11 +45,11 @@ public class DeclarationCompiler extends BaseCompiler<Void> {
         return null;
     }
 
-    private void compileEventDeclaration(CEPLParser.Event_declarationContext tree){
+    private void compileEventDeclaration(CELParser.Event_declarationContext tree){
         tree.accept(new EventDeclarationVisitor());
     }
 
-    private void compileStreamDeclaration(CEPLParser.Stream_declarationContext tree){
+    private void compileStreamDeclaration(CELParser.Stream_declarationContext tree){
         tree.accept(new StreamDeclarationVisitor());
     }
 }

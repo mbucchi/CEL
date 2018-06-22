@@ -104,4 +104,19 @@ public class AndEventFilter extends CompoundEventFilter {
         }
         return true;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        boolean filtersAdded = false;
+        for (EventFilter eventFilter : eventFilterCollection) {
+            if (filtersAdded) stringBuilder.append(" and ");
+            stringBuilder
+                    .append("(")
+                    .append(eventFilter.toString())
+                    .append(")");
+            filtersAdded = true;
+        }
+        return stringBuilder.toString();
+    }
 }

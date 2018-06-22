@@ -16,6 +16,10 @@ public class Query {
     private TimeWindow timeWindow;
     private ConsumptionPolicy consumptionPolicy;
 
+    public CEA getPatternCEA() {
+        return patternCEA.copy();
+    }
+
     public Query(SelectionStrategy selectionStrategy,
                  ProjectionList projectionList,
                  Collection<StreamSchema> streamSchemas,

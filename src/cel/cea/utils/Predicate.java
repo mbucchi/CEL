@@ -8,9 +8,14 @@ import cel.values.Attribute;
 import cel.values.ValueType;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Predicate {
-    public static final Predicate TRUE_PREDICATE = new Predicate();
+
+    // this predicate is over ALL events and is always true.
+    public static final Predicate TRUE_PREDICATE = new Predicate(
+            EventSchema.getAllSchemas().values().stream().map(EventSchema::getNameLabel).collect(Collectors.toSet())
+    );
 
     private Collection<EventFilter> filterCollection;
     private StreamSchema streamSchema;
@@ -31,6 +36,11 @@ public class Predicate {
         filterCollection = new ArrayList<>();
         labelSet = new HashSet<>();
         satisfiable = true;
+    }
+
+    private Predicate(Set<Label> labels){
+        this();
+        labelSet = labels;
     }
 
     public Predicate(EventSchema eventSchema) {

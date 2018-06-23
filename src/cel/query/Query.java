@@ -1,6 +1,7 @@
 package cel.query;
 import cel.cea.CEA;
 import cel.cea.MinimizedCEA;
+import cel.cea.ProjectionCEA;
 import cel.stream.StreamSchema;
 
 import java.util.Collection;
@@ -44,9 +45,9 @@ public class Query {
         // Remove useless states and transitions
         patternCEA = new MinimizedCEA(patternCEA);
 
-//        TODO: possibly implement a Projection Automaton
-//        patternCEA = new ProjectionCEA(patternCEA, projectionList);
-//        projectionList = ProjectionList.ALL_EVENTS;
+        //
+        patternCEA = new ProjectionCEA(patternCEA, projectionList);
+        projectionList = ProjectionList.ALL_EVENTS;
 
 //        TODO: implement automatons for each selection strategy
 //        switch (selectionStrategy){

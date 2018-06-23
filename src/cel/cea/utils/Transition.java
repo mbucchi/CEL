@@ -69,6 +69,10 @@ public class Transition implements Comparable<Transition> {
         return transitionType;
     }
 
+    public void setType(TransitionType transitionType) {
+        this.transitionType = transitionType;
+    }
+
     public Set<Label> getLabels() {
         return predicate.getLabelSet();
     }

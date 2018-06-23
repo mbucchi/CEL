@@ -24,6 +24,16 @@ public class ProjectionList {
         return labels.contains(label);
     }
 
+    public boolean containsAny(Collection<Label> labels) {
+        if (matchAll) return true;
+        for (Label label : labels) {
+            if (this.labels.contains(label)){
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static final ProjectionList ALL_EVENTS = new ProjectionList();
 
 }

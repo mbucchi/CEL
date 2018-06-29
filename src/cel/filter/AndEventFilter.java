@@ -14,7 +14,7 @@ public class AndEventFilter extends CompoundEventFilter {
         addEventFilter(right);
     }
 
-    AndEventFilter(Label label, Collection<EventFilter> eventFilters){
+    public AndEventFilter(Label label, Collection<EventFilter> eventFilters){
         super(label);
         for (EventFilter eventFilter : eventFilters){
             addEventFilter(eventFilter);

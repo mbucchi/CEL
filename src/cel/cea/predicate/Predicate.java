@@ -25,6 +25,10 @@ public class Predicate {
         return eventSchema;
     }
 
+    public StreamSchema getStreamSchema() {
+        return streamSchema;
+    }
+
     public Set<Label> getLabelSet() {
         return labelSet;
     }

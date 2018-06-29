@@ -17,6 +17,17 @@ public class InequalityEventFilter extends AtomicEventFilter {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof InequalityEventFilter)) return false;
+        /* TODO: ADD REMAINING CASES */
+        return label.equals(((InequalityEventFilter) obj).label) &&
+                lhs.equals(((InequalityEventFilter) obj).lhs) &&
+                rhs.equals(((InequalityEventFilter) obj).rhs) &&
+                logicalOperation.equals(((InequalityEventFilter) obj).logicalOperation);
+    }
+
+    @Override
     public boolean equivalentTo(FilterComparable filter) {
         if (this == filter) return true;
         if (filter instanceof CompoundEventFilter) return filter.equivalentTo(this);

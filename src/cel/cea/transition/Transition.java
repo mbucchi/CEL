@@ -82,6 +82,10 @@ public class Transition implements Comparable<Transition> {
         return predicate.getEventSchema();
     }
 
+    public Predicate getPredicate() {
+        return predicate;
+    }
+
     @Override
     public String toString() {
         return "Transition(" +

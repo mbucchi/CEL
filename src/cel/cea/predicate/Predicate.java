@@ -1,4 +1,4 @@
-package cel.cea.utils;
+package cel.cea.predicate;
 
 import cel.event.EventSchema;
 import cel.event.Label;
@@ -21,11 +21,11 @@ public class Predicate {
     private StreamSchema streamSchema;
     private EventSchema eventSchema;
 
-    EventSchema getEventSchema() {
+    public EventSchema getEventSchema() {
         return eventSchema;
     }
 
-    Set<Label> getLabelSet() {
+    public Set<Label> getLabelSet() {
         return labelSet;
     }
 
@@ -54,21 +54,17 @@ public class Predicate {
         this.streamSchema = streamSchema;
     }
 
-    Collection<EventFilter> getFilterCollection() {
+    public Collection<EventFilter> getFilterCollection() {
         return filterCollection;
     }
 
-    boolean addFilter(EventFilter filter) {
-        if (!satisfiable){
-            return false;
-        }
-        else if (validForAttributeTypes(filter)){
+    public void addFilter(EventFilter filter) {
+        if (!satisfiable) return;
+        if (validForAttributeTypes(filter)){
             filterCollection.add(filter);
-            return true;
         }
         else {
             makeFalsePredicate();
-            return false;
         }
     }
 
@@ -98,21 +94,29 @@ public class Predicate {
         satisfiable = false;
     }
 
-    void addLabel(Label label) {
+    public void addLabel(Label label) {
         labelSet.add(label);
     }
 
-    boolean containsLabel(Label label){
+    public boolean containsLabel(Label label){
         return labelSet.contains(label);
     }
 
-    Predicate copy() {
+    public Predicate copy() {
         if (this == TRUE_PREDICATE) return TRUE_PREDICATE;
         Predicate newPredicate = new Predicate(streamSchema, eventSchema);
         newPredicate.labelSet.addAll(labelSet);
         newPredicate.filterCollection.addAll(filterCollection);
         newPredicate.satisfiable = satisfiable;
         return newPredicate;
+    }
+
+    public boolean overStream(StreamSchema streamSchema){
+        return this.streamSchema == null || this.streamSchema.equals(streamSchema);
+    }
+
+    public boolean overEvent(EventSchema eventSchema){
+        return this.eventSchema == null || this.eventSchema.equals(eventSchema);
     }
 
     @Override

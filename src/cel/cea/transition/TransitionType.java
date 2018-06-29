@@ -1,4 +1,4 @@
-package cel.cea.utils;
+package cel.cea.transition;
 
 public enum TransitionType {
     WHITE("○"),

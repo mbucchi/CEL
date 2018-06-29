@@ -1,8 +1,8 @@
 package cel.cea;
 
-import cel.cea.utils.Predicate;
-import cel.cea.utils.Transition;
-import cel.cea.utils.TransitionType;
+import cel.cea.predicate.Predicate;
+import cel.cea.transition.Transition;
+import cel.cea.transition.TransitionType;
 import cel.event.EventSchema;
 import cel.stream.StreamSchema;
 

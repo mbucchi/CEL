@@ -1,5 +1,6 @@
-package cel.cea.utils;
+package cel.cea.transition;
 
+import cel.cea.predicate.Predicate;
 import cel.event.Label;
 import cel.event.EventSchema;
 import cel.filter.EventFilter;

@@ -1,6 +1,6 @@
 package cel.cea;
 
-import cel.cea.utils.Transition;
+import cel.cea.transition.Transition;
 import cel.event.EventSchema;
 import cel.event.Label;
 import java.util.*;

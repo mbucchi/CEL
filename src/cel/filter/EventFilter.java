@@ -1,7 +1,7 @@
 package cel.filter;
 
 import cel.cea.CEA;
-import cel.cea.utils.Transition;
+import cel.cea.transition.Transition;
 import cel.event.Label;
 import cel.values.Attribute;
 import cel.values.ValueType;

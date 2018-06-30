@@ -20,7 +20,6 @@ public class InequalityEventFilter extends AtomicEventFilter {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof InequalityEventFilter)) return false;
-        /* TODO: ADD REMAINING CASES */
         return label.equals(((InequalityEventFilter) obj).label) &&
                 lhs.equals(((InequalityEventFilter) obj).lhs) &&
                 rhs.equals(((InequalityEventFilter) obj).rhs) &&
@@ -30,9 +29,29 @@ public class InequalityEventFilter extends AtomicEventFilter {
     @Override
     public boolean equivalentTo(FilterComparable filter) {
         if (this == filter) return true;
+        if (this.equals(filter)) return true;
         if (filter instanceof CompoundEventFilter) return filter.equivalentTo(this);
-
-        // TODO: compare other kinds of filters
+        if (filter instanceof AtomicEventFilter) {
+            AtomicEventFilter f = (AtomicEventFilter) filter;
+            if (this.logicalOperation.equals(LogicalOperation.LESS)) {
+                if (f.logicalOperation.equals(LogicalOperation.GREATER)) {
+                    return label.equals(f.label) && lhs.equals(f.rhs) && rhs.equals(f.lhs);
+                }
+            } else if (this.logicalOperation.equals(LogicalOperation.LESS_EQUALS)) {
+                if (f.logicalOperation.equals(LogicalOperation.GREATER_EQUALS)) {
+                    return label.equals(f.label) && lhs.equals(f.rhs) && rhs.equals(f.lhs);
+                }
+            } else if (this.logicalOperation.equals(LogicalOperation.GREATER)) {
+                if (f.logicalOperation.equals(LogicalOperation.LESS)) {
+                    return label.equals(f.label) && lhs.equals(f.rhs) && rhs.equals(f.lhs);
+                }
+            } else if (this.logicalOperation.equals(LogicalOperation.GREATER_EQUALS)) {
+                if (f.logicalOperation.equals(LogicalOperation.LESS_EQUALS)) {
+                    return label.equals(f.label) && lhs.equals(f.rhs) && rhs.equals(f.lhs);
+                }
+            }
+        }
+        /* TODO: COMPARE TO OREVENTFILTERS/ANDEVENTFILTERS */
         return false;
     }
 
@@ -42,7 +61,6 @@ public class InequalityEventFilter extends AtomicEventFilter {
         if (filter instanceof CompoundEventFilter) {
             return ((CompoundEventFilter) filter).dominatedBy(this);
         }
-
         // TODO: compare other kinds of filters
         return false;
     }

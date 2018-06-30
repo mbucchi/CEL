@@ -14,10 +14,14 @@ import static cel.cea.transition.TransitionType.WHITE;
 
 public class DeterministicCEA extends CEA {
 
-    private static final Integer INITIAL = 0;
-    private static final Integer ADDED = 1;
+    private static final int INITIAL = 0;
+    private static final int ADDED = 1;
+
     private int[] addedStates;
     private Map<Integer, Integer> newStatesMap = new HashMap<>();
+    private Set<List<Integer>> statesLeft;
+    private ArrayList<Transition> newTransitions;
+    private Integer fromState;
 
     public DeterministicCEA(CEA toDeterminize) {
 
@@ -28,7 +32,7 @@ public class DeterministicCEA extends CEA {
         addedStates = new int[(int) Math.pow(2, toDeterminize.nStates)];
 
         /* statesLeft represents the list of states left to check */
-        Set<List<Integer>> statesLeft = new HashSet<>();
+        statesLeft = new HashSet<>();
         List<Integer> initialList = new ArrayList<>();
         initialList.add(INITIAL);
         statesLeft.add(initialList);
@@ -38,14 +42,14 @@ public class DeterministicCEA extends CEA {
         Map<Integer, Set<Transition>> reachableFromWithWhite = createTransitionMap(toDeterminize, WHITE);
         List<Transition> usefulBlackTransitions = new ArrayList<>();
         List<Transition> usefulWhiteTransitions = new ArrayList<>();
-        ArrayList<Transition> newTransitions = new ArrayList<>();
+        newTransitions = new ArrayList<>();
 
         List<Integer> current;
         while (statesLeft.iterator().hasNext()) {
             current = statesLeft.iterator().next();
             statesLeft.remove(current);
             /* states are now lists, and are represented as 2^state_0 + ... + 2^state_j - 1 */
-            Integer fromState = getNewStateNumber(current);
+            fromState = getNewStateNumber(current);
             if (addedStates[fromState] == ADDED) {
                 continue;
             }
@@ -69,14 +73,14 @@ public class DeterministicCEA extends CEA {
                 usefulBlackTransitionsCombinations.addAll(getCombinations(usefulBlackTransitions, i));
             }
             for (List<Transition> currentTransitionList : usefulBlackTransitionsCombinations) {
-                makeNewTransition(addedStates, statesLeft, usefulBlackTransitions, newTransitions, fromState, currentTransitionList);
+                makeNewTransition(usefulBlackTransitions, currentTransitionList);
             }
 
             for (int i = 1; i <= usefulWhiteTransitions.size(); i++) {
                 usefulWhiteTransitionsCombinations.addAll(getCombinations(usefulWhiteTransitions, i));
             }
             for (List<Transition> currentTransitionList : usefulWhiteTransitionsCombinations) {
-                makeNewTransition(addedStates, statesLeft, usefulWhiteTransitions, newTransitions, fromState, currentTransitionList);
+                makeNewTransition(usefulWhiteTransitions, currentTransitionList);
             }
         }
 
@@ -95,8 +99,7 @@ public class DeterministicCEA extends CEA {
 //        eventSchemas = newEventSchemas;
     }
 
-    private void makeNewTransition(int[] addedStates, Set<List<Integer>> statesLeft, List<Transition> usefulTransitions,
-                                   ArrayList<Transition> newTransitions, Integer fromState, List<Transition> currentTransitionList) {
+    private void makeNewTransition(List<Transition> usefulTransitions, List<Transition> currentTransitionList) {
 
         /* currentTransitionList holds which transitions will be true */
         if (!usefulSet(currentTransitionList)) {
@@ -250,7 +253,7 @@ public class DeterministicCEA extends CEA {
         /* TODO: ADD MORE CASES */
         /* TODO: CHECK IF ONE FILTER IMPLIES ANOTHER ON INTEGER COMPARISON (SHOULD BE DONE ON EVENTFILTER CLASS) */
         for (EventFilter transitionFilter : t.getFilters()) {
-            if (transitionFilter.equals(f)) {
+            if (transitionFilter.equivalentTo(f)) {
                 return false;
             }
         }
@@ -284,7 +287,7 @@ public class DeterministicCEA extends CEA {
     private LinkedList<EventFilter> removeRedundants(LinkedList<EventFilter> filters) {
         for (int i = 0; i < filters.size(); i++) {
             for (int j = i + 1; j < filters.size(); j++) {
-                if (filters.get(i).equals(filters.get(j))) {
+                if (filters.get(i).equivalentTo(filters.get(j))) {
                     filters.remove(j);
                 }
             }

@@ -27,7 +27,6 @@ public class DeterministicCEA extends CEA {
 
         System.out.println(toDeterminize.toString());
         long compileTime = System.nanoTime();
-
         /* added states list holds 2^nStates initially */
         addedStates = new int[(int) Math.pow(2, toDeterminize.nStates)];
 
@@ -42,12 +41,14 @@ public class DeterministicCEA extends CEA {
         Map<Integer, Set<Transition>> reachableFromWithWhite = createTransitionMap(toDeterminize, WHITE);
         List<Transition> usefulBlackTransitions = new ArrayList<>();
         List<Transition> usefulWhiteTransitions = new ArrayList<>();
-        newTransitions = new ArrayList<>();
 
+        newTransitions = new ArrayList<>();
         List<Integer> current;
         while (statesLeft.iterator().hasNext()) {
+
             current = statesLeft.iterator().next();
             statesLeft.remove(current);
+
             /* states are now lists, and are represented as 2^state_0 + ... + 2^state_j - 1 */
             fromState = getNewStateNumber(current);
             if (addedStates[fromState] == ADDED) {
@@ -66,28 +67,24 @@ public class DeterministicCEA extends CEA {
 
             /* TODO: FIND A BETTER WAY TO DO THIS */
             /* get all possible transitions combinations */
-            List<List<Transition>> usefulBlackTransitionsCombinations = new LinkedList<>();
-            List<List<Transition>> usefulWhiteTransitionsCombinations = new LinkedList<>();
-
             for (int i = 1; i <= usefulBlackTransitions.size(); i++) {
-                usefulBlackTransitionsCombinations.addAll(getCombinations(usefulBlackTransitions, i));
-            }
-            for (List<Transition> currentTransitionList : usefulBlackTransitionsCombinations) {
-                makeNewTransition(usefulBlackTransitions, currentTransitionList);
+                for (List<Transition> currentTransitionList : getCombinations(usefulBlackTransitions, i)) {
+                    makeNewTransition(usefulBlackTransitions, currentTransitionList);
+                }
             }
 
             for (int i = 1; i <= usefulWhiteTransitions.size(); i++) {
-                usefulWhiteTransitionsCombinations.addAll(getCombinations(usefulWhiteTransitions, i));
+                for (List<Transition> currentTransitionList : getCombinations(usefulWhiteTransitions, i)) {
+                    makeNewTransition(usefulWhiteTransitions, currentTransitionList);
+                }
             }
-            for (List<Transition> currentTransitionList : usefulWhiteTransitionsCombinations) {
-                makeNewTransition(usefulWhiteTransitions, currentTransitionList);
-            }
+
         }
 
         newTransitions.sort(Transition::compareTo);
         transitions = newTransitions;
-        compileTime = System.nanoTime() - compileTime;
         renameStates();
+        compileTime = System.nanoTime() - compileTime;
         System.out.println("Determinization time: " + ((double) compileTime / 1000000000));
         /* TODO: MERGE TRANSITIONS WITH EQUAL TO AND FROM STATE */
         mergeTransitions();
@@ -138,7 +135,7 @@ public class DeterministicCEA extends CEA {
             }
         }
         if (!negatedFilters.isEmpty()) {
-            negatedFilters = removeRedundants(negatedFilters);
+            negatedFilters = removeRedundantFilters(negatedFilters);
             for (EventFilter filter : negatedFilters) {
                 newTransition.addFilter(filter);
             }
@@ -151,7 +148,6 @@ public class DeterministicCEA extends CEA {
         }
         newTransition = newTransition.replaceFromState(fromState).replaceToState(toState);
         newTransitions.add(newTransition);
-
     }
 
     /**
@@ -240,10 +236,8 @@ public class DeterministicCEA extends CEA {
                     newFilters.remove(filter);
                 }
             }
-            if (!(currentFilterList.isEmpty())) {
-                AndEventFilter newFilter = new AndEventFilter(current.getLabel(), currentFilterList);
-                negatedFilters.add(newFilter.negate());
-            }
+            AndEventFilter newFilter = new AndEventFilter(current.getLabel(), currentFilterList);
+            negatedFilters.add(newFilter.negate());
         }
         return negatedFilters;
     }
@@ -284,7 +278,7 @@ public class DeterministicCEA extends CEA {
         /* TODO: IMPLEMENT THIS */
     }
 
-    private LinkedList<EventFilter> removeRedundants(LinkedList<EventFilter> filters) {
+    private LinkedList<EventFilter> removeRedundantFilters(LinkedList<EventFilter> filters) {
         for (int i = 0; i < filters.size(); i++) {
             for (int j = i + 1; j < filters.size(); j++) {
                 if (filters.get(i).equivalentTo(filters.get(j))) {
@@ -301,5 +295,3 @@ public class DeterministicCEA extends CEA {
         return p1.overStream(p2.getStreamSchema()) && p1.overEvent(p2.getEventSchema());
     }
 }
-
-

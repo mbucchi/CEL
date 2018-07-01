@@ -236,8 +236,12 @@ public class DeterministicCEA extends CEA {
                     newFilters.remove(filter);
                 }
             }
-            AndEventFilter newFilter = new AndEventFilter(current.getLabel(), currentFilterList);
-            negatedFilters.add(newFilter.negate());
+            if (currentFilterList.size() > 1) {
+                AndEventFilter newFilter = new AndEventFilter(current.getLabel(), currentFilterList);
+                negatedFilters.add(newFilter.negate());
+            } else {
+                negatedFilters.add(currentFilterList.get(0).negate());
+            }
         }
         return negatedFilters;
     }

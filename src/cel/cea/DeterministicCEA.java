@@ -14,10 +14,11 @@ import static cel.cea.transition.TransitionType.WHITE;
 
 public class DeterministicCEA extends CEA {
 
-    private static final int INITIAL = 0;
-    private static final int ADDED = 1;
+    private static final int INITIAL_STATE = 0;
+    private static final int FIRST = 0;
+    private static final int SECOND = 1;
 
-    private int[] addedStates;
+    private Set<Integer> addedStates;
     private Map<Integer, Integer> newStatesMap = new HashMap<>();
     private Set<List<Integer>> statesLeft;
     private ArrayList<Transition> newTransitions;
@@ -25,15 +26,15 @@ public class DeterministicCEA extends CEA {
 
     public DeterministicCEA(CEA toDeterminize) {
 
-        System.out.println(toDeterminize.toString());
+//        System.out.println(toDeterminize.toString());
         long compileTime = System.nanoTime();
-        /* added states list holds 2^nStates initially */
-        addedStates = new int[(int) Math.pow(2, toDeterminize.nStates)];
+        
+        addedStates = new HashSet<>();
 
         /* statesLeft represents the list of states left to check */
         statesLeft = new HashSet<>();
         List<Integer> initialList = new ArrayList<>();
-        initialList.add(INITIAL);
+        initialList.add(INITIAL_STATE);
         statesLeft.add(initialList);
 
         /* we get the transition set for each state */
@@ -51,10 +52,10 @@ public class DeterministicCEA extends CEA {
 
             /* states are now lists, and are represented as 2^state_0 + ... + 2^state_j - 1 */
             fromState = getNewStateNumber(current);
-            if (addedStates[fromState] == ADDED) {
+            if (addedStates.contains(fromState)) {
                 continue;
             }
-            addedStates[fromState] = ADDED;
+            addedStates.add(fromState);
 
             usefulBlackTransitions.clear();
             usefulWhiteTransitions.clear();
@@ -103,11 +104,11 @@ public class DeterministicCEA extends CEA {
             return;
         }
         Set<Integer> toStates = new HashSet<>();
-        Transition newTransition = currentTransitionList.get(0).copy();
+        Transition newTransition = currentTransitionList.get(FIRST).copy();
         toStates.add(newTransition.getToState());
 
         /* TODO: CHECK EVENT TYPE AND STREAM TYPE FOR MULTIPLE EVENTS OR STREAMS */
-        for (Transition currentTransition : currentTransitionList.subList(1, currentTransitionList.size())) {
+        for (Transition currentTransition : currentTransitionList.subList(SECOND, currentTransitionList.size())) {
 
             for (EventFilter filter : currentTransition.getFilters()) {
                 if (notRedundant(newTransition, filter)) {
@@ -118,10 +119,10 @@ public class DeterministicCEA extends CEA {
             toStates.add(currentTransition.getToState());
         }
 
-        LinkedList<EventFilter> negatedFilters = new LinkedList<>();
+        ArrayList<EventFilter> negatedFilters = new ArrayList<>();
         for (Transition currentTransition : usefulTransitions) {
             if (!currentTransitionList.contains(currentTransition) && isComparable(newTransition, currentTransition)) {
-                LinkedList<EventFilter> filtersToNegate = new LinkedList<>();
+                ArrayList<EventFilter> filtersToNegate = new ArrayList<>();
                 for (EventFilter filter : currentTransition.getFilters()) {
                     if (notRedundant(newTransition, filter)) {
                         filtersToNegate.add(filter);
@@ -143,7 +144,7 @@ public class DeterministicCEA extends CEA {
 
         List<Integer> toStatesList = new ArrayList<>(toStates);
         Integer toState = getNewStateNumber(toStatesList);
-        if (addedStates[toState] != ADDED) {
+        if (!addedStates.contains(toState)) {
             statesLeft.add(toStatesList);
         }
         newTransition = newTransition.replaceFromState(fromState).replaceToState(toState);
@@ -203,7 +204,7 @@ public class DeterministicCEA extends CEA {
 
         for (List<Transition> set : subSetCombination) {
             List<Transition> newSet = new LinkedList<>(set);
-            newSet.add(0, actual);
+            newSet.add(FIRST, actual);
             combination.add(newSet);
         }
         combination.addAll(getCombinations(subSet, size));
@@ -212,7 +213,7 @@ public class DeterministicCEA extends CEA {
     }
 
     private boolean usefulSet(List<Transition> transitionList) {
-        Transition first = transitionList.remove(0);
+        Transition first = transitionList.remove(FIRST);
         for (Transition transition : transitionList) {
             if (!(isComparable(first, transition))) {
                 return false;
@@ -222,13 +223,13 @@ public class DeterministicCEA extends CEA {
         return true;
     }
 
-    private LinkedList<EventFilter> negateFilters(Collection<EventFilter> filters) {
+    private ArrayList<EventFilter> negateFilters(Collection<EventFilter> filters) {
         LinkedList<EventFilter> newFilters = new LinkedList<>();
-        LinkedList<EventFilter> negatedFilters = new LinkedList<>();
+        ArrayList<EventFilter> negatedFilters = new ArrayList<>();
         newFilters.addAll(filters);
         EventFilter current;
         while ((current = newFilters.poll()) != null) {
-            LinkedList<EventFilter> currentFilterList = new LinkedList<>();
+            ArrayList<EventFilter> currentFilterList = new ArrayList<>();
             currentFilterList.add(current);
             for (EventFilter filter : newFilters) {
                 if (current.getLabel() == filter.getLabel()) {
@@ -240,18 +241,17 @@ public class DeterministicCEA extends CEA {
                 AndEventFilter newFilter = new AndEventFilter(current.getLabel(), currentFilterList);
                 negatedFilters.add(newFilter.negate());
             } else {
-                negatedFilters.add(currentFilterList.get(0).negate());
+                negatedFilters.add(currentFilterList.get(FIRST).negate());
             }
         }
         return negatedFilters;
     }
 
     private boolean notRedundant(Transition t, EventFilter f) {
-        /* Extremely naive implementation, just checks if the filters are equal */
-        /* TODO: ADD MORE CASES */
+        /* Checks it a filter dominates another */
         /* TODO: CHECK IF ONE FILTER IMPLIES ANOTHER ON INTEGER COMPARISON (SHOULD BE DONE ON EVENTFILTER CLASS) */
         for (EventFilter transitionFilter : t.getFilters()) {
-            if (transitionFilter.equivalentTo(f)) {
+            if (transitionFilter.dominates(f)) {
                 return false;
             }
         }
@@ -264,12 +264,10 @@ public class DeterministicCEA extends CEA {
 
     private void renameStates() {
         int nStates = 0;
-        for (int i = 0; i < addedStates.length; i++) {
-            if (addedStates[i] == ADDED) {
-                newStatesMap.put(i, nStates++);
-            }
+        for (Integer addedState : addedStates) {
+            newStatesMap.put(addedState, nStates++);
         }
-        LinkedList<Transition> newTransitions = new LinkedList<>();
+        ArrayList<Transition> newTransitions = new ArrayList<>();
         for (Transition t : transitions) {
             newTransitions.add(t.replaceToState(newStatesMap.get(t.getToState()))
                                .replaceFromState(newStatesMap.get(t.getFromState())));
@@ -282,7 +280,7 @@ public class DeterministicCEA extends CEA {
         /* TODO: IMPLEMENT THIS */
     }
 
-    private LinkedList<EventFilter> removeRedundantFilters(LinkedList<EventFilter> filters) {
+    private ArrayList<EventFilter> removeRedundantFilters(ArrayList<EventFilter> filters) {
         for (int i = 0; i < filters.size(); i++) {
             for (int j = i + 1; j < filters.size(); j++) {
                 if (filters.get(i).equivalentTo(filters.get(j))) {

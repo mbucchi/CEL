@@ -33,23 +33,10 @@ public class InequalityEventFilter extends AtomicEventFilter {
         if (filter instanceof CompoundEventFilter) return filter.equivalentTo(this);
         if (filter instanceof AtomicEventFilter) {
             AtomicEventFilter f = (AtomicEventFilter) filter;
-            if (this.logicalOperation.equals(LogicalOperation.LESS)) {
-                if (f.logicalOperation.equals(LogicalOperation.GREATER)) {
-                    return label.equals(f.label) && lhs.equals(f.rhs) && rhs.equals(f.lhs);
-                }
-            } else if (this.logicalOperation.equals(LogicalOperation.LESS_EQUALS)) {
-                if (f.logicalOperation.equals(LogicalOperation.GREATER_EQUALS)) {
-                    return label.equals(f.label) && lhs.equals(f.rhs) && rhs.equals(f.lhs);
-                }
-            } else if (this.logicalOperation.equals(LogicalOperation.GREATER)) {
-                if (f.logicalOperation.equals(LogicalOperation.LESS)) {
-                    return label.equals(f.label) && lhs.equals(f.rhs) && rhs.equals(f.lhs);
-                }
-            } else if (this.logicalOperation.equals(LogicalOperation.GREATER_EQUALS)) {
-                if (f.logicalOperation.equals(LogicalOperation.LESS_EQUALS)) {
-                    return label.equals(f.label) && lhs.equals(f.rhs) && rhs.equals(f.lhs);
-                }
+            if (this.logicalOperation.flip().equals(f.logicalOperation)) {
+                return label.equals(f.label) && lhs.equals(f.rhs) && rhs.equals(f.lhs);
             }
+
         }
         /* TODO: COMPARE TO OREVENTFILTERS/ANDEVENTFILTERS */
         return false;

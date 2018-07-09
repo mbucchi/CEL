@@ -28,7 +28,7 @@ public class DeterministicCEA extends CEA {
 
 //        System.out.println(toDeterminize.toString());
         long compileTime = System.nanoTime();
-        
+
         addedStates = new HashSet<>();
 
         /* statesLeft represents the list of states left to check */

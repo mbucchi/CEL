@@ -1,16 +1,11 @@
 package cel.cea.predicate;
 
-import cel.event.Event;
 import cel.event.EventSchema;
 import cel.event.Label;
 import cel.filter.EventFilter;
 import cel.stream.StreamSchema;
-import cel.values.Attribute;
-import cel.values.ValueType;
-import org.antlr.v4.runtime.misc.Array2DHashSet;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Predicate {
 
@@ -218,7 +213,7 @@ public class Predicate {
             return true;
         }
         if (predicates.size() > 0) {
-            
+
         } else {
 
         }

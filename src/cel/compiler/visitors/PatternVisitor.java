@@ -11,7 +11,7 @@ import cel.event.EventSchema;
 import cel.parser.utils.StringCleaner;
 import cel.stream.StreamSchema;
 
-import java.util.Collection;
+import java.util.*;
 
 public class PatternVisitor extends CELBaseVisitor<CEA> {
 
@@ -91,16 +91,20 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
             if (!definedStreams.contains(streamName)){
                 throw new NameError("Stream `" + streamName + "` is not defined", ctx.s_event_name().stream_name());
             }
-            StreamSchema streamSchema = StreamSchema.getSchemaFor(streamName);
+            Set<StreamSchema> streamSchema = new HashSet<>();
+            StreamSchema inner = StreamSchema.getSchemaFor(streamName);
+            streamSchema.add(inner);
 
-            if (!streamSchema.containsEvent(eventName)){
+            if (!inner.containsEvent(eventName)){
                 throw new NameError("Event `" + eventName + "` is not defined within stream `" + streamName + "`",
                         ctx.s_event_name().event_name());
             }
 
             // Create a selection CEA that filters for the given stream
-            EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
-            if (eventSchema == null){
+            Set<EventSchema> eventSchema = new HashSet<>();
+            eventSchema.add(EventSchema.tryGetSchemaFor(eventName));
+
+            if (eventSchema.size() == 0){
                 throw new NameError("Event `" + eventName + "` is not defined", ctx.s_event_name().event_name());
             }
             return new SelectionCEA(streamSchema, eventSchema);
@@ -114,8 +118,10 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
             }
 
             // Create a selection CEA with no filters
-            EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
-            if (eventSchema == null){
+            Set<EventSchema> eventSchema = new HashSet<>();
+            eventSchema.add(EventSchema.tryGetSchemaFor(eventName));
+
+            if (eventSchema.size() == 0){
                 throw new NameError("Event `" + eventName + "` is not defined", ctx.s_event_name());
             }
             return new SelectionCEA(eventSchema);

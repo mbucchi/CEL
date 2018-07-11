@@ -36,7 +36,6 @@ public class InequalityEventFilter extends AtomicEventFilter {
             if (this.logicalOperation.flip().equals(f.logicalOperation)) {
                 return label.equals(f.label) && lhs.equals(f.rhs) && rhs.equals(f.lhs);
             }
-
         }
         /* TODO: COMPARE TO OREVENTFILTERS/ANDEVENTFILTERS */
         return false;

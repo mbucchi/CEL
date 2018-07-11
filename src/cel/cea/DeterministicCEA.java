@@ -3,8 +3,6 @@ package cel.cea;
 import cel.cea.predicate.Predicate;
 import cel.cea.transition.Transition;
 import cel.cea.transition.TransitionType;
-import cel.filter.AndEventFilter;
-import cel.filter.EventFilter;
 
 import java.util.*;
 
@@ -16,7 +14,6 @@ public class DeterministicCEA extends CEA {
 
     private static final int INITIAL_STATE = 0;
     private static final int FIRST = 0;
-    private static final int SECOND = 1;
 
     private Set<Integer> addedStates;
     private Map<Integer, Integer> newStatesMap = new HashMap<>();
@@ -70,16 +67,15 @@ public class DeterministicCEA extends CEA {
             /* get all possible transitions combinations */
             for (int i = 1; i <= usefulBlackTransitions.size(); i++) {
                 for (List<Transition> currentTransitionList : getCombinations(usefulBlackTransitions, i)) {
-                    makeNewTransition(usefulBlackTransitions, currentTransitionList);
+                    makeNewTransition(usefulBlackTransitions, currentTransitionList, BLACK);
                 }
             }
 
             for (int i = 1; i <= usefulWhiteTransitions.size(); i++) {
                 for (List<Transition> currentTransitionList : getCombinations(usefulWhiteTransitions, i)) {
-                    makeNewTransition(usefulWhiteTransitions, currentTransitionList);
+                    makeNewTransition(usefulWhiteTransitions, currentTransitionList, WHITE);
                 }
             }
-
         }
 
         newTransitions.sort(Transition::compareTo);
@@ -97,57 +93,39 @@ public class DeterministicCEA extends CEA {
 //        eventSchemas = newEventSchemas;
     }
 
-    private void makeNewTransition(List<Transition> usefulTransitions, List<Transition> currentTransitionList) {
+    private void makeNewTransition(List<Transition> usefulTransitions, List<Transition> currentTransitionList, TransitionType color) {
 
         /* currentTransitionList holds which transitions will be true */
-        if (!usefulSet(currentTransitionList)) {
-            return;
-        }
         Set<Integer> toStates = new HashSet<>();
-        Transition newTransition = currentTransitionList.get(FIRST).copy();
-        toStates.add(newTransition.getToState());
+        Transition newTransition = new Transition(fromState, color);
+        Predicate newPredicate = new Predicate();
 
-        /* TODO: CHECK EVENT TYPE AND STREAM TYPE FOR MULTIPLE EVENTS OR STREAMS */
-        for (Transition currentTransition : currentTransitionList.subList(SECOND, currentTransitionList.size())) {
-
-            for (EventFilter filter : currentTransition.getFilters()) {
-                if (notRedundant(newTransition, filter)) {
-                    newTransition.addFilter(filter);
-                }
-
-            }
+        for (Transition currentTransition : currentTransitionList) {
+            newPredicate.addPredicate(currentTransition.getPredicate());
             toStates.add(currentTransition.getToState());
         }
 
-        ArrayList<EventFilter> negatedFilters = new ArrayList<>();
+
         for (Transition currentTransition : usefulTransitions) {
-            if (!currentTransitionList.contains(currentTransition) && isComparable(newTransition, currentTransition)) {
-                ArrayList<EventFilter> filtersToNegate = new ArrayList<>();
-                for (EventFilter filter : currentTransition.getFilters()) {
-                    if (notRedundant(newTransition, filter)) {
-                        filtersToNegate.add(filter);
-                    }
-                }
-                /* if some negating some transition makes the predicate unsatisfiable, return without changes */
-                if (filtersToNegate.isEmpty()) {
-                    return;
-                }
-                negatedFilters.addAll(negateFilters(filtersToNegate));
+            if (!currentTransitionList.contains(currentTransition)) {
+                newPredicate.addPredicate(currentTransition.getPredicate().negate());
             }
         }
-        if (!negatedFilters.isEmpty()) {
-            negatedFilters = removeRedundantFilters(negatedFilters);
-            for (EventFilter filter : negatedFilters) {
-                newTransition.addFilter(filter);
-            }
+
+        if (!newPredicate.satisfiable) {
+            return;
         }
+        if (newPredicate.getPredicates().size() == 1) {
+            newPredicate = newPredicate.getPredicates().iterator().next();
+        }
+        newTransition.setPredicate(newPredicate);
 
         List<Integer> toStatesList = new ArrayList<>(toStates);
         Integer toState = getNewStateNumber(toStatesList);
         if (!addedStates.contains(toState)) {
             statesLeft.add(toStatesList);
         }
-        newTransition = newTransition.replaceFromState(fromState).replaceToState(toState);
+        newTransition = newTransition.replaceToState(toState);
         newTransitions.add(newTransition);
     }
 
@@ -164,9 +142,9 @@ public class DeterministicCEA extends CEA {
         }
 
         for (Transition t : cea.transitions) {
-            if ((color == WHITE && !(t.isBlack()))) {
+            if (color == WHITE && !t.isBlack()) {
                 transitionFrom.get(t.getFromState()).add(t);
-            } else if ((color == BLACK && t.isBlack())) {
+            } else if (color == BLACK && t.isBlack()) {
                 transitionFrom.get(t.getFromState()).add(t);
             }
         }
@@ -212,52 +190,6 @@ public class DeterministicCEA extends CEA {
         return combination;
     }
 
-    private boolean usefulSet(List<Transition> transitionList) {
-        Transition first = transitionList.remove(FIRST);
-        for (Transition transition : transitionList) {
-            if (!(isComparable(first, transition))) {
-                return false;
-            }
-        }
-        transitionList.add(first);
-        return true;
-    }
-
-    private ArrayList<EventFilter> negateFilters(Collection<EventFilter> filters) {
-        LinkedList<EventFilter> newFilters = new LinkedList<>();
-        ArrayList<EventFilter> negatedFilters = new ArrayList<>();
-        newFilters.addAll(filters);
-        EventFilter current;
-        while ((current = newFilters.poll()) != null) {
-            ArrayList<EventFilter> currentFilterList = new ArrayList<>();
-            currentFilterList.add(current);
-            for (EventFilter filter : newFilters) {
-                if (current.getLabel() == filter.getLabel()) {
-                    currentFilterList.add(filter);
-                    newFilters.remove(filter);
-                }
-            }
-            if (currentFilterList.size() > 1) {
-                AndEventFilter newFilter = new AndEventFilter(current.getLabel(), currentFilterList);
-                negatedFilters.add(newFilter.negate());
-            } else {
-                negatedFilters.add(currentFilterList.get(FIRST).negate());
-            }
-        }
-        return negatedFilters;
-    }
-
-    private boolean notRedundant(Transition t, EventFilter f) {
-        /* Checks it a filter dominates another */
-        /* TODO: CHECK IF ONE FILTER IMPLIES ANOTHER ON INTEGER COMPARISON (SHOULD BE DONE ON EVENTFILTER CLASS) */
-        for (EventFilter transitionFilter : t.getFilters()) {
-            if (transitionFilter.dominates(f)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private void mergeTransitions() {
         /* TODO: IMPLEMENT THIS */
     }
@@ -270,7 +202,7 @@ public class DeterministicCEA extends CEA {
         ArrayList<Transition> newTransitions = new ArrayList<>();
         for (Transition t : transitions) {
             newTransitions.add(t.replaceToState(newStatesMap.get(t.getToState()))
-                               .replaceFromState(newStatesMap.get(t.getFromState())));
+                    .replaceFromState(newStatesMap.get(t.getFromState())));
         }
         transitions = newTransitions;
         this.nStates = nStates;
@@ -278,22 +210,5 @@ public class DeterministicCEA extends CEA {
 
     private void collapseFinalStates() {
         /* TODO: IMPLEMENT THIS */
-    }
-
-    private ArrayList<EventFilter> removeRedundantFilters(ArrayList<EventFilter> filters) {
-        for (int i = 0; i < filters.size(); i++) {
-            for (int j = i + 1; j < filters.size(); j++) {
-                if (filters.get(i).equivalentTo(filters.get(j))) {
-                    filters.remove(j);
-                }
-            }
-        }
-        return filters;
-    }
-
-    private boolean isComparable(Transition t1, Transition t2) {
-        Predicate p1 = t1.getPredicate();
-        Predicate p2 = t2.getPredicate();
-        return p1.overStream(p2.getStreamSchema()) && p1.overEvent(p2.getEventSchema());
     }
 }

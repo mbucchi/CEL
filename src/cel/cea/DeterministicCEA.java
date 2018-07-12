@@ -61,6 +61,7 @@ public class DeterministicCEA extends CEA {
             for (Integer state : current) {
                 usefulBlackTransitions.addAll(reachableFromWithBlack.get(state));
                 usefulWhiteTransitions.addAll(reachableFromWithWhite.get(state));
+
             }
 
             /* TODO: FIND A BETTER WAY TO DO THIS */

@@ -1,5 +1,6 @@
 package cel.cea.predicate;
 
+import cel.event.Event;
 import cel.event.EventSchema;
 import cel.event.Label;
 import cel.filter.EventFilter;
@@ -12,13 +13,13 @@ public class Predicate {
     // this predicate is over ALL events and is always true.
     public static final Predicate TRUE_PREDICATE = new Predicate();
 
-    public Collection<EventFilter> filterCollection;
+    private Collection<EventFilter> filterCollection;
     private Set<StreamSchema> streamSchema;
     private Set<EventSchema> eventSchema;
     private Collection<Predicate> predicates;
     private boolean negated = false;
 
-    public Set<Label> labelSet;
+    private Set<Label> labelSet;
     public boolean satisfiable;
 
     public Predicate() {
@@ -30,10 +31,10 @@ public class Predicate {
         satisfiable = true;
     }
 
-    public Predicate(HashSet<Label> labels) {
-        this();
-        labelSet = labels;
-    }
+//    public Predicate(HashSet<Label> labels) {
+//        this();
+//        labelSet = labels;
+//    }
 
     public Predicate(Set<EventSchema> eventSchema) {
         this();
@@ -48,20 +49,20 @@ public class Predicate {
         this.streamSchema.addAll(streamSchema);
     }
 
-    public Predicate(Predicate inner) {
-        this(inner.getStreamSchema(), inner.getEventSchema());
-        this.labelSet.addAll(inner.labelSet);
-        this.filterCollection.addAll(inner.filterCollection);
-        this.satisfiable = inner.satisfiable;
-    }
+//    public Predicate(Predicate inner) {
+//        this(inner.getStreamSchema(), inner.getEventSchema());
+//        this.labelSet.addAll(inner.labelSet);
+//        this.filterCollection.addAll(inner.filterCollection);
+//        this.satisfiable = inner.satisfiable;
+//    }
 
-    public Predicate(Predicate p1, Predicate p2) {
+    Predicate(Predicate p1, Predicate p2) {
         this();
         this.addPredicate(p1);
         this.addPredicate(p2);
     }
 
-    public Predicate(Collection<Predicate> predicates) {
+    Predicate(Collection<Predicate> predicates) {
         this();
         this.addPredicates(predicates);
     }
@@ -70,7 +71,7 @@ public class Predicate {
         return eventSchema;
     }
 
-    public Set<StreamSchema> getStreamSchema() {
+    private Set<StreamSchema> getStreamSchema() {
         return streamSchema;
     }
 
@@ -105,10 +106,10 @@ public class Predicate {
     public void addPredicate(Predicate p) {
         if (predicates.size() > 0) {
             for (Predicate pred : predicates) {
-                if (pred.dominates(p)) {
+                if (useless(pred, p)) {
                     return;
                 }
-                if (pred.dominates(p.negate())) {
+                if (unsatisfiable(pred, p)) {
                     satisfiable = false;
                     return;
                 }
@@ -124,6 +125,28 @@ public class Predicate {
             eventSchema.addAll(evSch);
         }
         labelSet.addAll(p.getLabelSet());
+    }
+
+    private boolean useless(Predicate p1, Predicate p2) {
+        /* method that checks if p1 is equivalent to p1 && p2 */
+        if (p1.dominates(p2)) {
+            return true;
+        }
+        if (!p1.negated && p2.negated) {
+            return p1.eventSchema != null && p2.eventSchema != null && !p1.eventSchema.equals(p2.eventSchema);
+        }
+        return false;
+    }
+
+    private boolean unsatisfiable(Predicate p1, Predicate p2) {
+        /* Method that checks if p1 && p2 is unsatisfiable */
+        if (p1.dominates(p2.negate()) || p2.dominates(p1.negate())) {
+            return true;
+        }
+        if (!p1.negated && !p2.negated) {
+            return p1.eventSchema != null && p2.eventSchema != null && !p1.eventSchema.equals(p2.eventSchema);
+        }
+        return false;
     }
 
     public void addPredicates(Collection<Predicate> predicates) {
@@ -252,7 +275,11 @@ public class Predicate {
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         if (predicates.size() > 0) {
-            stringBuilder.append("ListPredicates( ");
+            if (negated) {
+                stringBuilder.append("NotMultiPredicate( ");
+            } else {
+                stringBuilder.append("MultiPredicate( ");
+            }
             for (Predicate p : predicates) {
                 stringBuilder.append(p.toString());
                 stringBuilder.append(" ");

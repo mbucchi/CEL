@@ -17,11 +17,27 @@ public class InequalityEventFilter extends AtomicEventFilter {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof InequalityEventFilter)) return false;
+        return label.equals(((InequalityEventFilter) obj).label) &&
+                lhs.equals(((InequalityEventFilter) obj).lhs) &&
+                rhs.equals(((InequalityEventFilter) obj).rhs) &&
+                logicalOperation.equals(((InequalityEventFilter) obj).logicalOperation);
+    }
+
+    @Override
     public boolean equivalentTo(FilterComparable filter) {
         if (this == filter) return true;
+        if (this.equals(filter)) return true;
         if (filter instanceof CompoundEventFilter) return filter.equivalentTo(this);
-
-        // TODO: compare other kinds of filters
+        if (filter instanceof AtomicEventFilter) {
+            AtomicEventFilter f = (AtomicEventFilter) filter;
+            if (this.logicalOperation.flip().equals(f.logicalOperation)) {
+                return label.equals(f.label) && lhs.equals(f.rhs) && rhs.equals(f.lhs);
+            }
+        }
+        /* TODO: COMPARE TO OREVENTFILTERS/ANDEVENTFILTERS */
         return false;
     }
 
@@ -31,7 +47,6 @@ public class InequalityEventFilter extends AtomicEventFilter {
         if (filter instanceof CompoundEventFilter) {
             return ((CompoundEventFilter) filter).dominatedBy(this);
         }
-
         // TODO: compare other kinds of filters
         return false;
     }

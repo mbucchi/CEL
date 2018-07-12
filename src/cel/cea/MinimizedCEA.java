@@ -55,7 +55,10 @@ public class MinimizedCEA extends CEA {
                 newTransitions.add(newTransition);
 
                 newLabelSet.addAll(transition.getLabels());
-                newEventSchemas.add(transition.getEventSchema());
+                Set<EventSchema> evSch = transition.getEventSchema();
+                if (evSch != null) {
+                    newEventSchemas.addAll(evSch);
+                }
             }
         }
         // Sort transitions

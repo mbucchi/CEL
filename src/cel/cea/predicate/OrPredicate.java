@@ -3,20 +3,29 @@ package cel.cea.predicate;
 import cel.event.EventSchema;
 import cel.stream.StreamSchema;
 
+import java.util.Collection;
+
 public class OrPredicate extends Predicate {
 
+    public OrPredicate() {
+        super();
+    }
+
     public OrPredicate(Predicate left, Predicate right) {
-        super(null);
-        // todo
+        super(left, right);
     }
 
-    @Override
-    public boolean overEvent(EventSchema eventSchema) {
-        return super.overEvent(eventSchema);
+    public OrPredicate(Collection<Predicate> preds) {
+        super(preds);
     }
 
-    @Override
-    public boolean overStream(StreamSchema streamSchema) {
-        return super.overStream(streamSchema);
-    }
+//    @Override
+//    public boolean overEvent(EventSchema eventSchema) {
+//        return super.overEvent(eventSchema);
+//    }
+//
+//    @Override
+//    public boolean overStream(StreamSchema streamSchema) {
+//        return super.overStream(streamSchema);
+//    }
 }

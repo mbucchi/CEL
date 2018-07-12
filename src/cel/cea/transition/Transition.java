@@ -15,6 +15,11 @@ public class Transition implements Comparable<Transition> {
     private Predicate predicate;
     private TransitionType transitionType;
 
+    public Transition(int fromState, TransitionType transitionType) {
+        this.fromState = fromState;
+        this.transitionType = transitionType;
+    }
+
     public Transition(int fromState, int toState, Predicate predicate, TransitionType transitionType) {
         this.fromState = fromState;
         this.toState = toState;
@@ -42,6 +47,10 @@ public class Transition implements Comparable<Transition> {
         return toState;
     }
 
+    public void setPredicate(Predicate p) {
+        predicate = p;
+    }
+
     public boolean overLabel(Label label){
         return predicate.containsLabel(label);
     }
@@ -54,7 +63,7 @@ public class Transition implements Comparable<Transition> {
         predicate.addFilter(filter);
     }
 
-    public Collection<EventFilter> getFilters(){
+    public Collection<Collection<EventFilter>> getFilters(){
         return predicate.getFilterCollection();
     }
 
@@ -78,8 +87,12 @@ public class Transition implements Comparable<Transition> {
         return predicate.getLabelSet();
     }
 
-    public EventSchema getEventSchema() {
+    public Set<EventSchema> getEventSchema() {
         return predicate.getEventSchema();
+    }
+
+    public Predicate getPredicate() {
+        return predicate;
     }
 
     @Override

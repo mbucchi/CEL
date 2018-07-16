@@ -20,10 +20,11 @@ public class DeterministicCEA extends CEA {
     private Set<List<Integer>> statesLeft;
     private ArrayList<Transition> newTransitions;
     private Integer fromState;
+    private Map<List<Integer>, Integer> newStateNameMap = new HashMap<>();
 
     public DeterministicCEA(CEA toDeterminize) {
 
-//        System.out.println(toDeterminize.toString());
+        System.out.println(toDeterminize.toString());
         long compileTime = System.nanoTime();
 
         addedStates = new HashSet<>();
@@ -81,11 +82,11 @@ public class DeterministicCEA extends CEA {
 
         newTransitions.sort(Transition::compareTo);
         transitions = newTransitions;
-        renameStates();
         compileTime = System.nanoTime() - compileTime;
-        System.out.println("Determinization time: " + ((double) compileTime / 1000000000));
-        /* TODO: MERGE TRANSITIONS WITH EQUAL TO AND FROM STATE */
         mergeTransitions();
+        System.out.println("Determinization time: " + ((double) compileTime / 1000000000));
+//        System.out.println(this.toString());
+        /* TODO: MERGE TRANSITIONS WITH EQUAL TO AND FROM STATE */
         /* TODO: COLLAPSE FINAL STATES */
         collapseFinalStates();
         /* TODO: UPDATE AUTOMATA */
@@ -153,15 +154,12 @@ public class DeterministicCEA extends CEA {
         return transitionFrom;
     }
 
-    private static Integer getNewStateNumber(List<Integer> stateList) {
+    private Integer getNewStateNumber(List<Integer> stateList) {
 
-        Integer res = -1;
-
-        for (Integer state : stateList) {
-            res += (int) Math.pow(2, state);
+        if (!newStateNameMap.containsKey(stateList)) {
+            newStateNameMap.put(stateList, nStates++);
         }
-
-        return res;
+        return newStateNameMap.get(stateList);
     }
 
     /* TODO: REDO ENTIRE FUNCTION TO CONSIDER ONLY VALID COMBINATIONS */
@@ -193,20 +191,9 @@ public class DeterministicCEA extends CEA {
 
     private void mergeTransitions() {
         /* TODO: IMPLEMENT THIS */
-    }
-
-    private void renameStates() {
-        int nStates = 0;
-        for (Integer addedState : addedStates) {
-            newStatesMap.put(addedState, nStates++);
-        }
-        ArrayList<Transition> newTransitions = new ArrayList<>();
         for (Transition t : transitions) {
-            newTransitions.add(t.replaceToState(newStatesMap.get(t.getToState()))
-                    .replaceFromState(newStatesMap.get(t.getFromState())));
+            t.getPredicate().flatten();
         }
-        transitions = newTransitions;
-        this.nStates = nStates;
     }
 
     private void collapseFinalStates() {

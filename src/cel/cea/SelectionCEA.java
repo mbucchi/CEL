@@ -6,7 +6,7 @@ import cel.cea.transition.TransitionType;
 import cel.event.EventSchema;
 import cel.stream.StreamSchema;
 
-import java.util.Set;
+import java.util.HashSet;
 
 public class SelectionCEA extends CEA {
 
@@ -19,7 +19,7 @@ public class SelectionCEA extends CEA {
     }
 
     private SelectionCEA(Predicate predicate, EventSchema eventSchema){
-        super(2, 0, 1);
+        super(2, 0, new HashSet<>(){{add(1);}});
         transitions.add(new Transition(0,0, Predicate.TRUE_PREDICATE, TransitionType.WHITE));
         transitions.add(new Transition(0,1, predicate, TransitionType.BLACK));
 

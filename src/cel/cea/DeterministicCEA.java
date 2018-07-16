@@ -21,11 +21,15 @@ public class DeterministicCEA extends CEA {
     private ArrayList<Transition> newTransitions;
     private Integer fromState;
     private Map<List<Integer>, Integer> newStateNameMap = new HashMap<>();
+    private Set<Integer> newFinalStates = new HashSet<>();
 
     public DeterministicCEA(CEA toDeterminize) {
 
-        System.out.println(toDeterminize.toString());
+//        System.out.println(toDeterminize.toString());
         long compileTime = System.nanoTime();
+
+        /* Temporarily set finalstates to toDeterminize's final states */
+        finalStates = toDeterminize.finalStates;
 
         addedStates = new HashSet<>();
 
@@ -85,14 +89,9 @@ public class DeterministicCEA extends CEA {
         compileTime = System.nanoTime() - compileTime;
         mergeTransitions();
         System.out.println("Determinization time: " + ((double) compileTime / 1000000000));
-//        System.out.println(this.toString());
-        /* TODO: MERGE TRANSITIONS WITH EQUAL TO AND FROM STATE */
-        /* TODO: COLLAPSE FINAL STATES */
-        collapseFinalStates();
-        /* TODO: UPDATE AUTOMATA */
-//        finalState = newFinalState;
-//        labelSet = newLabelSet;
-//        eventSchemas = newEventSchemas;
+        labelSet = toDeterminize.labelSet;
+        eventSchemas = toDeterminize.eventSchemas;
+        finalStates = newFinalStates;
     }
 
     private void makeNewTransition(List<Transition> usefulTransitions, List<Transition> currentTransitionList, TransitionType color) {
@@ -124,6 +123,13 @@ public class DeterministicCEA extends CEA {
 
         List<Integer> toStatesList = new ArrayList<>(toStates);
         Integer toState = getNewStateNumber(toStatesList);
+
+        for (Integer dest : toStatesList) {
+            if (finalStates.contains(dest)) {
+                newFinalStates.add(toState);
+                break;
+            }
+        }
         if (!addedStates.contains(toState)) {
             statesLeft.add(toStatesList);
         }

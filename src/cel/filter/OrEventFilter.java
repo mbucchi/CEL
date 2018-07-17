@@ -5,6 +5,7 @@ import cel.event.Label;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 public class OrEventFilter extends CompoundEventFilter {
     
@@ -52,6 +53,11 @@ public class OrEventFilter extends CompoundEventFilter {
             if (!anyEqual) return false;
         }
         return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(label, eventFilterCollection, attributes, valueTypes);
     }
 
     void addEventFilter(EventFilter eventFilter){

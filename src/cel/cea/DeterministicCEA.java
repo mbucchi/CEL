@@ -168,7 +168,6 @@ public class DeterministicCEA extends CEA {
         return newStateNameMap.get(stateList);
     }
 
-    /* TODO: REDO ENTIRE FUNCTION TO CONSIDER ONLY VALID COMBINATIONS */
     private List<List<Transition>> getCombinations(List<Transition> values, int size) {
         if (0 == size) {
             return Collections.singletonList(Collections.emptyList());

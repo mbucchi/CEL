@@ -52,6 +52,7 @@ public class CEATraverser {
                     break;
                 }
             }
+            ret.add(null);
         }
     }
 

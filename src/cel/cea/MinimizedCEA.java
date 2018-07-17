@@ -18,8 +18,12 @@ public class MinimizedCEA extends CEA {
 
         for (int q: reachableFromQ0){
             Set<Integer> reachableQ = reachableFrom.get(q);
-            if (reachableQ.contains(toMinimize.finalState))
-                usefulStates.add(q);
+            for (Integer finalState : toMinimize.finalStates) {
+                if (reachableQ.contains(finalState)) {
+                    usefulStates.add(q);
+                    break;
+                }
+            }
         }
 
         // renumber all useful states
@@ -34,8 +38,10 @@ public class MinimizedCEA extends CEA {
 
         // rename initial and final states
         int newInitState = newNames[toMinimize.initState];
-        int newFinalState = newNames[toMinimize.finalState];
-
+        Set<Integer> newFinalState = new HashSet<>();
+        for (Integer finalState : toMinimize.finalStates) {
+            newFinalState.add(newNames[finalState]);
+        }
 
         // rename useless transitions and rename the remaining ones
 
@@ -55,10 +61,8 @@ public class MinimizedCEA extends CEA {
                 newTransitions.add(newTransition);
 
                 newLabelSet.addAll(transition.getLabels());
-                Set<EventSchema> evSch = transition.getEventSchema();
-                if (evSch != null) {
-                    newEventSchemas.addAll(evSch);
-                }
+                EventSchema evSch = transition.getEventSchema();
+                newEventSchemas.add(evSch);
             }
         }
         // Sort transitions
@@ -68,7 +72,7 @@ public class MinimizedCEA extends CEA {
         // update automata
         nStates = newStateN;
         initState = newInitState;
-        finalState = newFinalState;
+        finalStates = newFinalState;
         transitions = newTransitions;
         labelSet = newLabelSet;
         eventSchemas = newEventSchemas;

@@ -15,9 +15,9 @@ public class OrPredicate extends Predicate {
         super(left, right);
     }
 
-    public OrPredicate(Collection<Predicate> preds) {
-        super(preds);
-    }
+//    public OrPredicate(Collection<Predicate> preds) {
+//        super(preds);
+//    }
 
 //    @Override
 //    public boolean overEvent(EventSchema eventSchema) {

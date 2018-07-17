@@ -6,27 +6,25 @@ import cel.cea.transition.TransitionType;
 import cel.event.EventSchema;
 import cel.stream.StreamSchema;
 
-import java.util.Set;
+import java.util.HashSet;
 
 public class SelectionCEA extends CEA {
 
-    public SelectionCEA(Set<EventSchema> eventSchema){
+    public SelectionCEA(EventSchema eventSchema){
         this(new Predicate(eventSchema), eventSchema);
     }
 
-    public SelectionCEA(Set<StreamSchema> streamSchema, Set<EventSchema> eventSchema){
+    public SelectionCEA(StreamSchema streamSchema, EventSchema eventSchema){
         this(new Predicate(streamSchema, eventSchema), eventSchema);
     }
 
-    private SelectionCEA(Predicate predicate, Set<EventSchema> eventSchema){
-        super(2, 0, 1);
+    private SelectionCEA(Predicate predicate, EventSchema eventSchema){
+        super(2, 0, new HashSet<>(){{add(1);}});
         transitions.add(new Transition(0,0, Predicate.TRUE_PREDICATE, TransitionType.WHITE));
         transitions.add(new Transition(0,1, predicate, TransitionType.BLACK));
 
-        for (EventSchema evSch : eventSchema) {
-            labelSet.add(evSch.getNameLabel());
-        }
-        eventSchemas.addAll(eventSchema);
+        labelSet.add(eventSchema.getNameLabel());
+        eventSchemas.add(eventSchema);
     }
 
 

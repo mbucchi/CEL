@@ -17,9 +17,9 @@ public class AndPredicate extends Predicate {
         super(left, right);
     }
 
-    public AndPredicate(Collection<Predicate> preds) {
-        super(preds);
-    }
+//    public AndPredicate(Collection<Predicate> preds) {
+//        super(preds);
+//    }
 
 //    public OrPredicate negate() {
 //        for ()

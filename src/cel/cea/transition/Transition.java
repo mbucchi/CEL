@@ -63,7 +63,7 @@ public class Transition implements Comparable<Transition> {
         predicate.addFilter(filter);
     }
 
-    public Collection<Collection<EventFilter>> getFilters(){
+    public Collection<EventFilter> getFilters(){
         return predicate.getFilterCollection();
     }
 
@@ -87,7 +87,7 @@ public class Transition implements Comparable<Transition> {
         return predicate.getLabelSet();
     }
 
-    public Set<EventSchema> getEventSchema() {
+    public EventSchema getEventSchema() {
         return predicate.getEventSchema();
     }
 

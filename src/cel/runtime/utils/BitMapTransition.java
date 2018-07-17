@@ -16,12 +16,21 @@ public class BitMapTransition {
         this.toState = toState;
     }
 
-    public void addANDMask(BitSet ANDFilters) {
-        this.ANDMask = ANDFilters;
+    public void addANDMask(BitSet ANDMask) {
+        if (this.ANDMask == null) {
+            this.ANDMask = ANDMask;
+        } else {
+            this.ANDMask.or(ANDMask);
+        }
     }
 
     public void addANDResult(BitSet ANDResult) {
-        this.ANDResult = ANDResult;
+        if (this.ANDResult == null) {
+           this.ANDResult = ANDResult;
+        } else {
+            /* these should always be disjoint, else the transition is trivially unsatisfiable */
+            this.ANDResult.or(ANDResult);
+        }
     }
 
     public void addORMask(BitSet ORFilter) {

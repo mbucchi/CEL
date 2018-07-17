@@ -1,6 +1,5 @@
 package cel.cea.predicate;
 
-import cel.event.Event;
 import cel.event.EventSchema;
 import cel.event.Label;
 import cel.filter.EventFilter;

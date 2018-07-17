@@ -11,6 +11,31 @@ import java.util.Set;
 
 public class Query {
     private SelectionStrategy selectionStrategy;
+
+    public SelectionStrategy getSelectionStrategy() {
+        return selectionStrategy;
+    }
+
+    public ProjectionList getProjectionList() {
+        return projectionList;
+    }
+
+    public Set<StreamSchema> getStreamSchemas() {
+        return streamSchemas;
+    }
+
+    public Collection<Partition> getPartitions() {
+        return partitions;
+    }
+
+    public TimeWindow getTimeWindow() {
+        return timeWindow;
+    }
+
+    public ConsumptionPolicy getConsumptionPolicy() {
+        return consumptionPolicy;
+    }
+
     private ProjectionList projectionList;
     private Set<StreamSchema> streamSchemas;
     private CEA patternCEA;

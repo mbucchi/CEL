@@ -5,6 +5,7 @@ import cel.compiler.DeclarationCompiler;
 import cel.compiler.QueryCompiler;
 import cel.compiler.errors.CompilerError;
 import cel.query.Query;
+import cel.queryExecution.CeaExecutor;
 import cel.runtime.errors.ParseError;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
@@ -12,18 +13,22 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class CELMotor {
 
     private DeclarationCompiler declarationCompiler;
     private QueryCompiler queryCompiler;
     private CompoundStatementCompiler compoundStatementCompiler;
+    private List<CeaExecutor> ceaExecutorList;
 
     public CELMotor(){
         declarationCompiler = new DeclarationCompiler();
         queryCompiler = new QueryCompiler();
         compoundStatementCompiler = new CompoundStatementCompiler(declarationCompiler, queryCompiler);
+        ceaExecutorList = new ArrayList<>();
     }
 
     public void executeDeclaration(String statement){
@@ -40,12 +45,14 @@ public class CELMotor {
 
         try {
             // try to parse and compile given the already declared events and streams
-            queryCompiler.compile(query);
+            Query compiledQuery = queryCompiler.compile(query);
+            CeaExecutor ceaExecutor = new CeaExecutor(compiledQuery);
+            ceaExecutorList.add(ceaExecutor);
+            return new QueryResult(ceaExecutor);
         }
         catch (ParseCancellationException exc) {
             throw new ParseError("Can't parse the given string as a correct CEL query statement.");
         }
-        return new QueryResult();
     }
 
     public void executeFromFile(String path) throws IOException {

@@ -6,4 +6,9 @@ public class Event {
 
     }
 
+    public EventSchema getSchema(){
+        // temporal
+        return null;
+    }
+
 }

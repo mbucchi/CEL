@@ -16,6 +16,18 @@ public class CEA {
     Set<Label> labelSet;
     Set<EventSchema> eventSchemas;
 
+    public int getNumStates() {
+        return nStates;
+    }
+
+    public int getInitState() {
+        return initState;
+    }
+
+    public int getFinalState() {
+        return finalState;
+    }
+
     CEA() {
         transitions = new ArrayList<>();
         labelSet = new HashSet<>();

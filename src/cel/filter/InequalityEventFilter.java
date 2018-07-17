@@ -3,6 +3,8 @@ package cel.filter;
 import cel.event.Label;
 import cel.values.Value;
 
+import java.util.Objects;
+
 public class InequalityEventFilter extends AtomicEventFilter {
 
     public InequalityEventFilter(Label label, Value lhs, LogicalOperation logicalOperation, Value rhs) {
@@ -24,6 +26,11 @@ public class InequalityEventFilter extends AtomicEventFilter {
                 lhs.equals(((InequalityEventFilter) obj).lhs) &&
                 rhs.equals(((InequalityEventFilter) obj).rhs) &&
                 logicalOperation.equals(((InequalityEventFilter) obj).logicalOperation);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(label, lhs, rhs, logicalOperation, attributes, valueTypes);
     }
 
     @Override

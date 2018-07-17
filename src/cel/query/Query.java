@@ -3,6 +3,7 @@ import cel.cea.CEA;
 import cel.cea.MinimizedCEA;
 import cel.cea.ProjectionCEA;
 import cel.cea.DeterministicCEA;
+import cel.runtime.CEATraverser;
 import cel.stream.StreamSchema;
 
 import java.util.Collection;
@@ -46,6 +47,7 @@ public class Query {
         // Remove useless states and transitions
         patternCEA = new MinimizedCEA(patternCEA);
         patternCEA = new DeterministicCEA(patternCEA);
+        CEATraverser test = new CEATraverser(patternCEA);
         //
 //        patternCEA = new ProjectionCEA(patternCEA, projectionList);
 //        projectionList = ProjectionList.ALL_EVENTS;

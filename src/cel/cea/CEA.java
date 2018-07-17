@@ -58,6 +58,10 @@ public class CEA {
         return new HashSet<>(eventSchemas);
     }
 
+    public int getnStates() {
+        return nStates;
+    }
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder("CEA(\n")

@@ -11,7 +11,7 @@ public class CEA {
 
     int nStates;
     int initState;
-    int finalState;
+    Set<Integer> finalStates;
     Collection<Transition> transitions;
     Set<Label> labelSet;
     Set<EventSchema> eventSchemas;
@@ -38,7 +38,7 @@ public class CEA {
         this();
         nStates = otherCea.nStates;
         initState = otherCea.initState;
-        finalState = otherCea.finalState;
+        finalStates = otherCea.finalStates;
 
         transitions.addAll(
                 otherCea.transitions
@@ -51,11 +51,11 @@ public class CEA {
         eventSchemas.addAll(otherCea.eventSchemas);
     }
 
-    CEA(int nStates, int initState, int finalState){
+    CEA(int nStates, int initState, Set<Integer> finalStates){
         this();
         this.nStates = nStates;
         this.initState = initState;
-        this.finalState = finalState;
+        this.finalStates = finalStates;
     }
 
     public CEA copy() {
@@ -75,7 +75,7 @@ public class CEA {
         StringBuilder stringBuilder = new StringBuilder("CEA(\n")
                 .append("  nStates=").append(nStates).append(",\n")
                 .append("  initState=").append(initState).append(",\n")
-                .append("  finalState=").append(finalState).append(",\n")
+                .append("  finalStates=").append(finalStates.toString()).append(",\n")
                 .append("  transitions=[");
 
         if (transitions.size() > 0){

@@ -2,6 +2,7 @@ package cel.cea.predicate;
 
 import cel.event.EventSchema;
 import cel.event.Label;
+import cel.filter.AndEventFilter;
 import cel.filter.EventFilter;
 import cel.stream.StreamSchema;
 
@@ -13,9 +14,9 @@ public class Predicate {
     public static final Predicate TRUE_PREDICATE = new Predicate();
 
     private Collection<EventFilter> filterCollection;
-    private Set<StreamSchema> streamSchema;
-    private Set<EventSchema> eventSchema;
-    private Collection<Predicate> predicates;
+    private StreamSchema streamSchema;
+    private EventSchema eventSchema;
+    private ArrayList<Predicate> predicates;
     private boolean negated = false;
 
     private Set<Label> labelSet;
@@ -25,27 +26,26 @@ public class Predicate {
         filterCollection = new ArrayList<>();
         labelSet = new HashSet<>();
         predicates = new ArrayList<>();
-        streamSchema = new HashSet<>();
-        eventSchema = new HashSet<>();
         satisfiable = true;
     }
 
-//    public Predicate(HashSet<Label> labels) {
-//        this();
-//        labelSet = labels;
-//    }
-
-    public Predicate(Set<EventSchema> eventSchema) {
+    public Predicate(Set<Label> labels) {
         this();
-        this.eventSchema.addAll(eventSchema);
-        for (EventSchema evSch : eventSchema) {
-            addLabel(evSch.getNameLabel());
-        }
+        labelSet = labels;
     }
 
-    public Predicate(Set<StreamSchema> streamSchema, Set<EventSchema> eventSchema) {
+    public Predicate(EventSchema eventSchema) {
+        this();
+        this.eventSchema = eventSchema;
+        if (eventSchema != null) {
+            addLabel(eventSchema.getNameLabel());
+        }
+
+    }
+
+    public Predicate(StreamSchema streamSchema, EventSchema eventSchema) {
         this(eventSchema);
-        this.streamSchema.addAll(streamSchema);
+        this.streamSchema = streamSchema;
     }
 
 //    public Predicate(Predicate inner) {
@@ -61,16 +61,16 @@ public class Predicate {
         this.addPredicate(p2);
     }
 
-    Predicate(Collection<Predicate> predicates) {
+    Predicate(ArrayList<Predicate> predicates) {
         this();
         this.addPredicates(predicates);
     }
 
-    public Set<EventSchema> getEventSchema() {
+    public EventSchema getEventSchema() {
         return eventSchema;
     }
 
-    private Set<StreamSchema> getStreamSchema() {
+    private StreamSchema getStreamSchema() {
         return streamSchema;
     }
 
@@ -78,12 +78,8 @@ public class Predicate {
         return labelSet;
     }
 
-    public Collection<Collection<EventFilter>> getFilterCollection() {
-        Collection<Collection<EventFilter>> streamSchema = new ArrayList<>();
-        for (Predicate p : predicates) {
-            streamSchema.addAll(p.getFilterCollection());
-        }
-        return streamSchema;
+    public Collection<EventFilter> getFilterCollection() {
+        return filterCollection;
     }
 
     public void addFilter(EventFilter filter) {
@@ -103,27 +99,29 @@ public class Predicate {
     }
 
     public void addPredicate(Predicate p) {
+        if (!satisfiable) {
+            return;
+        }
         if (predicates.size() > 0) {
-            for (Predicate pred : predicates) {
-                if (useless(pred, p)) {
+            for (Predicate predicate : predicates) {
+                if (useless(predicate, p)) {
                     return;
                 }
-                if (unsatisfiable(pred, p)) {
+                if (useless(p, predicate)) {
+                    predicates.remove(predicate);
+                }
+                if (unsatisfiable(predicate, p)) {
                     satisfiable = false;
                     return;
                 }
             }
+            for (Predicate predicate : predicates) {
+                if (merged(predicate, p)) {
+                    return;
+                }
+            }
         }
-        predicates.add(p);
-        Set<StreamSchema> strSch = p.getStreamSchema();
-        Set<EventSchema> evSch = p.getEventSchema();
-        if (strSch != null) {
-            streamSchema.addAll(strSch);
-        }
-        if (evSch != null) {
-            eventSchema.addAll(evSch);
-        }
-        labelSet.addAll(p.getLabelSet());
+        predicates.add(p.copy());
     }
 
     private boolean useless(Predicate p1, Predicate p2) {
@@ -132,8 +130,9 @@ public class Predicate {
             return true;
         }
         if (!p1.negated && p2.negated) {
-            return p1.eventSchema != null && p2.eventSchema != null && !p1.eventSchema.equals(p2.eventSchema);
+            return p1.eventSchema != null && !p1.eventSchema.equals(p2.eventSchema);
         }
+        /* TODO: ADD MORE CASES */
         return false;
     }
 
@@ -143,12 +142,33 @@ public class Predicate {
             return true;
         }
         if (!p1.negated && !p2.negated) {
-            return p1.eventSchema != null && p2.eventSchema != null && !p1.eventSchema.equals(p2.eventSchema);
+            if (p1.eventSchema != null && !p1.eventSchema.equals(p2.eventSchema)) {
+                return true;
+            }
+            for (EventFilter ef1 : p1.getFilterCollection()) {
+                for (EventFilter ef2 : p2.getFilterCollection()) {
+                    if (ef1.equivalentTo(ef2.negate())) {
+                        return true;
+                    }
+                }
+            }
         }
+        if (!p1.negated && p2.negated) {
+            ArrayList<EventFilter> satisfiableFilters = new ArrayList<>(p2.getFilterCollection());
+            for (EventFilter ef1 : p1.getFilterCollection()) {
+                for (EventFilter ef2 : p2.getFilterCollection()) {
+                    if (ef1.dominates(ef2)) {
+                        satisfiableFilters.remove(ef2);
+                    }
+                }
+            }
+            return satisfiableFilters.isEmpty();
+        }
+        /* TODO: ADD MORE CASES */
         return false;
     }
 
-    public void addPredicates(Collection<Predicate> predicates) {
+    private void addPredicates(ArrayList<Predicate> predicates) {
         if (predicates == null) {
             return;
         }
@@ -157,34 +177,8 @@ public class Predicate {
         }
     }
 
-    public Collection<Predicate> getPredicates() {
+    public ArrayList<Predicate> getPredicates() {
         return predicates;
-    }
-
-    //    private boolean validForAttributeTypes(EventFilter filter) {
-//        Map<String, ValueType> attributeTypes = eventSchema.getAttributes();
-//
-//        for (Attribute attribute : filter.getAttributes()){
-//            ValueType valueType= attributeTypes.getOrDefault(attribute.getName(),null);
-//            if (valueType == null){
-//                // Attribute does not exist
-//                return false;
-//            }
-//            boolean validAttribute = false;
-//            for (ValueType filterValueType : filter.getValueTypes()){
-//                if (valueType.interoperableWith(filterValueType)) {
-//                    validAttribute = true;
-//                    break;
-//                }
-//            }
-//            if (!validAttribute) return false;
-//        }
-//        return true;
-//    }
-
-    private void makeFalsePredicate() {
-        filterCollection.clear();
-        satisfiable = false;
     }
 
     public void addLabel(Label label) {
@@ -221,53 +215,117 @@ public class Predicate {
     public boolean equals(Predicate other) {
         if (this == other) return true;
         return this.predicates.equals(other.predicates) &&
-                this.eventSchema.equals(other.eventSchema) &&
-                this.streamSchema.equals(other.streamSchema) &&
+                equalEventSchema(this, other) && equalStreamSchema(this, other) &&
                 this.negated == other.negated &&
                 this.labelSet.equals(other.labelSet) &&
                 new HashSet<>(this.filterCollection).equals(new HashSet<>(other.filterCollection));
     }
 
-    public boolean dominates(Predicate other) {
+    private boolean dominates(Predicate other) {
         if (this.equals(other)) return true;
         if (this.negated != other.negated) return false;
         if (this.filterCollection.size() == 0 && other.filterCollection.size() == 0) {
             return true;
         }
-        if (predicates.size() > 0) {
+        /* TODO: ADD MORE CASES */
+//        if (predicates.size() > 0) {
+//
+//        } else {
+//
+//        }
+        return false;
+    }
 
-        } else {
+    private boolean equalEventSchema(Predicate p1, Predicate p2) {
+        if (p1.eventSchema == null) {
+            return p2.eventSchema == null;
+        }
+        return p1.eventSchema.equals(p2.eventSchema);
+    }
 
+    private boolean equalStreamSchema(Predicate p1, Predicate p2) {
+        if (p1.streamSchema == null) {
+            return p2.streamSchema == null;
+        }
+        return p1.streamSchema.equals(p2.streamSchema);
+    }
+
+    private boolean merged(Predicate p1, Predicate p2) {
+        if (equalEventSchema(p1, p2) && equalStreamSchema(p1, p2)) {
+            if (!p1.negated && p2.negated) {
+                boolean satisfiable = false;
+                ArrayList<EventFilter> filtersToNegate = new ArrayList<>();
+                for (EventFilter filter : p2.getFilterCollection()) {
+                    if (!notRedundant(p1.getFilterCollection(), filter.negate())) {
+                        satisfiable = true;
+                        continue;
+                    }
+                    if (notRedundant(p1.getFilterCollection(), filter)) {
+                        satisfiable = true;
+                        filtersToNegate.add(filter);
+                    }
+                }
+                if (!satisfiable) {
+                    this.satisfiable = false;
+                    return true;
+                }
+                if (filtersToNegate.isEmpty()) {
+                    return true;
+                }
+                EventFilter newFilter;
+                if (filtersToNegate.size() > 1) {
+                    EventFilter temp = filtersToNegate.get(0);
+                    newFilter = new AndEventFilter(temp.getLabel(), filtersToNegate);
+                } else {
+                    newFilter = filtersToNegate.get(0);
+                }
+                p1.addFilter(newFilter.negate());
+                return true;
+            }
+            if (!p1.negated) {
+                for (EventFilter filter : p2.getFilterCollection()) {
+                    if (notRedundant(p1.getFilterCollection(), filter)) {
+                        p1.addFilter(filter);
+                    }
+                }
+                return true;
+            }
         }
         return false;
     }
 
-    public void minimize() {
-        /* TODO: IMPLEMENT THIS */
+    private ArrayList<EventFilter> removeRedundants(ArrayList<EventFilter> filters) {
+        for (int i = 0; i < filters.size(); i++) {
+            for (int j = i + 1; j < filters.size(); j++) {
+                if (filters.get(i).dominates(filters.get(j))) {
+                    filters.remove(j);
+                    }
+                }
+            }
+        return filters;
     }
 
-    public String getStreamNames() {
-        StringBuilder ret = new StringBuilder();
-        int i = 0;
-        for (StreamSchema strSch : streamSchema) {
-            ret.append(strSch.getName());
-            if (++i != streamSchema.size()) {
-                ret.append(", ");
+    public boolean notRedundant(Collection<EventFilter> filters, EventFilter newFilter) {
+        /* checks if filters does not imply newFilter */
+        for (EventFilter filter : filters) {
+            if (filter.dominates(newFilter)) {
+                return false;
             }
         }
-        return ret.toString();
+        return true;
     }
 
-    public String getEventNames() {
-        StringBuilder ret = new StringBuilder();
-        int i = 0;
-        for (EventSchema evSch : eventSchema) {
-            ret.append(evSch.getName());
-            if (++i != eventSchema.size()) {
-                ret.append(", ");
-            }
+    public void flatten() {
+        if (predicates.size() == 1) {
+            Predicate target = predicates.get(0);
+            streamSchema = target.streamSchema;
+            eventSchema = target.eventSchema;
+            negated = target.negated ^ negated;
+            filterCollection = target.filterCollection;
+            labelSet = target.labelSet;
+            satisfiable = true;
+            predicates.clear();
         }
-        return ret.toString();
     }
 
     @Override
@@ -284,8 +342,8 @@ public class Predicate {
                 stringBuilder.append(" ");
             }
         } else {
-            String streamName = streamSchema.size() != 0 ? getStreamNames() : "*";
-            String eventName = eventSchema.size() != 0 ? getEventNames() : "*";
+            String streamName = streamSchema != null ? streamSchema.getName() : "*";
+            String eventName = eventSchema != null ? eventSchema.getName() : "*";
             if (negated) {
                 stringBuilder.append("NotPredicate(");
             } else {

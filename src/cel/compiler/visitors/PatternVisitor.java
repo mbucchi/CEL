@@ -91,20 +91,17 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
             if (!definedStreams.contains(streamName)){
                 throw new NameError("Stream `" + streamName + "` is not defined", ctx.s_event_name().stream_name());
             }
-            Set<StreamSchema> streamSchema = new HashSet<>();
-            StreamSchema inner = StreamSchema.getSchemaFor(streamName);
-            streamSchema.add(inner);
+            StreamSchema streamSchema = StreamSchema.getSchemaFor(streamName);
 
-            if (!inner.containsEvent(eventName)){
+            if (!streamSchema.containsEvent(eventName)){
                 throw new NameError("Event `" + eventName + "` is not defined within stream `" + streamName + "`",
                         ctx.s_event_name().event_name());
             }
 
             // Create a selection CEA that filters for the given stream
-            Set<EventSchema> eventSchema = new HashSet<>();
-            eventSchema.add(EventSchema.tryGetSchemaFor(eventName));
+            EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
 
-            if (eventSchema.size() == 0){
+            if (eventSchema == null){
                 throw new NameError("Event `" + eventName + "` is not defined", ctx.s_event_name().event_name());
             }
             return new SelectionCEA(streamSchema, eventSchema);
@@ -118,10 +115,9 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
             }
 
             // Create a selection CEA with no filters
-            Set<EventSchema> eventSchema = new HashSet<>();
-            eventSchema.add(EventSchema.tryGetSchemaFor(eventName));
+            EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
 
-            if (eventSchema.size() == 0){
+            if (eventSchema == null){
                 throw new NameError("Event `" + eventName + "` is not defined", ctx.s_event_name());
             }
             return new SelectionCEA(eventSchema);

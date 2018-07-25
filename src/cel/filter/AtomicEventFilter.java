@@ -37,7 +37,7 @@ abstract class AtomicEventFilter extends EventFilter {
 
         // operation and both sides must be the same
         if (!logicalOperation.equals(((AtomicEventFilter) obj).logicalOperation)) return false;
-        if (!lhs.equals(((AtomicEventFilter) obj).rhs)) return false;
+        if (!lhs.equals(((AtomicEventFilter) obj).lhs)) return false;
         if (!rhs.equals(((AtomicEventFilter) obj).rhs)) return false;
 
         return true;

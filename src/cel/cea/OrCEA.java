@@ -1,14 +1,10 @@
 package cel.cea;
 
-import cel.cea.predicate.Predicate;
+import cel.predicate.Predicate;
 import cel.cea.transition.Transition;
 import cel.cea.transition.TransitionType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -87,7 +83,7 @@ public class OrCEA extends CEA {
         );
 
         // add the missing white transition
-        transitions.add(new Transition(0, 0, Predicate.TRUE_PREDICATE, TransitionType.WHITE));
+        transitions.add(new Transition(0, 0, Predicate.getTruePredicate(), TransitionType.WHITE));
 
         // add all the corresponding labels
         labelSet.addAll(left.labelSet);

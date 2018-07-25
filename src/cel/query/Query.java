@@ -70,6 +70,7 @@ public class Query {
 
         // Remove useless states and transitions
         patternCEA = new MinimizedCEA(patternCEA);
+        System.out.println(patternCEA.toString());
         patternCEA = new DeterministicCEA(patternCEA);
         //
 //        patternCEA = new ProjectionCEA(patternCEA, projectionList);

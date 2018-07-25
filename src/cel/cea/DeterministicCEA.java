@@ -1,6 +1,7 @@
 package cel.cea;
 
-import cel.cea.predicate.Predicate;
+import cel.predicate.AndPredicate;
+import cel.predicate.Predicate;
 import cel.cea.transition.Transition;
 import cel.cea.transition.TransitionType;
 
@@ -23,6 +24,9 @@ public class DeterministicCEA extends CEA {
     private Map<List<Integer>, Integer> newStateNameMap = new HashMap<>();
     private Set<Integer> newFinalStates = new HashSet<>();
 
+    private Map<Integer, Set<Transition>> reachableFromWithBlack;
+    private Map<Integer, Set<Transition>> reachableFromWithWhite;
+
     public DeterministicCEA(CEA toDeterminize) {
 
 //        System.out.println(toDeterminize.toString());
@@ -40,14 +44,14 @@ public class DeterministicCEA extends CEA {
         statesLeft.add(initialList);
 
         /* we get the transition set for each state */
-        Map<Integer, Set<Transition>> reachableFromWithBlack = createTransitionMap(toDeterminize, BLACK);
-        Map<Integer, Set<Transition>> reachableFromWithWhite = createTransitionMap(toDeterminize, WHITE);
+        reachableFromWithBlack = createTransitionMap(toDeterminize, BLACK);
+        reachableFromWithWhite = createTransitionMap(toDeterminize, WHITE);
         List<Transition> usefulBlackTransitions = new ArrayList<>();
         List<Transition> usefulWhiteTransitions = new ArrayList<>();
 
         newTransitions = new ArrayList<>();
         List<Integer> current;
-        while (statesLeft.iterator().hasNext()) {
+        while (statesLeft.size() > 0) {
 
             current = statesLeft.iterator().next();
             statesLeft.remove(current);
@@ -66,7 +70,6 @@ public class DeterministicCEA extends CEA {
             for (Integer state : current) {
                 usefulBlackTransitions.addAll(reachableFromWithBlack.get(state));
                 usefulWhiteTransitions.addAll(reachableFromWithWhite.get(state));
-
             }
 
             /* TODO: FIND A BETTER WAY TO DO THIS */
@@ -98,28 +101,27 @@ public class DeterministicCEA extends CEA {
 
         /* currentTransitionList holds which transitions will be true */
         Set<Integer> toStates = new HashSet<>();
-        Transition newTransition = new Transition(fromState, color);
-        Predicate newPredicate = new Predicate();
-
-        for (Transition currentTransition : currentTransitionList) {
-            newPredicate.addPredicate(currentTransition.getPredicate());
-            toStates.add(currentTransition.getToState());
-        }
-
+        Collection<Predicate> predicates = new ArrayList<>();
 
         for (Transition currentTransition : usefulTransitions) {
-            if (!currentTransitionList.contains(currentTransition)) {
-                newPredicate.addPredicate(currentTransition.getPredicate().negate());
+            if (currentTransitionList.contains(currentTransition)) {
+                predicates.add(currentTransition.getPredicate());
+                toStates.add(currentTransition.getToState());
+            }
+            else {
+                predicates.add(currentTransition.getPredicate().negate());
             }
         }
 
-        if (!newPredicate.satisfiable) {
+        if (!Predicate.overSameStreamAndEvent(predicates)){
             return;
         }
-        if (newPredicate.getPredicates().size() == 1) {
-            newPredicate = newPredicate.getPredicates().iterator().next();
+
+        Predicate newPredicate = new AndPredicate(predicates).flatten();
+
+        if (!newPredicate.isSatisfiable()) {
+            return;
         }
-        newTransition.setPredicate(newPredicate);
 
         List<Integer> toStatesList = new ArrayList<>(toStates);
         Integer toState = getNewStateNumber(toStatesList);
@@ -133,7 +135,8 @@ public class DeterministicCEA extends CEA {
         if (!addedStates.contains(toState)) {
             statesLeft.add(toStatesList);
         }
-        newTransition = newTransition.replaceToState(toState);
+
+        Transition newTransition = new Transition(fromState, toState, newPredicate, color);
         newTransitions.add(newTransition);
     }
 
@@ -159,6 +162,20 @@ public class DeterministicCEA extends CEA {
 
         return transitionFrom;
     }
+
+//    private Set<Transition> getUsefulBlack(int state, EventSchema eventSchema, StreamSchema streamSchema){
+//        return reachableFromWithBlack.get(state).stream().filter(
+//                transition -> transition.getPredicate().overEvent(eventSchema) &&
+//                        transition.getPredicate().overStream(streamSchema)
+//        ).collect(Collectors.toSet());
+//    }
+//
+//    private Set<Transition> getUsefulWhite(int state, EventSchema eventSchema, StreamSchema streamSchema){
+//        return reachableFromWithWhite.get(state).stream().filter(
+//                transition -> transition.getPredicate().getEventSchema().equals(eventSchema) &&
+//                        transition.getPredicate().getStreamSchema().equals(streamSchema)
+//        ).collect(Collectors.toSet());
+//    }
 
     private Integer getNewStateNumber(List<Integer> stateList) {
 

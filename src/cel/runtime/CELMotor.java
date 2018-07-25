@@ -6,6 +6,7 @@ import cel.compiler.QueryCompiler;
 import cel.compiler.errors.CompilerError;
 import cel.query.Query;
 import cel.queryExecution.CeaExecutor;
+import cel.queryExecution.NaiveCeaExecutor;
 import cel.runtime.errors.ParseError;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
@@ -46,7 +47,7 @@ public class CELMotor {
         try {
             // try to parse and compile given the already declared events and streams
             Query compiledQuery = queryCompiler.compile(query);
-            CeaExecutor ceaExecutor = new CeaExecutor(compiledQuery);
+            CeaExecutor ceaExecutor = new NaiveCeaExecutor(compiledQuery.getPatternCEA());
             ceaExecutorList.add(ceaExecutor);
             return new QueryResult(ceaExecutor);
         }

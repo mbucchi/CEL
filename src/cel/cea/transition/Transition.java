@@ -1,11 +1,11 @@
 package cel.cea.transition;
 
-import cel.cea.predicate.Predicate;
+import cel.predicate.FilterPredicate;
+import cel.predicate.Predicate;
 import cel.event.Label;
 import cel.event.EventSchema;
 import cel.filter.EventFilter;
 
-import java.util.Collection;
 import java.util.Set;
 
 public class Transition implements Comparable<Transition> {
@@ -15,6 +15,14 @@ public class Transition implements Comparable<Transition> {
     private Predicate predicate;
     private TransitionType transitionType;
 
+
+    private Transition(Transition toCopy) {
+        fromState = toCopy.fromState;
+        toState = toCopy.toState;
+        predicate = toCopy.predicate.copy();
+        transitionType = toCopy.transitionType;
+    }
+
     public Transition(int fromState, TransitionType transitionType) {
         this.fromState = fromState;
         this.transitionType = transitionType;
@@ -23,7 +31,7 @@ public class Transition implements Comparable<Transition> {
     public Transition(int fromState, int toState, Predicate predicate, TransitionType transitionType) {
         this.fromState = fromState;
         this.toState = toState;
-        this.predicate = predicate;
+        this.predicate = predicate.copy();
         this.transitionType = transitionType;
     }
 
@@ -47,12 +55,8 @@ public class Transition implements Comparable<Transition> {
         return toState;
     }
 
-    public void setPredicate(Predicate p) {
-        predicate = p;
-    }
-
     public boolean overLabel(Label label){
-        return predicate.containsLabel(label);
+        return predicate.overLabel(label);
     }
 
     public boolean isBlack(){
@@ -60,19 +64,16 @@ public class Transition implements Comparable<Transition> {
     }
 
     public void addFilter(EventFilter filter){
-        predicate.addFilter(filter);
-    }
-
-    public Collection<EventFilter> getFilters(){
-        return predicate.getFilterCollection();
+        if (! (predicate instanceof FilterPredicate)) throw new Error("Can't add filters to this kind of predicate");
+        predicate = ((FilterPredicate)predicate).addFilter(filter);
     }
 
     public void addLabel(Label label){
-        predicate.addLabel(label);
+        predicate = predicate.addLabel(label);
     }
 
     public Transition copy() {
-        return new Transition(fromState, toState, predicate.copy(), transitionType);
+        return new Transition(this);
     }
 
     public TransitionType getType() {

@@ -43,7 +43,7 @@ public abstract class EventFilter implements PatternFilter, FilterComparable {
     protected void applyToTransition(Transition transition) {
 //        for (EventFilter eventFilter : transition.getFilters()){
 //            // no need to add if there is a filter that already states this condition
-//            if (eventFilter.dominates(this)) return;
+//            if (eventFilter.implies(this)) return;
 //        }
         transition.addFilter(this);
     }

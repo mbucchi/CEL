@@ -9,6 +9,10 @@ abstract class CompoundEventFilter extends EventFilter {
 
     Collection<EventFilter> eventFilterCollection;
 
+    public Collection<EventFilter> getFilterCollection() {
+        return eventFilterCollection;
+    }
+
     CompoundEventFilter(Label label) {
         super(label);
         eventFilterCollection = new ArrayList<>();

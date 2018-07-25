@@ -22,6 +22,16 @@ public class EventSchema {
             Map.entry(TYPE_ATTR, ValueType.INTEGER)         // event type as int
     );
 
+    private static EventSchema _ANY = new EventSchema();
+
+    public static EventSchema ANY() {
+        return _ANY;
+    }
+
+    public boolean isAny() {
+        return _ANY.equals(this);
+    }
+
     public static EventSchema tryGetSchemaFor(String eventName) {
         // can return null
         return allSchemas.get(eventName);
@@ -62,6 +72,17 @@ public class EventSchema {
     private Map<String, ValueType> attributes;
     private int eventType;
 
+    private EventSchema() {
+        this.name = "__ANY_EVENT";
+
+        // copy the map so that we can modify it
+        this.attributes = new HashMap<>();
+        this.attributes.putAll(restrictedAttributes);
+        eventType = allSchemas.size();
+        allSchemas.put(name, this);
+        Label.forName(name, Set.of(this));
+    }
+
     public EventSchema(String name, Map<String, ValueType> attributes) throws EventException {
 
         // perform some needed checks
@@ -74,9 +95,8 @@ public class EventSchema {
         this.attributes = new HashMap<>(attributes);
 
         this.attributes.putAll(restrictedAttributes);
-        allSchemas.put(name, this);
         eventType = allSchemas.size();
-
+        allSchemas.put(name, this);
         Label.forName(name, Set.of(this));
     }
 

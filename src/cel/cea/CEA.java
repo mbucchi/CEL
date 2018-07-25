@@ -24,9 +24,6 @@ public class CEA {
         return initState;
     }
 
-    public int getFinalState() {
-        return finalState;
-    }
 
     CEA() {
         transitions = new ArrayList<>();

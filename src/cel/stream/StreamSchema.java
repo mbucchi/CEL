@@ -3,17 +3,25 @@ package cel.stream;
 import cel.event.EventSchema;
 import cel.stream.errors.StreamException;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 public class StreamSchema {
 
     // this is the ID that represents NO stream in particular
-    public static int ANY_STREAM_ID = 0;
+    private static int ANY_STREAM_ID = 0;
 
     private static Map<String, StreamSchema> allSchemas = new HashMap<>();
+
+    // This stream represents all streams
+    private static StreamSchema _ANY = new StreamSchema();
+
+    public static StreamSchema ANY() {
+        return _ANY;
+    }
+
+    public boolean isAny() {
+        return _ANY.equals(this);
+    }
 
     public static StreamSchema tryGetSchemaFor(String streamName) {
         // may return null
@@ -42,12 +50,19 @@ public class StreamSchema {
         }
     }
 
+    private StreamSchema() {
+        this.name = "ANY";
+        this.events = List.of(EventSchema.ANY());
+        allSchemas.put(name, this);
+        streamID = ANY_STREAM_ID;
+    }
+
     public StreamSchema(String name, Collection<EventSchema> events) throws StreamException {
         ensureUnique(name);
         this.name = name;
         this.events = events;
-        allSchemas.put(name, this);
         streamID = allSchemas.size();
+        allSchemas.put(name, this);
     }
 
     public StreamSchema(String name) throws StreamException {

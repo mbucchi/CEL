@@ -1,7 +1,7 @@
 package cel.queryExecution;
 
 import cel.cea.CEA;
-import cel.cea.predicate.Predicate;
+import cel.predicate.Predicate;
 import cel.cea.transition.Transition;
 import cel.event.Event;
 
@@ -28,9 +28,10 @@ public class NaiveCeaExecutor extends CeaExecutor {
         for (Transition transition: cea.getTransitions()) {
             if (!transition.isBlack()) continue;
         }
+        return 0;
     }
 
     int whiteTransition(int state, Event event) {
-
+        return 0;
     }
 }

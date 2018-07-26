@@ -4,7 +4,10 @@ import cel.event.errors.EventException;
 import cel.event.errors.NoSuchLabelException;
 import cel.values.ValueType;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 
 public class EventSchema {
@@ -92,8 +95,7 @@ public class EventSchema {
     public Label getNameLabel() {
         try {
             return Label.get(name);
-        }
-        catch (NoSuchLabelException exc) {
+        } catch (NoSuchLabelException exc) {
             return Label.forName(name, Set.of(this));
         }
     }

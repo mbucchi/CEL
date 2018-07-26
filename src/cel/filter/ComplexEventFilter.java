@@ -10,7 +10,7 @@ public abstract class ComplexEventFilter implements PatternFilter {
     ValueType valueType;
     LogicalOperation logicalOperation;
 
-    ComplexEventFilter(Label label, Attribute attribute, ValueType valueType, LogicalOperation logicalOperation){
+    ComplexEventFilter(Label label, Attribute attribute, ValueType valueType, LogicalOperation logicalOperation) {
         this.label = label;
         this.attribute = attribute;
         this.valueType = valueType;

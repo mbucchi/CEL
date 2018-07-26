@@ -19,7 +19,7 @@ public enum LogicalOperation {
         this.symbol = symbol;
     }
 
-    LogicalOperation negate(){
+    LogicalOperation negate() {
         switch (this) {
             case EQUALS:
                 return NOT_EQUALS;
@@ -46,7 +46,7 @@ public enum LogicalOperation {
         }
     }
 
-    LogicalOperation flip(){
+    LogicalOperation flip() {
         switch (this) {
             case EQUALS:
                 return EQUALS;

@@ -12,7 +12,7 @@ public class InequalityEventFilter extends AtomicEventFilter {
         if ((logicalOperation != LogicalOperation.LESS) &&
                 (logicalOperation != LogicalOperation.LESS_EQUALS) &&
                 (logicalOperation != LogicalOperation.GREATER) &&
-                (logicalOperation != LogicalOperation.GREATER_EQUALS)){
+                (logicalOperation != LogicalOperation.GREATER_EQUALS)) {
 
             throw new Error("Inequality filters must be of type LESS, LESS_EQUALS, GREATER or GREATER_EQUALS");
         }

@@ -1,9 +1,12 @@
 package cel.compiler.visitors;
 
+import cel.compiler.errors.NameError;
 import cel.event.Label;
 import cel.event.errors.NoSuchLabelException;
-import cel.compiler.errors.NameError;
-import cel.filter.*;
+import cel.filter.AndPatternFilter;
+import cel.filter.EventFilter;
+import cel.filter.OrPatternFilter;
+import cel.filter.PatternFilter;
 import cel.parser.CELBaseVisitor;
 import cel.parser.CELParser;
 import cel.parser.utils.StringCleaner;
@@ -29,8 +32,7 @@ public class FilterVisitor extends CELBaseVisitor<PatternFilter> {
         try {
             Label label = Label.get(labelName);
             eventFilter = ctx.bool_expr().accept(new BoolExprVisitor(label));
-        }
-        catch (NoSuchLabelException exc){
+        } catch (NoSuchLabelException exc) {
             throw new NameError("event or label '" + labelName + "' was never declared", ctx);
         }
         return eventFilter;

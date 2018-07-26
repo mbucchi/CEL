@@ -13,7 +13,7 @@ import java.util.Map;
 
 class EventListVisitor extends CELBaseVisitor<Collection<EventSchema>> {
 
-    public Collection<EventSchema> visitEvent_list(CELParser.Event_listContext ctx){
+    public Collection<EventSchema> visitEvent_list(CELParser.Event_listContext ctx) {
 
         Map<String, EventSchema> eventNames = new HashMap<>();
 
@@ -29,7 +29,7 @@ class EventListVisitor extends CELBaseVisitor<Collection<EventSchema>> {
             EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
 
             // Event has not been declared
-            if (eventSchema == null){
+            if (eventSchema == null) {
                 throw new NameError("Event `" + eventName + "` is not defined", event);
             }
             eventNames.put(eventName, eventSchema);

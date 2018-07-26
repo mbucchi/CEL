@@ -1,8 +1,8 @@
 package cel.compiler.visitors;
 
 import cel.compiler.errors.DeclarationError;
-import cel.event.errors.EventException;
 import cel.event.EventSchema;
+import cel.event.errors.EventException;
 import cel.parser.CELBaseVisitor;
 import cel.parser.CELParser;
 import cel.parser.utils.StringCleaner;
@@ -18,8 +18,7 @@ public class EventDeclarationVisitor extends CELBaseVisitor<EventSchema> {
 
         try {
             return new EventSchema(eventName, attributeMap);
-        }
-        catch (EventException exc){
+        } catch (EventException exc) {
             throw new DeclarationError(exc.getMessage(), ctx);
         }
     }

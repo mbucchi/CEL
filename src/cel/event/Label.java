@@ -11,9 +11,9 @@ public class Label {
 
     private Set<EventSchema> eventSchemas;
 
-    public static Label forName(String name, Set<EventSchema> eventSchemaSet){
+    public static Label forName(String name, Set<EventSchema> eventSchemaSet) {
         Label label = stringLabelMap.get(name);
-        if (label == null){
+        if (label == null) {
             label = new Label(name);
             stringLabelMap.put(name, label);
         }
@@ -34,7 +34,7 @@ public class Label {
 
     public static Label get(String name) throws NoSuchLabelException {
         Label label = stringLabelMap.get(name);
-        if (label == null){
+        if (label == null) {
             throw new NoSuchLabelException("No label defined for name " + name);
         }
         return label;
@@ -44,16 +44,16 @@ public class Label {
         return new HashSet<>(eventSchemas);
     }
 
-    public Map<String, EnumSet<ValueType>> getAttributes(){
+    public Map<String, EnumSet<ValueType>> getAttributes() {
         // returns all the attributes and their respective ValueTypes defined on eventSchemas
         // within this label.
 
         Map<String, EnumSet<ValueType>> attributeValueTypes = new HashMap<>();
 
-        for (EventSchema eventSchema : eventSchemas ){
+        for (EventSchema eventSchema : eventSchemas) {
             Map<String, ValueType> evAttMap = eventSchema.getAttributes();
-            for (String attrName : evAttMap.keySet()){
-                if (!attributeValueTypes.containsKey(attrName)){
+            for (String attrName : evAttMap.keySet()) {
+                if (!attributeValueTypes.containsKey(attrName)) {
                     attributeValueTypes.put(attrName, EnumSet.noneOf(ValueType.class));
                 }
                 ValueType valueType = evAttMap.get(attrName);

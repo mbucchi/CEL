@@ -20,29 +20,27 @@ public class CELMotor {
     private QueryCompiler queryCompiler;
     private CompoundStatementCompiler compoundStatementCompiler;
 
-    public CELMotor(){
+    public CELMotor() {
         declarationCompiler = new DeclarationCompiler();
         queryCompiler = new QueryCompiler();
         compoundStatementCompiler = new CompoundStatementCompiler(declarationCompiler, queryCompiler);
     }
 
-    public void executeDeclaration(String statement){
+    public void executeDeclaration(String statement) {
         try {
             // Parse and compile
             declarationCompiler.compile(statement);
-        }
-        catch (ParseCancellationException exc){
+        } catch (ParseCancellationException exc) {
             throw new ParseError("Can't parse the given string as a correct CEL declaration statement.");
         }
     }
 
-    public QueryResult executeQuery(String query){
+    public QueryResult executeQuery(String query) {
 
         try {
             // try to parse and compile given the already declared events and streams
             queryCompiler.compile(query);
-        }
-        catch (ParseCancellationException exc) {
+        } catch (ParseCancellationException exc) {
             throw new ParseError("Can't parse the given string as a correct CEL query statement.");
         }
         return new QueryResult();
@@ -55,15 +53,14 @@ public class CELMotor {
         try {
             Collection<Query> queries = compoundStatementCompiler.compile(statements);
             for (Query query : queries) {
-                System.out.println(query.getPatternCEA().toString());
+//                System.out.println(query.getPatternCEA().toString());
             }
-        }
-        catch (CompilerError err) {
+        } catch (CompilerError err) {
             System.err.println(err);
         }
     }
 
-    public void sendEvent(String streamName, String eventName, Object... args){
+    public void sendEvent(String streamName, String eventName, Object... args) {
 
     }
 

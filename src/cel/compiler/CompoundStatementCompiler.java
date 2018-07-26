@@ -18,7 +18,7 @@ public class CompoundStatementCompiler extends BaseCompiler<Collection<Query>> {
         this.queryCompiler = queryCompiler;
     }
 
-    public Collection<Query> compile(String statements){
+    public Collection<Query> compile(String statements) {
 
         CELParser CELParser = parse(statements);
         CELParser.ParseContext ctx = CELParser.parse();
@@ -29,7 +29,7 @@ public class CompoundStatementCompiler extends BaseCompiler<Collection<Query>> {
     @Override
     Collection<Query> compileContext(ParserRuleContext ctx) {
 
-        if (!(ctx instanceof CELParser.ParseContext)){
+        if (!(ctx instanceof CELParser.ParseContext)) {
             throw new Error("FATAL ERROR!");
         }
 
@@ -37,14 +37,12 @@ public class CompoundStatementCompiler extends BaseCompiler<Collection<Query>> {
 
         Collection<Query> queries = new ArrayList<>();
 
-        for (CELParser.Cel_stmtContext statementCtx : parseContext.cel_stmt()){
-            if (statementCtx.cel_declaration() != null){
+        for (CELParser.Cel_stmtContext statementCtx : parseContext.cel_stmt()) {
+            if (statementCtx.cel_declaration() != null) {
                 declarationCompiler.compileContext(statementCtx.cel_declaration());
-            }
-            else if (statementCtx.cel_query() != null){
+            } else if (statementCtx.cel_query() != null) {
                 queries.add(queryCompiler.compileContext(statementCtx.cel_query()));
-            }
-            else {
+            } else {
                 throw new ParseCancellationException("Error trying to parse given CEL string");
             }
         }

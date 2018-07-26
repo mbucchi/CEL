@@ -1,13 +1,15 @@
 package cel.cea.predicate;
 
-import cel.event.Event;
 import cel.event.EventSchema;
 import cel.event.Label;
 import cel.filter.AndEventFilter;
 import cel.filter.EventFilter;
 import cel.stream.StreamSchema;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Predicate {
 
@@ -194,7 +196,7 @@ public class Predicate {
         labelSet.add(label);
     }
 
-    public boolean containsLabel(Label label){
+    public boolean containsLabel(Label label) {
         return labelSet.contains(label);
     }
 
@@ -207,11 +209,11 @@ public class Predicate {
         return newPredicate;
     }
 
-    public boolean overStream(StreamSchema streamSchema){
+    public boolean overStream(StreamSchema streamSchema) {
         return this.streamSchema == null || this.streamSchema.equals(streamSchema);
     }
 
-    public boolean overEvent(EventSchema eventSchema){
+    public boolean overEvent(EventSchema eventSchema) {
         return this.eventSchema == null || this.eventSchema.equals(eventSchema);
     }
 

@@ -6,9 +6,9 @@ public class StringLiteral extends Literal {
 
     private String value;
 
-    public StringLiteral(String value){
+    public StringLiteral(String value) {
         super(ValueType.STRING);
-        if (StringCleaner.hasQuotes(value)){
+        if (StringCleaner.hasQuotes(value)) {
             value = StringCleaner.removeQuotes(value);
         }
         this.value = value;

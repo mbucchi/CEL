@@ -6,11 +6,11 @@ public enum TransitionType {
 
     private String symbol;
 
-    TransitionType(String symbol){
+    TransitionType(String symbol) {
         this.symbol = symbol;
     }
 
-    public String getSymbol(){
+    public String getSymbol() {
         return symbol;
     }
 }

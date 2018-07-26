@@ -1,14 +1,14 @@
 package cel.compiler;
 
 import cel.cea.CEA;
-import cel.compiler.errors.ValueError;
-import cel.event.Label;
-import cel.event.errors.NoSuchLabelException;
 import cel.compiler.errors.NameError;
 import cel.compiler.errors.UnknownStatementError;
+import cel.compiler.errors.ValueError;
 import cel.compiler.visitors.PatternVisitor;
 import cel.compiler.visitors.TimeSpanVisitor;
 import cel.event.EventSchema;
+import cel.event.Label;
+import cel.event.errors.NoSuchLabelException;
 import cel.parser.CELParser;
 import cel.parser.utils.StringCleaner;
 import cel.query.*;
@@ -33,8 +33,8 @@ public class QueryCompiler extends BaseCompiler<Query> {
     }
 
     @Override
-    Query compileContext(ParserRuleContext ctx){
-        if (!(ctx instanceof CELParser.Cel_queryContext)){
+    Query compileContext(ParserRuleContext ctx) {
+        if (!(ctx instanceof CELParser.Cel_queryContext)) {
             throw new Error("FATAL ERROR");
         }
 
@@ -73,22 +73,18 @@ public class QueryCompiler extends BaseCompiler<Query> {
     }
 
     private SelectionStrategy parseSelectionStrategy(CELParser.Selection_strategyContext ctx) {
-        if (ctx == null ) {
+        if (ctx == null) {
             return SelectionStrategy.getDefault();
         }
         if (ctx instanceof CELParser.Ss_allContext) {
             return SelectionStrategy.ALL;
-        }
-        else if (ctx instanceof CELParser.Ss_lastContext) {
+        } else if (ctx instanceof CELParser.Ss_lastContext) {
             return SelectionStrategy.LAST;
-        }
-        else if (ctx instanceof CELParser.Ss_maxContext) {
+        } else if (ctx instanceof CELParser.Ss_maxContext) {
             return SelectionStrategy.MAX;
-        }
-        else if (ctx instanceof CELParser.Ss_nextContext) {
+        } else if (ctx instanceof CELParser.Ss_nextContext) {
             return SelectionStrategy.NEXT;
-        }
-        else {
+        } else {
             throw new UnknownStatementError("This kind of selection strategy has not been implemented", ctx);
         }
     }
@@ -96,27 +92,25 @@ public class QueryCompiler extends BaseCompiler<Query> {
     private ProjectionList parseProjectionList(CELParser.Result_valuesContext ctx) {
         if (ctx.STAR() != null) {
             return ProjectionList.ALL_EVENTS;
-        }
-        else {
-             Collection<Label> projectedLabels = ctx.event_name()
-                     .stream()
-                     .map(event_nameContext -> {
-                         try {
-                             return Label.get(event_nameContext.getText());
-                         }
-                         catch (NoSuchLabelException exc) {
-                             throw new NameError("No label or event `" + event_nameContext.getText()
-                                     + "` is ever defined on capturing query pattern", event_nameContext);
-                         }
-                        })
-                        .collect(Collectors.toList());
+        } else {
+            Collection<Label> projectedLabels = ctx.event_name()
+                    .stream()
+                    .map(event_nameContext -> {
+                        try {
+                            return Label.get(event_nameContext.getText());
+                        } catch (NoSuchLabelException exc) {
+                            throw new NameError("No label or event `" + event_nameContext.getText()
+                                    + "` is ever defined on capturing query pattern", event_nameContext);
+                        }
+                    })
+                    .collect(Collectors.toList());
 
-             return new ProjectionList(projectedLabels);
+            return new ProjectionList(projectedLabels);
         }
     }
 
     private Collection<Partition> parsePartitionList(CELParser.Partition_listContext ctx, Set<EventSchema> eventSchemas) {
-        if (ctx == null){
+        if (ctx == null) {
             return new ArrayList<>();
         }
 
@@ -129,7 +123,7 @@ public class QueryCompiler extends BaseCompiler<Query> {
 
         for (CELParser.Attribute_listContext partitionCtx : ctx.attribute_list()) {
             HashSet<String> attributeNames = new HashSet<>();
-            for (CELParser.Attribute_nameContext attrNameCtx : partitionCtx.attribute_name()){
+            for (CELParser.Attribute_nameContext attrNameCtx : partitionCtx.attribute_name()) {
                 String attrName = StringCleaner.tryRemoveQuotes(attrNameCtx.getText());
 
                 if (!definedAttributes.contains(attrName)) {
@@ -144,7 +138,7 @@ public class QueryCompiler extends BaseCompiler<Query> {
                 attributeNames.add(attrName);
             }
 
-            for (EventSchema eventSchema : eventSchemas){
+            for (EventSchema eventSchema : eventSchemas) {
                 Set<String> schemaAttributes = new HashSet<>(eventSchema.getAttributes().keySet());
                 schemaAttributes.retainAll(attributeNames);
                 if (schemaAttributes.size() == 0) {
@@ -158,7 +152,7 @@ public class QueryCompiler extends BaseCompiler<Query> {
     }
 
     private Map<String, StreamSchema> parseStreamList(CELParser.Stream_listContext ctx) {
-        if (ctx == null){
+        if (ctx == null) {
             return StreamSchema.getAllSchemas();
         }
 
@@ -167,10 +161,10 @@ public class QueryCompiler extends BaseCompiler<Query> {
         for (CELParser.Stream_nameContext nameContext : ctx.stream_name()) {
             String streamName = nameContext.getText();
             StreamSchema streamSchema = StreamSchema.tryGetSchemaFor(streamName);
-            if (streamSchema == null){
+            if (streamSchema == null) {
                 throw new NameError("Unknown stream of name `" + streamName + "`", nameContext);
             }
-            if (streamSchemaMap.containsKey(streamName)){
+            if (streamSchemaMap.containsKey(streamName)) {
                 throw new ValueError("Stream `" + streamName + "` declared more than once on query", nameContext);
             }
             streamSchemaMap.put(streamName, streamSchema);
@@ -193,31 +187,26 @@ public class QueryCompiler extends BaseCompiler<Query> {
         if (ctx.event_span() != null) {
             long nEvents = Long.parseLong(ctx.event_span().number().getText());
             return new TimeWindow(nEvents, TimeWindow.Kind.EVENTS);
-        }
-        else if (ctx.time_span() != null) {
+        } else if (ctx.time_span() != null) {
             long nSeconds = ctx.time_span().accept(new TimeSpanVisitor());
             return new TimeWindow(nSeconds, TimeWindow.Kind.TIME);
-        }
-        else {
+        } else {
             throw new UnknownStatementError("Can't parse this kind of time window", ctx);
         }
 
     }
 
     private ConsumptionPolicy parseConsumptionPolicy(CELParser.Consumption_policyContext ctx) {
-        if (ctx == null ) {
+        if (ctx == null) {
             return ConsumptionPolicy.getDefault();
         }
         if (ctx instanceof CELParser.Cp_anyContext) {
             return ConsumptionPolicy.ANY;
-        }
-        else if (ctx instanceof CELParser.Cp_noneContext) {
+        } else if (ctx instanceof CELParser.Cp_noneContext) {
             return ConsumptionPolicy.NONE;
-        }
-        else if (ctx instanceof CELParser.Cp_partitionContext) {
+        } else if (ctx instanceof CELParser.Cp_partitionContext) {
             return ConsumptionPolicy.PARTITION;
-        }
-        else {
+        } else {
             throw new UnknownStatementError("This type of consumption policy has not been implemented", ctx);
         }
     }

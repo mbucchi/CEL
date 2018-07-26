@@ -15,8 +15,7 @@ public abstract class CompilerError extends Error {
         super(msg);
         if (context == null) {
             positionInfo = "";
-        }
-        else {
+        } else {
             int lineNumber = context.start.getLine();
             int columnNumber = context.start.getCharPositionInLine();
             setPositionInfo(lineNumber, columnNumber);
@@ -30,7 +29,7 @@ public abstract class CompilerError extends Error {
                 .append(BaseCompiler.getLatestInput(lineNumber))
                 .append("\n  ");
 
-        for (int c=0; c<columnNumber; c++){
+        for (int c = 0; c < columnNumber; c++) {
             stringBuilder.append(' ');
         }
         stringBuilder.append("^\n");

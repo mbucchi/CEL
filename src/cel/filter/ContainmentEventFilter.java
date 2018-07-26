@@ -14,12 +14,12 @@ public class ContainmentEventFilter extends ComplexEventFilter {
     private Collection<Literal> literalCollection;
 
     private ContainmentEventFilter(Label label,
-                                  Attribute attribute,
-                                  ValueType valueType,
-                                  LogicalOperation logicalOperation){
+                                   Attribute attribute,
+                                   ValueType valueType,
+                                   LogicalOperation logicalOperation) {
 
         super(label, attribute, valueType, logicalOperation);
-        if (logicalOperation != LogicalOperation.IN && logicalOperation != LogicalOperation.NOT_IN){
+        if (logicalOperation != LogicalOperation.IN && logicalOperation != LogicalOperation.NOT_IN) {
             throw new Error("ContainmentEventFilter can only accept IN and NOT_IT " +
                     "logical operations, not " + logicalOperation.name());
         }
@@ -30,16 +30,16 @@ public class ContainmentEventFilter extends ComplexEventFilter {
                                   Attribute attribute,
                                   ValueType valueType,
                                   LogicalOperation logicalOperation,
-                                  Collection<Literal> literalCollection){
+                                  Collection<Literal> literalCollection) {
 
         this(label, attribute, valueType, logicalOperation);
-        for (Literal literal : literalCollection){
+        for (Literal literal : literalCollection) {
             addLiteral(literal);
         }
     }
 
-    private void addLiteral(Literal literal){
-        if (!literal.interoperableWith(valueType)){
+    private void addLiteral(Literal literal) {
+        if (!literal.interoperableWith(valueType)) {
             throw new Error("Wrong type of values");
         }
         literalCollection.add(literal);
@@ -48,7 +48,7 @@ public class ContainmentEventFilter extends ComplexEventFilter {
     @Override
     public EventFilter translateToEventFilter() {
         LogicalOperation equalityOperator;
-        switch (logicalOperation){
+        switch (logicalOperation) {
             case IN:
                 equalityOperator = LogicalOperation.EQUALS;
                 break;

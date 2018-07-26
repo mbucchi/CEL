@@ -10,12 +10,12 @@ public class TimeWindow {
     private Kind kind;
     private long span;
 
-    private TimeWindow(){
+    private TimeWindow() {
         kind = Kind.NONE;
     }
 
-    public TimeWindow(long span, Kind kind){
-        if (kind == Kind.NONE){
+    public TimeWindow(long span, Kind kind) {
+        if (kind == Kind.NONE) {
             throw new Error("use `TimeWindow.NONE` instead");
         }
         this.span = span;

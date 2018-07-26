@@ -8,16 +8,16 @@ import java.util.Collection;
 import java.util.Objects;
 
 public class OrEventFilter extends CompoundEventFilter {
-    
-    public OrEventFilter(Label label, EventFilter left, EventFilter right){
+
+    public OrEventFilter(Label label, EventFilter left, EventFilter right) {
         super(label);
         addEventFilter(left);
         addEventFilter(right);
     }
 
-    OrEventFilter(Label label, Collection<EventFilter> eventFilters){
+    OrEventFilter(Label label, Collection<EventFilter> eventFilters) {
         super(label);
-        for (EventFilter eventFilter : eventFilters){
+        for (EventFilter eventFilter : eventFilters) {
             addEventFilter(eventFilter);
         }
     }
@@ -31,7 +31,7 @@ public class OrEventFilter extends CompoundEventFilter {
     public EventFilter negate() {
         ArrayList<EventFilter> negatedInnerFilters = new ArrayList<>();
 
-        for (EventFilter ev: eventFilterCollection) {
+        for (EventFilter ev : eventFilterCollection) {
             negatedInnerFilters.add(ev.negate());
         }
 
@@ -45,7 +45,7 @@ public class OrEventFilter extends CompoundEventFilter {
         for (EventFilter thisFilter : eventFilterCollection) {
             boolean anyEqual = false;
             for (EventFilter otherFilter : ((OrEventFilter) obj).eventFilterCollection) {
-                if (thisFilter.equals(otherFilter)){
+                if (thisFilter.equals(otherFilter)) {
                     anyEqual = true;
                     break;
                 }
@@ -60,22 +60,21 @@ public class OrEventFilter extends CompoundEventFilter {
         return Objects.hash(label, eventFilterCollection, attributes, valueTypes);
     }
 
-    void addEventFilter(EventFilter eventFilter){
-        if (!eventFilter.label.equals(label)){
+    void addEventFilter(EventFilter eventFilter) {
+        if (!eventFilter.label.equals(label)) {
             throw new Error("Inner filters must have the same labels and attributes");
         }
-        if (eventFilter instanceof OrEventFilter){
+        if (eventFilter instanceof OrEventFilter) {
             for (EventFilter ev : ((OrEventFilter) eventFilter).eventFilterCollection) {
                 addEventFilter(ev);
             }
-        }
-        else {
+        } else {
             ArrayList<EventFilter> newEventFilters = new ArrayList<>();
-            for (EventFilter ev: eventFilterCollection){
-                if (!ev.dominates(eventFilter)){
+            for (EventFilter ev : eventFilterCollection) {
+                if (!ev.dominates(eventFilter)) {
                     newEventFilters.add(ev);
                 }
-                if (eventFilter.dominates(ev)){
+                if (eventFilter.dominates(ev)) {
                     return;
                 }
             }
@@ -90,7 +89,7 @@ public class OrEventFilter extends CompoundEventFilter {
     @Override
     public boolean equivalentTo(FilterComparable filter) {
         if (this == filter) return true;
-        for (EventFilter ef : eventFilterCollection){
+        for (EventFilter ef : eventFilterCollection) {
             if (!ef.equivalentTo(filter)) return false;
         }
         // TODO: not yet sure how to check this
@@ -100,7 +99,7 @@ public class OrEventFilter extends CompoundEventFilter {
     @Override
     public boolean dominates(FilterComparable filter) {
         if (equivalentTo(filter)) return true;
-        for (EventFilter ef : eventFilterCollection){
+        for (EventFilter ef : eventFilterCollection) {
             if (!ef.dominates(filter)) return false;
         }
         return true;
@@ -108,7 +107,7 @@ public class OrEventFilter extends CompoundEventFilter {
 
     @Override
     boolean dominatedBy(FilterComparable filter) {
-        for (EventFilter ef : eventFilterCollection){
+        for (EventFilter ef : eventFilterCollection) {
             if (filter.dominates(ef)) return true;
         }
         return false;

@@ -5,7 +5,7 @@ import cel.event.Label;
 import java.util.ArrayList;
 import java.util.Collection;
 
-abstract class CompoundEventFilter extends EventFilter {
+public abstract class CompoundEventFilter extends EventFilter {
 
     Collection<EventFilter> eventFilterCollection;
 
@@ -26,9 +26,13 @@ abstract class CompoundEventFilter extends EventFilter {
         return false;
     }
 
+    public Collection<EventFilter> getEventFilterCollection() {
+        return eventFilterCollection;
+    }
+
     @Override
     public boolean isConstant() {
-        for (EventFilter eventFilter : eventFilterCollection){
+        for (EventFilter eventFilter : eventFilterCollection) {
             if (eventFilter.isConstant()) return true;
         }
         return false;

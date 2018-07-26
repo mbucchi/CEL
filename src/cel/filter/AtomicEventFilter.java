@@ -4,9 +4,7 @@ import cel.event.Label;
 import cel.values.Value;
 import cel.values.ValueType;
 
-import java.util.EnumSet;
-
-abstract class AtomicEventFilter extends EventFilter {
+public abstract class AtomicEventFilter extends EventFilter {
     LogicalOperation logicalOperation;
     Value lhs, rhs;
 
@@ -18,12 +16,12 @@ abstract class AtomicEventFilter extends EventFilter {
         setTypeAndAttributes();
     }
 
-   private void setTypeAndAttributes(){
+    private void setTypeAndAttributes() {
         valueTypes.retainAll(lhs.getTypes());
         valueTypes.retainAll(rhs.getTypes());
         attributes.addAll(lhs.getAttributes());
         attributes.addAll(rhs.getAttributes());
-   }
+    }
 
     @Override
     public String toString() {
@@ -46,11 +44,30 @@ abstract class AtomicEventFilter extends EventFilter {
     @Override
     public boolean notApplicable() {
         for (ValueType leftValueType : lhs.getTypes()) {
-            for (ValueType rightValueType: rhs.getTypes()) {
+            for (ValueType rightValueType : rhs.getTypes()) {
                 if (leftValueType.interoperableWith(rightValueType)) return false;
             }
         }
         return true;
+    }
+
+    public Value getLhs() {
+        return lhs;
+    }
+
+    public Value getRhs() {
+        return rhs;
+    }
+
+    public LogicalOperation getLogicalOperation() {
+        return logicalOperation;
+    }
+
+    public void flip() {
+        Value temp = rhs;
+        rhs = lhs;
+        lhs = temp;
+        logicalOperation = logicalOperation.flip();
     }
 
     @Override

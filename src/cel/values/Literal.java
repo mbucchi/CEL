@@ -7,7 +7,7 @@ public abstract class Literal extends Value {
         super(valueType);
     }
 
-    Literal(EnumSet<ValueType> valueTypes){
+    Literal(EnumSet<ValueType> valueTypes) {
         super(valueTypes);
     }
 }

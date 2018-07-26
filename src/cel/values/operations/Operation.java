@@ -1,4 +1,5 @@
 package cel.values.operations;
+
 import cel.values.Value;
 
 public abstract class Operation extends Value {

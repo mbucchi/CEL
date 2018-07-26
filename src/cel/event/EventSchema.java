@@ -44,7 +44,7 @@ public class EventSchema {
 
     private static void ensureUnique(String name) throws EventException {
         if (allSchemas.keySet().contains(name)) {
-            throw new EventException("Event of name `" + name + "` has already been declared");
+            throw new EventException("event of name `" + name + "` has already been declared");
         }
     }
 
@@ -54,7 +54,7 @@ public class EventSchema {
 
         if (intersection.size() > 0) {
             String restricted = String.join("`, `", intersection);
-            throw new EventException("Event of name `" + evName + "` " +
+            throw new EventException("event of name `" + evName + "` " +
                     "declares attributes with restricted names " +
                     "(`" + restricted + "`)");
         }

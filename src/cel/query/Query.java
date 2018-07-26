@@ -3,8 +3,9 @@ package cel.query;
 import cel.cea.CEA;
 //import cel.cea.DeterministicCEA;
 import cel.cea.MinimizedCEA;
-import cel.runtime.CEATraverser;
+import cel.event.EventSchema;
 import cel.runtime.source.BitVectorSourceGenerator;
+import cel.runtime.source.EventSourceGenerator;
 import cel.stream.StreamSchema;
 
 import java.util.Collection;
@@ -52,6 +53,9 @@ public class Query {
         //
         BitVectorSourceGenerator test = new BitVectorSourceGenerator(patternCEA);
         System.out.println(test.makeSourceCode());
+        for (EventSchema ev : patternCEA.getEventSchemas()) {
+            System.out.println(EventSourceGenerator.createEventSource(ev));
+        }
 //        patternCEA = new ProjectionCEA(patternCEA, projectionList);
 //        projectionList = ProjectionList.ALL_EVENTS;
 

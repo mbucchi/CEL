@@ -79,7 +79,7 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
     @Override
     public CEA visitEvent_cel_pattern(CELParser.Event_cel_patternContext ctx) {
 
-        // Event can either be named by itself or within the scope of a stream.
+        // event can either be named by itself or within the scope of a stream.
         // First check which is the case and deal with each of them separately
         String eventName = StringCleaner.tryRemoveQuotes(ctx.s_event_name().event_name().getText());
 
@@ -93,7 +93,7 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
             StreamSchema streamSchema = StreamSchema.getSchemaFor(streamName);
 
             if (!streamSchema.containsEvent(eventName)) {
-                throw new NameError("Event `" + eventName + "` is not defined within stream `" + streamName + "`",
+                throw new NameError("event `" + eventName + "` is not defined within stream `" + streamName + "`",
                         ctx.s_event_name().event_name());
             }
 
@@ -101,14 +101,14 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
             EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
 
             if (eventSchema == null) {
-                throw new NameError("Event `" + eventName + "` is not defined", ctx.s_event_name().event_name());
+                throw new NameError("event `" + eventName + "` is not defined", ctx.s_event_name().event_name());
             }
             return new SelectionCEA(streamSchema, eventSchema);
         } else {
             // no stream is defined, just check that the event is declared within the scope of the
             // query
             if (!definedEvents.contains(eventName)) {
-                throw new NameError("Event `" + eventName + "` is not defined within any of the query streams",
+                throw new NameError("event `" + eventName + "` is not defined within any of the query streams",
                         ctx.s_event_name());
             }
 
@@ -116,7 +116,7 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
             EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
 
             if (eventSchema == null) {
-                throw new NameError("Event `" + eventName + "` is not defined", ctx.s_event_name());
+                throw new NameError("event `" + eventName + "` is not defined", ctx.s_event_name());
             }
             return new SelectionCEA(eventSchema);
         }

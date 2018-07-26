@@ -5,6 +5,7 @@ import cel.cea.predicate.Predicate;
 import cel.cea.transition.Transition;
 import cel.event.EventSchema;
 import cel.filter.*;
+import cel.runtime.event.Event;
 import cel.stream.StreamSchema;
 import cel.values.Attribute;
 import cel.values.Literal;
@@ -17,7 +18,6 @@ public class BitVectorSourceGenerator {
 
     private static int WIDTH = 4;
 
-    private CEA cea;
     private List<Object> bitVectorOrder;
     private List<EventFilter> filters;
     private List<StreamSchema> streams;
@@ -26,14 +26,29 @@ public class BitVectorSourceGenerator {
 
 
     public BitVectorSourceGenerator(CEA cea) {
-        this.cea = cea;
-        makeFilterOrder();
+        makeFilterOrder(cea);
     }
 
     /* TODO */
-    public BitVectorSourceGenerator(CEA cea, List<Object> events) {
-        this.cea = cea;
+    public BitVectorSourceGenerator(List<Object> events) {
         this.bitVectorOrder = events;
+        getData();
+    }
+
+    private void getData() {
+        filters = new ArrayList<>();
+        streams = new ArrayList<>();
+        events = new ArrayList<>();
+
+        for (Object o : bitVectorOrder) {
+            if (o instanceof EventFilter) {
+                filters.add((EventFilter) o);
+            } else if (o instanceof StreamSchema) {
+                streams.add((StreamSchema) o);
+            } else if (o instanceof EventSchema) {
+                events.add((EventSchema) o);
+            }
+        }
     }
 
     public String makeSourceCode() {
@@ -46,11 +61,11 @@ public class BitVectorSourceGenerator {
 //        src.append(indent(1)).append("public BitVectorGenerator(List<EventFilter> events) {\n");
 //        src.append(makeInit());
 //        src.append(indent(1)).append("}\n\n");
-        src.append(indent(1)).append("public static boolean getBitVector(Event e) {\n");
+        src.append(indent(1)).append("public static boolean getBitVector(event e) {\n");
         src.append(getEvents());
         src.append(indent(2)).append("return vector;\n");
         src.append(indent(1)).append("}\n");
-        src.append("}");    
+        src.append("}");
 
         return src.toString();
     }
@@ -59,7 +74,7 @@ public class BitVectorSourceGenerator {
         StringBuilder ret = new StringBuilder();
 
         ret.append("import java.util.*;\n");
-        ret.append("import cel.event.Event;\n");
+        ret.append("import cel.runtime.event.*;\n");
         ret.append("import cel.filter.EventFilter;\n");
         ret.append("\n");
 
@@ -120,9 +135,9 @@ public class BitVectorSourceGenerator {
             if (st.containsEvent(ev)) {
                 if (first) {
                     first = false;
-                    ret.append(indent(3)).append("if (e.__stream.equals(").append(st.getName()).append(")) {\n");
+                    ret.append(indent(3)).append("if (e.__stream.equals(").append(st.getStreamID()).append(")) {\n");
                 } else {
-                    ret.append(" else if (e.__stream.equals(").append(st.getName()).append(") {\n");
+                    ret.append(" else if (e.__stream.equals(").append(st.getStreamID()).append(")) {\n");
                 }
                 ret.append(indent(4)).append("vector.set(").append(bitVectorOrder.indexOf(st)).append(");\n");
                 ret.append(indent(3)).append("}");
@@ -229,8 +244,8 @@ public class BitVectorSourceGenerator {
         return new String(new char[level * WIDTH]).replace("\0", " ");
     }
 
-    private void makeFilterOrder() {
-        makeFilterRepetitionsMap();
+    private void makeFilterOrder(CEA cea) {
+        makeFilterRepetitionsMap(cea);
         Comparator<Object> comp = (o1, o2) -> {
             if (o1.equals(o2)) {
                 return 0;
@@ -251,7 +266,7 @@ public class BitVectorSourceGenerator {
         bitVectorOrder.sort(comp);
     }
 
-    private void makeFilterRepetitionsMap() {
+    private void makeFilterRepetitionsMap(CEA cea) {
         filterRepetitions = new HashMap<>();
         streams = new ArrayList<>();
         filters = new ArrayList<>();

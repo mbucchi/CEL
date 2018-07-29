@@ -162,7 +162,7 @@ public class EventSourceGenerator {
 
         }
         ret.append(")\";\n");
-        ret.append("}");
+        ret.append(indent(1)).append("}\n");
 
         return ret.toString();
     }

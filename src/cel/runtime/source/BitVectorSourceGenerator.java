@@ -50,9 +50,11 @@ public class BitVectorSourceGenerator {
         }
     }
 
-    public String makeSourceCode() {
-        System.out.println("Bit Vector Order: " + bitVectorOrder.toString());
+    public List<Object> getBitVectorOrder() {
+        return bitVectorOrder;
+    }
 
+    public String makeSourceCode() {
         StringBuilder src = new StringBuilder();
 
         src.append("package cel.runtime;\n\n");

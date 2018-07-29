@@ -53,7 +53,7 @@ public class CELMotor {
         try {
             Collection<Query> queries = compoundStatementCompiler.compile(statements);
             for (Query query : queries) {
-//                System.out.println(query.getPatternCEA().toString());
+                System.out.println(query.getPatternCEA().toString());
             }
         } catch (CompilerError err) {
             System.err.println(err);

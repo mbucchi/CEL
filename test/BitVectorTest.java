@@ -54,6 +54,7 @@ public class BitVectorTest {
         InMemoryJavaCompiler javac = InMemoryJavaCompiler.newInstance();
         BitVectorSourceGenerator test = new BitVectorSourceGenerator(q.getPatternCEA());
         String src = test.makeSourceCode();
+        System.out.println("Bit Vector Order: " + test.getBitVectorOrder().toString());
         System.out.println(src);
         String s;
         for (EventSchema ev : q.getPatternCEA().getEventSchemas()) {
@@ -77,6 +78,7 @@ public class BitVectorTest {
 
             while ((line = stream.readLine()) != null) {
                 e = parseEvent(line, q.getPatternCEA().getEventSchemas());
+                assert e != null;
                 System.out.println(e.toString());
                 System.out.println(bvg.getBitVector(e));
             }

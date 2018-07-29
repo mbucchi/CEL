@@ -51,11 +51,11 @@ public class Query {
 //        patternCEA = new DeterministicCEA(patternCEA);
 //        CEATraverser test = new CEATraverser(patternCEA);
         //
-        BitVectorSourceGenerator test = new BitVectorSourceGenerator(patternCEA);
-        System.out.println(test.makeSourceCode());
-        for (EventSchema ev : patternCEA.getEventSchemas()) {
-            System.out.println(EventSourceGenerator.createEventSource(ev));
-        }
+//        BitVectorSourceGenerator test = new BitVectorSourceGenerator(patternCEA);
+//        System.out.println(test.makeSourceCode());
+//        for (EventSchema ev : patternCEA.getEventSchemas()) {
+//            System.out.println(EventSourceGenerator.createEventSource(ev));
+//        }
 //        patternCEA = new ProjectionCEA(patternCEA, projectionList);
 //        projectionList = ProjectionList.ALL_EVENTS;
 

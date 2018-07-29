@@ -5,7 +5,6 @@ import cel.cea.predicate.Predicate;
 import cel.cea.transition.Transition;
 import cel.event.EventSchema;
 import cel.filter.*;
-import cel.runtime.event.Event;
 import cel.stream.StreamSchema;
 import cel.values.Attribute;
 import cel.values.Literal;
@@ -52,22 +51,27 @@ public class BitVectorSourceGenerator {
     }
 
     public String makeSourceCode() {
+        System.out.println("Bit Vector Order: " + bitVectorOrder.toString());
+
         StringBuilder src = new StringBuilder();
 
         src.append("package cel.runtime;\n\n");
         src.append(getImports());
-        src.append("public class BitVectorGenerator {\n\n");
-//        src.append(getInstanceVariables());
-//        src.append(indent(1)).append("public BitVectorGenerator(List<EventFilter> events) {\n");
-//        src.append(makeInit());
-//        src.append(indent(1)).append("}\n\n");
-        src.append(indent(1)).append("public static boolean getBitVector(event e) {\n");
+        src.append("public class BVG extends BitVectorGenerator {\n\n");
+        src.append(getInit());
+        src.append(indent(1)).append("public BitSet getBitVector(Event e) {\n");
         src.append(getEvents());
         src.append(indent(2)).append("return vector;\n");
         src.append(indent(1)).append("}\n");
         src.append("}");
 
         return src.toString();
+    }
+
+    public String getInit() {
+        StringBuilder ret = new StringBuilder();
+        ret.append(indent(1)).append("public BVG() {\n").append(indent(1)).append("}\n\n");
+        return ret.toString();
     }
 
     private String getImports() {
@@ -80,23 +84,6 @@ public class BitVectorSourceGenerator {
 
         return ret.toString();
     }
-
-//    private String getInstanceVariables() {
-//        StringBuilder ret = new StringBuilder();
-//
-//        ret.append(indent(1)).append("private List<EventFilter> events;\n");
-//        ret.append("\n");
-//
-//        return ret.toString();
-//    }
-//
-//    private String makeInit() {
-//        StringBuilder ret = new StringBuilder();
-//
-//        ret.append(indent(2)).append("this.events = events;\n");
-//
-//        return ret.toString();
-//    }
 
     private String getEvents() {
         StringBuilder ret = new StringBuilder();
@@ -130,21 +117,23 @@ public class BitVectorSourceGenerator {
     private String getStreams(EventSchema ev) {
         StringBuilder ret = new StringBuilder();
         boolean first = true;
-
+        if (streams.isEmpty()) {
+            return "";
+        }
         for (StreamSchema st : streams) {
             if (st.containsEvent(ev)) {
                 if (first) {
                     first = false;
-                    ret.append(indent(3)).append("if (e.__stream.equals(").append(st.getStreamID()).append(")) {\n");
+                    ret.append(indent(3)).append("if (e.__stream == ").append(st.getStreamID()).append(") {\n");
                 } else {
-                    ret.append(" else if (e.__stream.equals(").append(st.getStreamID()).append(")) {\n");
+                    ret.append(" else if (e.__stream == ").append(st.getStreamID()).append(") {\n");
                 }
                 ret.append(indent(4)).append("vector.set(").append(bitVectorOrder.indexOf(st)).append(");\n");
                 ret.append(indent(3)).append("}");
             }
         }
         ret.append(" else {\n");
-        ret.append(indent(4)).append("throw new Error(\"Unknown stream \" + e.__stream);\n");
+        ret.append(indent(4)).append("throw new Error(\"Unknown stream \" + e.__stream + \" for event ").append(ev.getName()).append("\");\n");
         ret.append(indent(3)).append("}\n");
 
         return ret.toString();

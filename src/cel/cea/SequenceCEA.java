@@ -1,7 +1,5 @@
 package cel.cea;
 
-import java.util.HashSet;
-
 import static java.util.stream.Collectors.toList;
 
 public class SequenceCEA extends CEA {

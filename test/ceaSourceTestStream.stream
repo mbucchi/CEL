@@ -1,0 +1,7 @@
+T(temp=100.432,id=100)
+T(temp=100.1231,id=125)
+T(temp=30.0,id=100)
+H(income=2,cost=30,id=100)
+H(income=100,cost=30,id=123)
+H(income=2,cost=30,id=125)
+H(income=2323,cost=30,id=100)

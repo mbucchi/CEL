@@ -40,6 +40,7 @@ public class CEASourceGenerator {
         src.append(makeBlackTransitions());
         src.append(makeWhiteTransitions());
         src.append(makeIsFinal());
+        src.append(makeGetNStates());
         src.append("}");
         System.out.println(src.toString());
 
@@ -54,6 +55,7 @@ public class CEASourceGenerator {
         ret.append("import cel.runtime.cea.ExecutableCEA;\n");
         ret.append("import java.util.BitSet;\n");
         ret.append("import java.util.HashSet;\n");
+        ret.append("import java.util.Set;\n");
         ret.append("\n");
 
         return ret.toString();
@@ -84,22 +86,35 @@ public class CEASourceGenerator {
         }
     }
 
-    private void makeBitSetString(StringBuilder ret, BitMapTransition t, BitSet andResult) {
-        int hash = andResult.hashCode();
+    private void makeBitSetString(StringBuilder ret, BitMapTransition t, BitSet b) {
+        StringBuilder longArr = new StringBuilder();
+        int hash = Arrays.hashCode(b.toLongArray());
         if (!addedBitSets.contains(hash)) {
             addedBitSets.add(hash);
-            ret.append(indent(1)).append("private BitSet b").append(hash).append(" = BitSet.valueOf(");
-            ret.append("new long[]{");
+            ret.append(indent(1)).append("private BitSet bitSet");
             boolean first = true;
-            for (Long l : t.getANDResult().toLongArray()) {
+            for (Long l : b.toLongArray()) {
                 if (first) {
                     first = false;
                 } else {
-                    ret.append(", ");
+                    longArr.append("L, ");
                 }
-                ret.append(l);
+                if (l >= 0) {
+                    ret.append(l);
+                } else {
+                    ret.append("_").append(l * -1);
+                }
+                ret.append("L");
+                longArr.append(l);
             }
-            ret.append("});\n");
+            ret.append(" = BitSet.valueOf(");
+            ret.append("new long[]{");
+            ret.append(longArr.toString());
+            if (longArr.toString().isEmpty()) {
+                ret.append("});\n");
+            } else {
+                ret.append("L});\n");
+            }
         }
     }
 
@@ -148,7 +163,7 @@ public class CEASourceGenerator {
     private String makeBlackTransitions() {
         StringBuilder ret = new StringBuilder();
 
-        ret.append(indent(1)).append("public HashSet<Integer> blackTransition(Integer state, BitSet b) {\n");
+        ret.append(indent(1)).append("public Set<Integer> blackTransition(Integer state, BitSet b) {\n");
         makeTransitions(ret, blackTransitionMap);
 
         ret.append("\n");
@@ -160,7 +175,7 @@ public class CEASourceGenerator {
     private String makeWhiteTransitions() {
         StringBuilder ret = new StringBuilder();
 
-        ret.append(indent(1)).append("public HashSet<Integer> whiteTransition(Integer state, BitSet b) {\n");
+        ret.append(indent(1)).append("public Set<Integer> whiteTransition(Integer state, BitSet b) {\n");
         makeTransitions(ret, whiteTransitionMap);
 
         ret.append("\n");
@@ -170,7 +185,7 @@ public class CEASourceGenerator {
     }
 
     private void makeTransitions(StringBuilder ret, Map<Integer, List<BitMapTransition>> transitionMap) {
-        ret.append(indent(2)).append("HashSet toStates = new HashSet<>;\n");
+        ret.append(indent(2)).append("Set<Integer> toStates = new HashSet<>();\n");
         boolean first = true;
         for (Integer i = 0; i < cea.getnStates(); i++) {
             if (transitionMap.get(i).isEmpty()) {
@@ -178,19 +193,41 @@ public class CEASourceGenerator {
             }
             if (first) {
                 first = false;
-                ret.append(indent(2)).append("if (state.equals(").append(i).append(") {\n");
+                ret.append(indent(2)).append("if (state.equals(").append(i).append(")) {\n");
             } else {
-                ret.append("else if (state.equals(").append(i).append(") {\n");
+                ret.append("else if (state.equals(").append(i).append(")) {\n");
             }
             for (BitMapTransition t : transitionMap.get(i)) {
                 if (t.getANDMask().isEmpty()) {
-                    ret.append(indent(3)).append("toStates.addAll(").append(t.getToState()).append(");\n");
+                    for (Integer j : t.getToState()) {
+                        ret.append(indent(3)).append("toStates.add(").append(j).append(");\n");
+                    }
                 } else {
                     ret.append(indent(3)).append("tb = (BitSet) b.clone();\n");
-                    ret.append(indent(3)).append("tb.and(b").append(t.getANDMask().hashCode()).append(");\n");
-                    ret.append(indent(3)).append("tb.xor(b").append(t.getANDResult().hashCode()).append(");\n");
+                    ret.append(indent(3)).append("tb.and(bitSet");
+                    for (Long l : t.getANDMask().toLongArray()) {
+                        if (l >= 0) {
+                            ret.append(l);
+                        } else {
+                            ret.append("_").append(l * -1);
+                        }
+                        ret.append("L");
+                    }
+                    ret.append(");\n");
+                    ret.append(indent(3)).append("tb.xor(bitSet");
+                    for (Long l : t.getANDResult().toLongArray()) {
+                        if (l >= 0) {
+                            ret.append(l);
+                        } else {
+                            ret.append("_").append(l * -1);
+                        }
+                        ret.append("L");
+                    }
+                    ret.append(");\n");
                     ret.append(indent(3)).append("if (tb.isEmpty()) {\n");
-                    ret.append(indent(4)).append("toStates.addAll(").append(t.getToState()).append(");\n");
+                    for (Integer j : t.getToState()) {
+                        ret.append(indent(4)).append("toStates.add(").append(j).append(");\n");
+                    }
                     ret.append(indent(3)).append("}\n");
                 }
             }
@@ -208,6 +245,15 @@ public class CEASourceGenerator {
         return ret.toString();
     }
 
+    private String makeGetNStates() {
+        StringBuilder ret = new StringBuilder();
+        ret.append(indent(1)).append("public Integer getNStates() {\n");
+        ret.append(indent(2)).append("return ").append(cea.getnStates()).append(";\n");
+        ret.append(indent(1)).append("}\n\n");
+
+        return ret.toString();
+    }
+
     private String indent(int level) {
         return new String(new char[level * WIDTH]).replace("\0", " ");
     }
@@ -219,8 +265,6 @@ public class CEASourceGenerator {
                 return 0;
             }
             if (filterRepetitions.get(o1).equals(filterRepetitions.get(o2))) {
-                /* TODO: MAKE SORTING DETERMINISTIC */
-//                if ()
                 return 0;
             }
             if (filterRepetitions.get(o1) > filterRepetitions.get(o2)) {

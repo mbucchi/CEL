@@ -4,12 +4,6 @@ import cel.cea.predicate.Predicate;
 import cel.cea.transition.Transition;
 import cel.cea.transition.TransitionType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import static java.util.stream.Collectors.toList;
 
 public class OrCEA extends CEA {

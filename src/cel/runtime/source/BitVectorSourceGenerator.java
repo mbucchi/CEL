@@ -1,17 +1,18 @@
 package cel.runtime.source;
 
-import cel.cea.CEA;
-import cel.cea.predicate.Predicate;
-import cel.cea.transition.Transition;
 import cel.event.EventSchema;
-import cel.filter.*;
+import cel.filter.AndEventFilter;
+import cel.filter.AtomicEventFilter;
+import cel.filter.EventFilter;
+import cel.filter.OrEventFilter;
 import cel.stream.StreamSchema;
 import cel.values.Attribute;
 import cel.values.Literal;
 import cel.values.Value;
 import cel.values.operations.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BitVectorSourceGenerator {
 

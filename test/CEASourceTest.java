@@ -1,5 +1,6 @@
 import cel.query.Query;
 import cel.runtime.BitVectorGenerator;
+import cel.runtime.cea.ExecutableCEA;
 import cel.runtime.event.Event;
 import org.mdkt.compiler.InMemoryJavaCompiler;
 
@@ -7,9 +8,10 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.BitSet;
 import java.util.Map;
 
-public class BitVectorTest {
+public class CEASourceTest {
 
     public static void main(String[] args) throws Exception {
         InMemoryJavaCompiler javac = InMemoryJavaCompiler.newInstance();
@@ -23,12 +25,17 @@ public class BitVectorTest {
 //            System.out.println(pair.getValue());
         }
         javac.addSource("cel.runtime.BVG", src);
+
+        String ceaSrc = CEACodeGetter.getCEACode(q);
+        javac.addSource("cel.runtime.cea.CEA", ceaSrc);
+
         Map<String, Class<?>> binaries = javac.compileAll();
         for (String s : EventsCodeGetter.getEventsCode(q).keySet()) {
             Event.addClass(s, binaries.get("cel.runtime.event." + s));
         }
-
         BitVectorGenerator bvg = (BitVectorGenerator) binaries.get("cel.runtime.BVG").getConstructor().newInstance();
+        ExecutableCEA cea = (ExecutableCEA) binaries.get("cel.runtime.cea.CEA").getConstructor().newInstance();
+        System.out.println(q.getPatternCEA().toString());
         try {
             FileReader file = new FileReader(args[1]);
             BufferedReader stream = new BufferedReader(file);
@@ -39,8 +46,12 @@ public class BitVectorTest {
             while ((line = stream.readLine()) != null) {
                 e = EventParser.parseEvent(line, q.getPatternCEA().getEventSchemas());
                 assert e != null;
-                System.out.println(e.toString());
-                System.out.println(bvg.getBitVector(e));
+//                System.out.println(e.toString());
+                BitSet vector = (bvg.getBitVector(e));
+                for (int i = 0; i < cea.getNStates(); i++) {
+                    System.out.println("\nCurrent state: " + i + " current vector: " + vector.toString());
+                    System.out.println("Next Black Transition State: " + cea.blackTransition(i, vector));
+                }
             }
         } catch (FileNotFoundException ex) {
             System.err.println("Unable to open file '" + args[1] + "'");

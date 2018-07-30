@@ -1,10 +1,9 @@
 package cel.runtime.source;
 
 import cel.event.EventSchema;
-import cel.runtime.event.Event;
 import cel.values.ValueType;
 
-import java.util.*;
+import java.util.Map;
 
 public class EventSourceGenerator {
 

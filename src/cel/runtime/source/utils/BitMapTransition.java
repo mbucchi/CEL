@@ -4,7 +4,10 @@ import cel.cea.predicate.Predicate;
 import cel.cea.transition.Transition;
 import cel.filter.EventFilter;
 
-import java.util.*;
+import java.util.BitSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class BitMapTransition {
 

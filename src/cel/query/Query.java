@@ -1,16 +1,14 @@
 package cel.query;
 
 import cel.cea.CEA;
-//import cel.cea.DeterministicCEA;
 import cel.cea.MinimizedCEA;
-import cel.event.EventSchema;
-import cel.runtime.source.BitVectorSourceGenerator;
-import cel.runtime.source.EventSourceGenerator;
 import cel.stream.StreamSchema;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+//import cel.cea.DeterministicCEA;
 
 public class Query {
     private SelectionStrategy selectionStrategy;

@@ -63,7 +63,7 @@ public class CEASourceGenerator {
         StringBuilder ret = new StringBuilder();
 
         ret.append(indent(1)).append("private int finalState = ").append(cea.getFinalState()).append(";\n");
-        ret.append("private BitSet tb;\n");
+        ret.append(indent(1)).append("private BitSet tb;\n");
         makeBitMapTransitions();
         addedBitSets = new HashSet<>();
         for (Integer i = 0; i < cea.getnStates(); i++) {

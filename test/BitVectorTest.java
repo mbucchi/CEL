@@ -6,6 +6,7 @@ import cel.query.Query;
 import cel.runtime.BitVectorGenerator;
 import cel.runtime.event.Event;
 import cel.runtime.source.BitVectorSourceGenerator;
+import cel.runtime.source.CEASourceGenerator;
 import cel.runtime.source.EventSourceGenerator;
 import cel.values.ValueType;
 
@@ -52,14 +53,16 @@ public class BitVectorTest {
 
     private static void testBitVector(Query q, String streamPath) throws Exception {
         InMemoryJavaCompiler javac = InMemoryJavaCompiler.newInstance();
-        BitVectorSourceGenerator test = new BitVectorSourceGenerator(q.getPatternCEA());
+        CEASourceGenerator ceaTest = new CEASourceGenerator(q.getPatternCEA());
+        ceaTest.makeSourceCode();
+        BitVectorSourceGenerator test = new BitVectorSourceGenerator(ceaTest.getBitVectorOrder());
         String src = test.makeSourceCode();
-        System.out.println("Bit Vector Order: " + test.getBitVectorOrder().toString());
-        System.out.println(src);
+//        System.out.println("Bit Vector Order: " + test.getBitVectorOrder().toString());
+//        System.out.println(src);
         String s;
         for (EventSchema ev : q.getPatternCEA().getEventSchemas()) {
             s = EventSourceGenerator.createEventSource(ev);
-            System.out.println(s);
+//            System.out.println(s);
             javac.addSource("cel.runtime.event." + ev.getName(), s);
         }
         javac.addSource("cel.runtime.BVG", src);
@@ -79,8 +82,8 @@ public class BitVectorTest {
             while ((line = stream.readLine()) != null) {
                 e = parseEvent(line, q.getPatternCEA().getEventSchemas());
                 assert e != null;
-                System.out.println(e.toString());
-                System.out.println(bvg.getBitVector(e));
+//                System.out.println(e.toString());
+//                System.out.println(bvg.getBitVector(e));
             }
         } catch (FileNotFoundException ex) {
             System.err.println("Unable to open file '" + streamPath + "'");

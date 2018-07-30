@@ -33,13 +33,13 @@ public abstract class Event {
         }
     }
 
-        abstract protected void setValues(Object... args);
+    abstract protected void setValues(Object... args);
 //        abstract public Object getValue(String field);
 //        abstract public Map<String, Class> getFieldDescriptions();
 }
 
-    class EventError extends Exception {
-        public EventError(String msg){
-            super(msg);
-        }
+class EventError extends Exception {
+    public EventError(String msg){
+        super(msg);
     }
+}

@@ -54,6 +54,10 @@ public class CEA {
         return new CEA(this);
     }
 
+    public int getFinalState() {
+        return finalState;
+    }
+
     public Collection<Transition> getTransitions() {
         return new ArrayList<>(transitions);
     }

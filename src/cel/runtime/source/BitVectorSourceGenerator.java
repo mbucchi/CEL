@@ -21,16 +21,9 @@ public class BitVectorSourceGenerator {
     private List<EventFilter> filters;
     private List<StreamSchema> streams;
     private List<EventSchema> events;
-    private Map<Object, Integer> filterRepetitions;
 
-
-    public BitVectorSourceGenerator(CEA cea) {
-        makeFilterOrder(cea);
-    }
-
-    /* TODO */
-    public BitVectorSourceGenerator(List<Object> events) {
-        this.bitVectorOrder = events;
+    public BitVectorSourceGenerator(List<Object> filters) {
+        this.bitVectorOrder = filters;
         getData();
     }
 
@@ -70,7 +63,7 @@ public class BitVectorSourceGenerator {
         return src.toString();
     }
 
-    public String getInit() {
+    private String getInit() {
         StringBuilder ret = new StringBuilder();
         ret.append(indent(1)).append("public BVG() {\n").append(indent(1)).append("}\n\n");
         return ret.toString();
@@ -234,89 +227,4 @@ public class BitVectorSourceGenerator {
     private String indent(int level) {
         return new String(new char[level * WIDTH]).replace("\0", " ");
     }
-
-    private void makeFilterOrder(CEA cea) {
-        makeFilterRepetitionsMap(cea);
-        Comparator<Object> comp = (o1, o2) -> {
-            if (o1.equals(o2)) {
-                return 0;
-            }
-            if (filterRepetitions.get(o1).equals(filterRepetitions.get(o2))) {
-                /* TODO: MAKE SORTING DETERMINISTIC */
-//                if ()
-                return 0;
-            }
-            if (filterRepetitions.get(o1) > filterRepetitions.get(o2)) {
-                return -1;
-            }
-            return 1;
-        };
-
-        bitVectorOrder = new ArrayList<>();
-        bitVectorOrder.addAll(filterRepetitions.keySet());
-        bitVectorOrder.sort(comp);
-    }
-
-    private void makeFilterRepetitionsMap(CEA cea) {
-        filterRepetitions = new HashMap<>();
-        streams = new ArrayList<>();
-        filters = new ArrayList<>();
-        events = new ArrayList<>();
-
-        for (Transition t : cea.getTransitions()) {
-            Predicate p = t.getPredicate();
-            if (p.hasChildren()) {
-                for (Predicate child : p.getPredicates()) {
-                    putStreamSchema(child.getStreamSchema());
-                    putEventSchema(child.getEventSchema());
-                    /* Predicates should not have repeated filters inside */
-                    for (EventFilter e : child.getFilterCollection()) {
-                        putEventFilter(e);
-                    }
-                }
-            } else {
-                putStreamSchema(p.getStreamSchema());
-                putEventSchema(p.getEventSchema());
-                for (EventFilter e : p.getFilterCollection()) {
-                    putEventFilter(e);
-                }
-            }
-        }
-    }
-
-    private void putEventFilter(EventFilter e) {
-        if (filterRepetitions.containsKey(e)) {
-            filterRepetitions.put(e, filterRepetitions.get(e) + 1);
-        } else if (filterRepetitions.containsKey(e.negate())) {
-            filterRepetitions.put(e.negate(), filterRepetitions.get(e.negate()) + 1);
-        } else {
-            filterRepetitions.put(e, 1);
-            filters.add(e);
-        }
-    }
-
-    private void putStreamSchema(StreamSchema s) {
-        if (s == null) {
-            return;
-        }
-        if (filterRepetitions.containsKey(s)) {
-            filterRepetitions.put(s, filterRepetitions.get(s) + 1);
-        } else {
-            filterRepetitions.put(s, 1);
-            streams.add(s);
-        }
-    }
-
-    private void putEventSchema(EventSchema e) {
-        if (e == null) {
-            return;
-        }
-        if (filterRepetitions.containsKey(e)) {
-            filterRepetitions.put(e, filterRepetitions.get(e) + 1);
-        } else {
-            filterRepetitions.put(e, 1);
-            events.add(e);
-        }
-    }
-
 }

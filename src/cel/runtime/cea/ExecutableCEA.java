@@ -1,11 +1,12 @@
 package cel.runtime.cea;
 
 import java.util.BitSet;
+import java.util.Set;
 
 public interface ExecutableCEA {
 
-    Integer blackTransition(Integer state, BitSet b);
-    Integer whiteTransition(Integer state, BitSet b);
+    Set<Integer> blackTransition(Integer state, BitSet b);
+    Set<Integer> whiteTransition(Integer state, BitSet b);
     boolean isFinal(Integer state);
 
 }

@@ -31,20 +31,20 @@ public class EventSourceGenerator {
         StringBuilder ret = new StringBuilder();
 
         ret.append("public class ").append(ev.getName()).append(" extends Event {\n\n");
-        ret.append(getVariables(ev));
+        ret.append(makeVariables(ev));
         ret.append("\n");
-        ret.append(getInit(ev));
+        ret.append(makeInit(ev));
         ret.append("\n");
-        ret.append(getSetter(ev));
+        ret.append(makeSetter(ev));
         ret.append("\n");
-//        ret.append(getGetter(ev));
-        ret.append(getToString(ev));
+//        ret.append(makeGetter(ev));
+        ret.append(makeToString(ev));
         ret.append("}");
 
         return ret.toString();
     }
 
-    private static String getVariables(EventSchema ev) {
+    private static String makeVariables(EventSchema ev) {
         StringBuilder ret = new StringBuilder();
 
         for (Object o : ev.getAttributes().entrySet()) {
@@ -65,7 +65,7 @@ public class EventSourceGenerator {
         return ret.toString();
     }
 
-    private static String getInit(EventSchema ev) {
+    private static String makeInit(EventSchema ev) {
         StringBuilder ret = new StringBuilder();
 
         ret.append(indent(1)).append("public ").append(ev.getName()).append("() {\n");
@@ -87,7 +87,7 @@ public class EventSourceGenerator {
         }
     }
 
-    private static String getSetter(EventSchema ev) {
+    private static String makeSetter(EventSchema ev) {
         StringBuilder ret = new StringBuilder();
 
         ret.append(indent(1)).append("public void setValues(Object... args) throws IllegalAccessError { \n");
@@ -122,7 +122,7 @@ public class EventSourceGenerator {
         return ret.toString();
     }
 
-    private static String getGetter(EventSchema ev) {
+    private static String makeGetter(EventSchema ev) {
         StringBuilder ret = new StringBuilder();
 
         ret.append(indent(1)).append("public Object getValues(String field) throws IllegalAccessError { \n");
@@ -141,7 +141,7 @@ public class EventSourceGenerator {
         return ret.toString();
     }
 
-    private static String getToString(EventSchema ev) {
+    private static String makeToString(EventSchema ev) {
         StringBuilder ret = new StringBuilder();
 
         ret.append(indent(1)).append("public String toString() {\n");

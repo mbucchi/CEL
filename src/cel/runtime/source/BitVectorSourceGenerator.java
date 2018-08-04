@@ -52,11 +52,11 @@ public class BitVectorSourceGenerator {
         StringBuilder src = new StringBuilder();
 
         src.append("package cel.runtime;\n\n");
-        src.append(getImports());
+        src.append(makeImports());
         src.append("public class BVG extends BitVectorGenerator {\n\n");
-        src.append(getInit());
+        src.append(makeInit());
         src.append(indent(1)).append("public BitSet getBitVector(Event e) {\n");
-        src.append(getEvents());
+        src.append(makeEvents());
         src.append(indent(2)).append("return vector;\n");
         src.append(indent(1)).append("}\n");
         src.append("}");
@@ -64,13 +64,13 @@ public class BitVectorSourceGenerator {
         return src.toString();
     }
 
-    private String getInit() {
+    private String makeInit() {
         StringBuilder ret = new StringBuilder();
         ret.append(indent(1)).append("public BVG() {\n").append(indent(1)).append("}\n\n");
         return ret.toString();
     }
 
-    private String getImports() {
+    private String makeImports() {
         StringBuilder ret = new StringBuilder();
 
         ret.append("import java.util.*;\n");
@@ -81,7 +81,7 @@ public class BitVectorSourceGenerator {
         return ret.toString();
     }
 
-    private String getEvents() {
+    private String makeEvents() {
         StringBuilder ret = new StringBuilder();
         ret.append(indent(2)).append("BitSet vector = new BitSet(").append(bitVectorOrder.size()).append(");\n\n");
         boolean firstEvent = true;

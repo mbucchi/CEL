@@ -20,6 +20,7 @@ public class CEASourceGenerator {
     private Map<Integer, List<BitMapTransition>> blackTransitionMap;
     private Map<Integer, List<BitMapTransition>> whiteTransitionMap;
     private Set<Integer> addedBitSets;
+    private int currentLength = 0;
 
     public CEASourceGenerator(CEA cea) {
         this.cea = cea;
@@ -78,11 +79,9 @@ public class CEASourceGenerator {
     }
 
     private void makeBitSets(StringBuilder ret, Integer i, Map<Integer, List<BitMapTransition>> transitionMap) {
-        if (!transitionMap.get(i).isEmpty()) {
-            for (BitMapTransition t : transitionMap.get(i)) {
-                makeBitSetString(ret, t, t.getANDMask());
-                makeBitSetString(ret, t, t.getANDResult());
-            }
+        for (BitMapTransition t : transitionMap.get(i)) {
+            makeBitSetString(ret, t, t.getANDMask());
+            makeBitSetString(ret, t, t.getANDResult());
         }
     }
 
@@ -93,20 +92,18 @@ public class CEASourceGenerator {
             addedBitSets.add(hash);
             ret.append(indent(1)).append("private BitSet bitSet");
             boolean first = true;
+            currentLength = 6;
             for (Long l : b.toLongArray()) {
                 if (first) {
                     first = false;
                 } else {
                     longArr.append("L, ");
                 }
-                if (l >= 0) {
-                    ret.append(l);
-                } else {
-                    ret.append("_").append(l * -1);
-                }
-                ret.append("L");
+                makeBitSetName(ret, l);
+
                 longArr.append(l);
             }
+//            System.out.println(currentLength);
             ret.append(" = BitSet.valueOf(");
             ret.append("new long[]{");
             ret.append(longArr.toString());
@@ -205,13 +202,9 @@ public class CEASourceGenerator {
                 } else {
                     ret.append(indent(3)).append("tb = (BitSet) b.clone();\n");
                     ret.append(indent(3)).append("tb.and(bitSet");
+                    currentLength = 6;
                     for (Long l : t.getANDMask().toLongArray()) {
-                        if (l >= 0) {
-                            ret.append(l);
-                        } else {
-                            ret.append("_").append(l * -1);
-                        }
-                        ret.append("L");
+                        makeBitSetName(ret, l);
                     }
                     ret.append(");\n");
                     ret.append(indent(3)).append("tb.xor(bitSet");
@@ -232,6 +225,25 @@ public class CEASourceGenerator {
                 }
             }
             ret.append(indent(2)).append("} ");
+        }
+    }
+
+    private void makeBitSetName(StringBuilder ret, Long l) {
+        /* Length limit for a variable name in java is 65535 */
+        if (l >= 0) {
+            currentLength += l.toString().length();
+            if (currentLength <= 65535) {
+                ret.append(l);
+            }
+
+        } else {
+            currentLength += l.toString().length();
+            if (currentLength <= 65535) {
+                ret.append("_").append(l * -1);
+            }
+        }
+        if (currentLength ++ <= 65535) {
+            ret.append("L");
         }
     }
 

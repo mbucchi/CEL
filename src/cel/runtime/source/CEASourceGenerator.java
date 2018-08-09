@@ -9,6 +9,7 @@ import cel.runtime.source.utils.BitMapTransition;
 import cel.stream.StreamSchema;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CEASourceGenerator {
 
@@ -17,10 +18,9 @@ public class CEASourceGenerator {
     private CEA cea;
     private List<Object> bitVectorOrder;
     private Map<Object, Integer> filterRepetitions;
-    private Map<Integer, List<BitMapTransition>> blackTransitionMap;
-    private Map<Integer, List<BitMapTransition>> whiteTransitionMap;
+    private List<List<BitMapTransition>> blackTransitionList;
+    private List<List<BitMapTransition>> whiteTransitionList;
     private Set<Integer> addedBitSets;
-    private int currentLength = 0;
 
     public CEASourceGenerator(CEA cea) {
         this.cea = cea;
@@ -42,6 +42,7 @@ public class CEASourceGenerator {
         src.append(makeWhiteTransitions());
         src.append(makeIsFinal());
         src.append(makeGetNStates());
+        src.append(makeANDMaskGetter());
         src.append("}");
         System.out.println(src.toString());
 
@@ -70,29 +71,28 @@ public class CEASourceGenerator {
         makeBitMapTransitions();
         addedBitSets = new HashSet<>();
         for (Integer i = 0; i < cea.getnStates(); i++) {
-            makeBitSets(ret, i, blackTransitionMap);
-            makeBitSets(ret, i, whiteTransitionMap);
+            makeBitSets(ret, i, blackTransitionList);
+            makeBitSets(ret, i, whiteTransitionList);
         }
         ret.append("\n");
 
         return ret.toString();
     }
 
-    private void makeBitSets(StringBuilder ret, Integer i, Map<Integer, List<BitMapTransition>> transitionMap) {
-        for (BitMapTransition t : transitionMap.get(i)) {
-            makeBitSetString(ret, t, t.getANDMask());
-            makeBitSetString(ret, t, t.getANDResult());
+    private void makeBitSets(StringBuilder ret, Integer i, List<List<BitMapTransition>> transitionList) {
+        for (BitMapTransition t : transitionList.get(i)) {
+            makeBitSetString(ret, t.getANDMask());
+            makeBitSetString(ret, t.getANDResult());
         }
     }
 
-    private void makeBitSetString(StringBuilder ret, BitMapTransition t, BitSet b) {
+    private void makeBitSetString(StringBuilder ret, BitSet b) {
         StringBuilder longArr = new StringBuilder();
         int hash = Arrays.hashCode(b.toLongArray());
         if (!addedBitSets.contains(hash)) {
             addedBitSets.add(hash);
             ret.append(indent(1)).append("private BitSet bitSet");
             boolean first = true;
-            currentLength = 6;
             for (Long l : b.toLongArray()) {
                 if (first) {
                     first = false;
@@ -103,7 +103,6 @@ public class CEASourceGenerator {
 
                 longArr.append(l);
             }
-//            System.out.println(currentLength);
             ret.append(" = BitSet.valueOf(");
             ret.append("new long[]{");
             ret.append(longArr.toString());
@@ -125,30 +124,30 @@ public class CEASourceGenerator {
     }
 
     private void makeBitMapTransitions() {
-        blackTransitionMap = new HashMap<>();
-        whiteTransitionMap = new HashMap<>();
+        blackTransitionList = new ArrayList<>();
+        whiteTransitionList = new ArrayList<>();
 
         for (int i = 0; i < cea.getnStates(); i++) {
-            blackTransitionMap.put(i, new ArrayList<>());
-            whiteTransitionMap.put(i, new ArrayList<>());
+            blackTransitionList.add(new ArrayList<>());
+            whiteTransitionList.add(new ArrayList<>());
         }
 
         for (Transition t : cea.getTransitions()) {
             BitMapTransition newTransition = new BitMapTransition(t, bitVectorOrder);
             if (t.isBlack()) {
-                if (notMergeable(newTransition, t.getFromState(), blackTransitionMap)) {
-                    blackTransitionMap.get(t.getFromState()).add(newTransition);
+                if (notMergeable(newTransition, t.getFromState(), blackTransitionList)) {
+                    blackTransitionList.get(t.getFromState()).add(newTransition);
                 }
             } else {
-                if (notMergeable(newTransition, t.getFromState(), whiteTransitionMap)) {
-                    whiteTransitionMap.get(t.getFromState()).add(newTransition);
+                if (notMergeable(newTransition, t.getFromState(), whiteTransitionList)) {
+                    whiteTransitionList.get(t.getFromState()).add(newTransition);
                 }
             }
         }
     }
 
-    private boolean notMergeable(BitMapTransition t, Integer i, Map<Integer, List<BitMapTransition>> transitionMap) {
-        for (BitMapTransition bt : transitionMap.get(i)) {
+    private boolean notMergeable(BitMapTransition t, Integer i, List<List<BitMapTransition>> transitionList) {
+        for (BitMapTransition bt : transitionList.get(i)) {
             if (bt.almostEqual(t)) {
                 bt.addToState(t.getToState());
                 return false;
@@ -161,7 +160,7 @@ public class CEASourceGenerator {
         StringBuilder ret = new StringBuilder();
 
         ret.append(indent(1)).append("public Set<Integer> blackTransition(Integer state, BitSet b) {\n");
-        makeTransitions(ret, blackTransitionMap);
+        makeTransitions(ret, blackTransitionList);
 
         ret.append("\n");
         ret.append(indent(2)).append("return toStates;\n");
@@ -173,7 +172,7 @@ public class CEASourceGenerator {
         StringBuilder ret = new StringBuilder();
 
         ret.append(indent(1)).append("public Set<Integer> whiteTransition(Integer state, BitSet b) {\n");
-        makeTransitions(ret, whiteTransitionMap);
+        makeTransitions(ret, whiteTransitionList);
 
         ret.append("\n");
         ret.append(indent(2)).append("return toStates;\n");
@@ -181,11 +180,11 @@ public class CEASourceGenerator {
         return ret.toString();
     }
 
-    private void makeTransitions(StringBuilder ret, Map<Integer, List<BitMapTransition>> transitionMap) {
+    private void makeTransitions(StringBuilder ret, List<List<BitMapTransition>> transitionList) {
         ret.append(indent(2)).append("Set<Integer> toStates = new HashSet<>();\n");
         boolean first = true;
         for (Integer i = 0; i < cea.getnStates(); i++) {
-            if (transitionMap.get(i).isEmpty()) {
+            if (transitionList.get(i).isEmpty()) {
                 continue;
             }
             if (first) {
@@ -194,7 +193,7 @@ public class CEASourceGenerator {
             } else {
                 ret.append("else if (state.equals(").append(i).append(")) {\n");
             }
-            for (BitMapTransition t : transitionMap.get(i)) {
+            for (BitMapTransition t : transitionList.get(i)) {
                 if (t.getANDMask().isEmpty()) {
                     for (Integer j : t.getToState()) {
                         ret.append(indent(3)).append("toStates.add(").append(j).append(");\n");
@@ -202,19 +201,13 @@ public class CEASourceGenerator {
                 } else {
                     ret.append(indent(3)).append("tb = (BitSet) b.clone();\n");
                     ret.append(indent(3)).append("tb.and(bitSet");
-                    currentLength = 6;
                     for (Long l : t.getANDMask().toLongArray()) {
                         makeBitSetName(ret, l);
                     }
                     ret.append(");\n");
                     ret.append(indent(3)).append("tb.xor(bitSet");
                     for (Long l : t.getANDResult().toLongArray()) {
-                        if (l >= 0) {
-                            ret.append(l);
-                        } else {
-                            ret.append("_").append(l * -1);
-                        }
-                        ret.append("L");
+                        makeBitSetName(ret, l);
                     }
                     ret.append(");\n");
                     ret.append(indent(3)).append("if (tb.isEmpty()) {\n");
@@ -231,20 +224,11 @@ public class CEASourceGenerator {
     private void makeBitSetName(StringBuilder ret, Long l) {
         /* Length limit for a variable name in java is 65535 */
         if (l >= 0) {
-            currentLength += l.toString().length();
-            if (currentLength <= 65535) {
-                ret.append(l);
-            }
-
+            ret.append(l);
         } else {
-            currentLength += l.toString().length();
-            if (currentLength <= 65535) {
-                ret.append("_").append(l * -1);
-            }
+            ret.append("_").append(l * -1);
         }
-        if (currentLength ++ <= 65535) {
-            ret.append("L");
-        }
+        ret.append("L");
     }
 
     private String makeIsFinal() {
@@ -264,6 +248,53 @@ public class CEASourceGenerator {
         ret.append(indent(1)).append("}\n\n");
 
         return ret.toString();
+    }
+
+    private String makeANDMaskGetter() {
+        StringBuilder ret = new StringBuilder();
+        StringBuilder black = new StringBuilder();
+        StringBuilder white = new StringBuilder();
+
+        black.append(indent(1)).append("public BitSet getBlackTransitionMask(Integer state) {\n");
+        white.append(indent(1)).append("public BitSet getWhiteTransitionMask(Integer state) {\n");
+
+        black.append(indent(2)).append("BitSet ret = new BitSet();\n");
+        white.append(indent(2)).append("BitSet ret = new BitSet();\n");
+
+        for (Integer i = 0; i < cea.getnStates(); i++) {
+            black.append(indent(2)).append("if (state.equals(").append(i).append(")) {\n");
+            white.append(indent(2)).append("if (state.equals(").append(i).append(")) {\n");
+
+            makeANDMask(black, i, blackTransitionList);
+            makeANDMask(white, i, whiteTransitionList);
+
+            black.append(indent(2)).append("}\n");
+            white.append(indent(2)).append("}\n");
+        }
+
+        black.append(indent(2)).append("return ret;\n");
+        white.append(indent(2)).append("return ret;\n");
+        black.append(indent(1)).append("}\n");
+        white.append(indent(1)).append("}\n");
+
+        ret.append(black.toString());
+        ret.append("\n");
+        ret.append(white.toString());
+        ret.append("\n");
+
+        return ret.toString();
+    }
+
+    private void makeANDMask(StringBuilder ret, Integer i, List<List<BitMapTransition>> transitionList) {
+        if (!transitionList.get(i).isEmpty()) {
+            for (BitMapTransition t : transitionList.get(i)) {
+                ret.append(indent(3)).append("ret.or(bitSet");
+                for (Long l : t.getANDMask().toLongArray()) {
+                    makeBitSetName(ret, l);
+                }
+                ret.append(");\n");
+            }
+        }
     }
 
     private String indent(int level) {

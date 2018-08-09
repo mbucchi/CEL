@@ -22,6 +22,10 @@ public class CELExecutor {
         this.cea = cea;
         integerToSet = new ArrayList<>();
         setToInteger = new HashMap<>();
+
+        blackMasks = new ArrayList<>();
+        whiteMasks = new ArrayList<>();
+
         knownBlackTransitions = new ArrayList<>();
         knownWhiteTransitions = new ArrayList<>();
 
@@ -32,56 +36,85 @@ public class CELExecutor {
     }
 
     public Integer nextStateBlack(Integer state, BitSet vector) {
-        /* agregar mask y optimizar acceso */
-        if (knownBlackTransitions.get(state).containsKey(vector)) {
-            return knownBlackTransitions.get(state).get(vector);
+        Set<Integer> states;
+        if (blackMasks.size() > state) {
+            BitSet mask = blackMasks.get(state);
+            vector.and(mask);
+            Integer toState = knownBlackTransitions.get(state).getOrDefault(vector, null);
+            if (toState != null) {
+                return toState;
+            }
+            states = integerToSet.get(state);
+        } else {
+            states = integerToSet.get(state);
+            BitSet mask = getBlackMask(states);
+            blackMasks.add(mask);
+            vector.and(mask);
         }
 
-        Set<Integer> states = integerToSet.get(state);
         Set<Integer> nextStates = new HashSet<>();
         for (Integer s : states) {
             nextStates.addAll(cea.blackTransition(s, vector));
         }
 
+        Integer nextState = getStateName(nextStates);
+
         if (nextStates.isEmpty()) {
-            /* guardar esto */
-//            knownBlackTransitions.put(state, new HashMap<>(){{put(vector, -1);}});
+            if (knownBlackTransitions.size() <= state) {
+                knownBlackTransitions.add(new HashMap<>());
+            }
+
+            knownBlackTransitions.get(state).put(vector, nextState);
+            /* -1 is the rejecting state */
             return -1;
         }
 
-        Integer newState = getStateName(nextStates);
-
-//        if (!knownBlackTransitions.containsKey(state)) {
-//            knownBlackTransitions.put(state, new HashMap<>());
-//        }
-
-        knownBlackTransitions.get(state).put(vector, newState);
-        return newState;
+        if (knownBlackTransitions.size() <= state) {
+            knownBlackTransitions.add(new HashMap<>());
+        }
+        knownBlackTransitions.get(state).put(vector, nextState);
+        return nextState;
     }
 
     public Integer nextStateWhite(Integer state, BitSet vector) {
-//        if (knownWhiteTransitions.containsKey(state) && knownWhiteTransitions.get(state).containsKey(vector)) {
-//            return knownWhiteTransitions.get(state).get(vector);
-//        }
+        Set<Integer> states;
+        if (whiteMasks.size() > state) {
+            BitSet mask = whiteMasks.get(state);
+            vector.and(mask);
+            Integer toState = knownWhiteTransitions.get(state).getOrDefault(vector, null);
+            if (toState != null) {
+                return toState;
+            }
+            states = integerToSet.get(state);
+        } else {
+            states = integerToSet.get(state);
+            BitSet mask = getWhiteMask(states);
+            whiteMasks.add(mask);
+            vector.and(mask);
+        }
 
-        Set<Integer> states = integerToSet.get(state);
         Set<Integer> nextStates = new HashSet<>();
         for (Integer s : states) {
             nextStates.addAll(cea.whiteTransition(s, vector));
         }
 
+        Integer nextState = getStateName(nextStates);
+
         if (nextStates.isEmpty()) {
-            return null;
+            if (knownWhiteTransitions.size() <= state) {
+                knownWhiteTransitions.add(new HashMap<>());
+            }
+
+            knownWhiteTransitions.get(state).put(vector, nextState);
+            /* -1 is the rejecting state */
+            return -1;
         }
 
-        Integer newState = getStateName(nextStates);
-
-//        if (!knownWhiteTransitions.containsKey(state)) {
-//            knownWhiteTransitions.put(state, new HashMap<>());
-//        }
-
-        knownWhiteTransitions.get(state).put(vector, newState);
-        return newState;
+        if (knownWhiteTransitions.size() <= state) {
+            knownWhiteTransitions.add(new HashMap<>());
+        }
+        knownWhiteTransitions.get(state).put(vector, nextState);
+        return nextState;
     }
 
     private Integer getStateName(Set<Integer> nextStates) {
@@ -91,7 +124,7 @@ public class CELExecutor {
         } else {
             newState = ++newStateNumber;
             setToInteger.put(nextStates, newState);
-//            integerToSet.put(newState, nextStates);
+            integerToSet.add(nextStates);
             System.out.println(integerToSet.toString());
         }
         return newState;
@@ -105,5 +138,25 @@ public class CELExecutor {
             }
         }
         return false;
+    }
+
+    private BitSet getBlackMask(Set<Integer> states) {
+        BitSet mask = new BitSet();
+
+        for (Integer state : states) {
+            mask.or(cea.getBlackTransitionMask(state));
+        }
+
+        return mask;
+    }
+
+    private BitSet getWhiteMask(Set<Integer> states) {
+        BitSet mask = new BitSet();
+
+        for (Integer state : states) {
+            mask.or(cea.getWhiteTransitionMask(state));
+        }
+
+        return mask;
     }
 }

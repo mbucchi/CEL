@@ -9,5 +9,7 @@ public interface ExecutableCEA {
     Set<Integer> whiteTransition(Integer state, BitSet b);
     boolean isFinal(Integer state);
     Integer getNStates();
+    BitSet getBlackTransitionMask(Integer state);
+    BitSet getWhiteTransitionMask(Integer state);
 
 }

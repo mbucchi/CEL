@@ -18,6 +18,8 @@ public class CELExecutor {
     private List<Map<BitSet, Integer>> knownBlackTransitions;
     private List<Map<BitSet, Integer>> knownWhiteTransitions;
 
+    private static final int REJECT = -1;
+
     public CELExecutor(ExecutableCEA cea) {
         this.cea = cea;
         integerToSet = new ArrayList<>();
@@ -63,10 +65,8 @@ public class CELExecutor {
             if (knownBlackTransitions.size() <= state) {
                 knownBlackTransitions.add(new HashMap<>());
             }
-
-            knownBlackTransitions.get(state).put(vector, nextState);
-            /* -1 is the rejecting state */
-            return -1;
+            knownBlackTransitions.get(state).put(vector, REJECT);
+            return REJECT;
         }
 
         if (knownBlackTransitions.size() <= state) {
@@ -105,9 +105,8 @@ public class CELExecutor {
                 knownWhiteTransitions.add(new HashMap<>());
             }
 
-            knownWhiteTransitions.get(state).put(vector, nextState);
-            /* -1 is the rejecting state */
-            return -1;
+            knownWhiteTransitions.get(state).put(vector, REJECT);
+            return REJECT;
         }
 
         if (knownWhiteTransitions.size() <= state) {
@@ -117,11 +116,10 @@ public class CELExecutor {
         return nextState;
     }
 
+
     private Integer getStateName(Set<Integer> nextStates) {
-        Integer newState;
-        if (setToInteger.containsKey(nextStates)) {
-            newState = setToInteger.get(nextStates);
-        } else {
+        Integer newState = setToInteger.getOrDefault(nextStates, null);
+        if (newState == null) {
             newState = ++newStateNumber;
             setToInteger.put(nextStates, newState);
             integerToSet.add(nextStates);

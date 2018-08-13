@@ -71,7 +71,7 @@ public class NewTest {
             engine.setDiscardPartials(true);
         }
 
-        engine.setMatchCallback(NewTest::matchTriggeredPrint);
+        engine.setMatchCallback(NewTest::matchTriggered);
 
         System.out.println(q.getPatternCEA().toString());
 
@@ -133,9 +133,9 @@ public class NewTest {
 
         long startTime = System.nanoTime();
 
-        for (Match m : mg)
-            for (Event e : m)
-                ;
+//        for (Match m : mg)
+//            for (Event e : m)
+//                ;
 
         enumTime += System.nanoTime() - startTime;
     }

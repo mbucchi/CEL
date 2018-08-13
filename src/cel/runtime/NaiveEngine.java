@@ -403,13 +403,13 @@ public class NaiveEngine {
         i++;
     }
 
-    private void enumerateDet(){
-        if (sendMatch != null){
+    private void enumerateDet() {
+        if (sendMatch != null) {
             MatchGrouping m = new MatchGrouping(semantic, usefulValues, i);
             for (DetNode t: stateListDet.keySet()){
-                if (t.isFinal){
+                if (t.isFinal) {
                     m.addFinal(stateListDet.get(t));
-                    // System.out.println(t);
+//                     System.out.println(t);
                 }
             }
             sendMatch.accept(m);
@@ -420,9 +420,9 @@ public class NaiveEngine {
         }
     }
 
-    private void enumerateNXT(){
+    private void enumerateNXT() {
 
-        if (sendMatch != null){
+        if (sendMatch != null) {
             MatchGrouping m = new MatchGrouping(semantic, usefulValues, i);
             for (int q: order.getStates()){
                 if (cea.isFinal(q)){

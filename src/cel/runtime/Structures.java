@@ -75,7 +75,6 @@ class ExtensibleList implements Iterable<Node> {
     LLNode<Node> last;
     long totalMatches = 0;
 
-
     public Node peekFirst() {
         return first.value;
     }
@@ -118,7 +117,7 @@ class ExtensibleList implements Iterable<Node> {
     }
 
     public Iterator<Node> iterator(){
-        return new LLNodeIter<Node>(first, this);
+        return new LLNodeIter<>(first, this);
     }
 }
 
@@ -137,7 +136,6 @@ class LLNodeIter<T> implements Iterator<T> {
 
     public boolean hasNext() {
         if (list != null)
-            // return current != null && (list.last.next == null || !list.last.next.equals(current));
             return current != null && !current.equals(list.last.next);
         return current != null;
     }

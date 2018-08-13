@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class EventsCodeGetter {
-
     public static Map<String, String> getEventsCode(Query q) {
         Map<String, String> ret = new HashMap<>();
         for (EventSchema ev : q.getPatternCEA().getEventSchemas()) {
@@ -14,5 +13,4 @@ public class EventsCodeGetter {
         }
         return ret;
     }
-
 }

@@ -158,6 +158,12 @@ public class CELTraverser {
     public List<Integer> nextStateMAX(Integer state, BitSet vector) {
         List<Integer> ret = new ArrayList<>(2);
         Integer toState = knownBlackTransitions.get(state).get(vector);
+        if (toState != null) {
+            ret.add(toState);
+            ret.add(knownWhiteTransitions.get(state).get(vector));
+            return ret;
+        }
+
         MaxTuple tuple = integerToTuple.get(state);
 
         Set<Integer> TB = blackTransitionSet(tuple.T, vector);
@@ -165,45 +171,33 @@ public class CELTraverser {
         Set<Integer> TW = whiteTransitionSet(tuple.T, vector);
         Set<Integer> UW = whiteTransitionSet(tuple.U, vector);
 
-        if (toState != null) {
-            ret.add(toState);
+        Set<Integer> newTB = new HashSet<>(TB);
+        newTB.removeAll(UB);
+
+        if (newTB.isEmpty()) {
+            knownBlackTransitions.get(state).put(vector, REJECT);
+            ret.add(REJECT);
         } else {
-
-            Set<Integer> newTB = new HashSet<>(TB);
-            newTB.removeAll(UB);
-
-            if (newTB.isEmpty()) {
-                knownBlackTransitions.get(state).put(vector, REJECT);
-                ret.add(REJECT);
-            }
-
             MaxTuple newTup = new MaxTuple(newTB, UB);
             Integer nextState = getStateName(newTup);
             knownBlackTransitions.get(state).put(vector, nextState);
             ret.add(nextState);
         }
 
-        toState = knownWhiteTransitions.get(state).get(vector);
-        if (toState != null) {
-            ret.add(toState);
+        Set<Integer> newUW = new HashSet<>(UB);
+        newUW.addAll(UW);
+        newUW.addAll(TB);
+        TW.removeAll(newUW);
+
+        if (TW.isEmpty()) {
+            knownWhiteTransitions.get(state).put(vector, REJECT);
+            ret.add(REJECT);
         } else {
-
-            Set<Integer> newUW = new HashSet<>(UB);
-            newUW.addAll(UW);
-            newUW.addAll(TB);
-            TW.removeAll(newUW);
-
-            if (TW.isEmpty()) {
-                knownWhiteTransitions.get(state).put(vector, REJECT);
-                ret.add(REJECT);
-            }
-
             MaxTuple newTup = new MaxTuple(TW, newUW);
             Integer nextState = getStateName(newTup);
             knownWhiteTransitions.get(state).put(vector, nextState);
             ret.add(nextState);
         }
-
         return ret;
     }
 
@@ -301,6 +295,7 @@ public class CELTraverser {
             blackMasks.add(getBlackMask(nextStates));
             whiteMasks.add(getWhiteMask(nextStates));
             System.out.println(integerToTuple.toString());
+            System.out.println(integerToTuple.size());
         }
         return newState;
     }

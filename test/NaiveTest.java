@@ -72,7 +72,7 @@ public class NaiveTest {
             engine.setDiscardPartials(true);
         }
 
-        engine.setMatchCallback(NaiveTest::matchTriggeredPrint);
+        engine.setMatchCallback(NaiveTest::matchTriggered);
 
         System.out.println(q.getPatternCEA().toString());
 
@@ -134,9 +134,9 @@ public class NaiveTest {
 
         long startTime = System.nanoTime();
 
-        for (Match m : mg)
-            for (Event e : m)
-                ;
+//        for (Match m : mg)
+//            for (Event e : m)
+//                ;
 
         enumTime += System.nanoTime() - startTime;
     }

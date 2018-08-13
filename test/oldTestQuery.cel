@@ -1,9 +1,10 @@
 DECLARE EVENT H(id int, value double)
 DECLARE EVENT T(id int, value double)
+DECLARE EVENT R(id int, value double)
 
-DECLARE STREAM S(T, H)
+DECLARE STREAM S(T, H, R)
 
 SELECT ALL *
 FROM S
-WHERE ((H + OR H +); T)
+WHERE ((H + OR R ); T)
 CONSUME BY NONE

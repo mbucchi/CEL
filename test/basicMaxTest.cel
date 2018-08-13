@@ -1,0 +1,8 @@
+DECLARE EVENT H(id int, value double)
+
+DECLARE STREAM S(H)
+
+SELECT MAX *
+FROM S
+WHERE (H +)
+CONSUME BY NONE

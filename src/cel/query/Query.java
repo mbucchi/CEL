@@ -23,6 +23,14 @@ public class Query {
         return patternCEA.copy();
     }
 
+    public SelectionStrategy getSelectionStrategy() {
+        return selectionStrategy;
+    }
+
+    public ConsumptionPolicy getConsumptionPolicy() {
+        return consumptionPolicy;
+    }
+
     public Query(SelectionStrategy selectionStrategy,
                  ProjectionList projectionList,
                  Collection<StreamSchema> streamSchemas,

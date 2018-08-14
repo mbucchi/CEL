@@ -156,7 +156,7 @@ public class NewEngine {
                 }
                 ex.add(new Node(i, states.get(p)));
 
-                if (celT.isFinalDet(q_b)) {
+                if (celT.isFinal(q_b)) {
                     match = true;
                 }
             }
@@ -367,7 +367,7 @@ public class NewEngine {
                 }
                 ex.add(new Node(i, states.get(p)));
 
-                if (celT.isFinalMAX(q_b)) {
+                if (celT.isFinal(q_b)) {
                     match = true;
                 }
             }
@@ -392,7 +392,7 @@ public class NewEngine {
 
         totalTime += System.nanoTime() - startTime;
 
-        if (match) enumerate();
+        if (match) enumerateMAX();
         i++;
     }
 
@@ -456,6 +456,21 @@ public class NewEngine {
             MatchGrouping m = new MatchGrouping(semantic, usefulValues, i);
             for (int q: active_states){
                 if (cea.isFinal(q)){
+                    m.addFinal(states.get(q));
+                }
+            }
+            sendMatch.accept(m);
+        }
+        if (discardPartials){
+            restartMachine();
+        }
+    }
+
+    private void enumerateMAX(){
+        if (sendMatch != null){
+            MatchGrouping m = new MatchGrouping(semantic, usefulValues, i);
+            for (int q: active_states){
+                if (celT.isFinal(q)){
                     m.addFinal(states.get(q));
                 }
             }

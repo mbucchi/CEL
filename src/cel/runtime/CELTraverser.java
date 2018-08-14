@@ -21,6 +21,8 @@ public class CELTraverser {
     private List<Map<BitSet, Integer>> knownBlackTransitions;
     private List<Map<BitSet, Integer>> knownWhiteTransitions;
 
+    private Set<Integer> finalStates;
+
     private static final int REJECT = -1;
 
     public CELTraverser(ExecutableCEA cea) {
@@ -37,6 +39,8 @@ public class CELTraverser {
 
         knownBlackTransitions = new ArrayList<>();
         knownWhiteTransitions = new ArrayList<>();
+
+        finalStates = new HashSet<>();
 
         knownBlackTransitions.add(new HashMap<>());
         knownWhiteTransitions.add(new HashMap<>());
@@ -71,6 +75,8 @@ public class CELTraverser {
 
             Integer nextState = getStateName(nextStates);
 
+            addToFinals(nextStates, nextState);
+
             if (nextStates.isEmpty()) {
                 knownBlackTransitions.get(state).put(vector, REJECT);
                 ret.add(REJECT);
@@ -91,6 +97,8 @@ public class CELTraverser {
             }
 
             Integer nextState = getStateName(nextStates);
+
+            addToFinals(nextStates, nextState);
 
             if (nextStates.isEmpty()) {
                 knownWhiteTransitions.get(state).put(vector, REJECT);
@@ -182,6 +190,7 @@ public class CELTraverser {
             Integer nextState = getStateName(newTup);
             knownBlackTransitions.get(state).put(vector, nextState);
             ret.add(nextState);
+            addToFinals(newTB, nextState);
         }
 
         Set<Integer> newUW = new HashSet<>(UB);
@@ -197,6 +206,7 @@ public class CELTraverser {
             Integer nextState = getStateName(newTup);
             knownWhiteTransitions.get(state).put(vector, nextState);
             ret.add(nextState);
+            addToFinals(TW, nextState);
         }
         return ret;
     }
@@ -258,12 +268,7 @@ public class CELTraverser {
 //        return nextState;
 //    }
 
-    public Integer nextStateBlackLast(Integer state, BitSet vector) {
-
-        return -1;
-    }
-
-    public Integer nextStateWhiteLast(Integer state, BitSet vector) {
+    public Integer nextStateLast(Integer state, BitSet vector) {
         return -1;
     }
 
@@ -275,8 +280,8 @@ public class CELTraverser {
             integerToSet.add(nextStates);
             knownBlackTransitions.add(new HashMap<>());
             knownWhiteTransitions.add(new HashMap<>());
-            blackMasks.add(getBlackMask(nextStates));
-            whiteMasks.add(getWhiteMask(nextStates));
+//            blackMasks.add(getBlackMask(nextStates));
+//            whiteMasks.add(getWhiteMask(nextStates));
             System.out.println(integerToSet.toString());
         }
         return newState;
@@ -292,32 +297,26 @@ public class CELTraverser {
             integerToTuple.add(nextStates);
             knownBlackTransitions.add(new HashMap<>());
             knownWhiteTransitions.add(new HashMap<>());
-            blackMasks.add(getBlackMask(nextStates));
-            whiteMasks.add(getWhiteMask(nextStates));
-            System.out.println(integerToTuple.toString());
-            System.out.println(integerToTuple.size());
+//            blackMasks.add(getBlackMask(nextStates));
+//            whiteMasks.add(getWhiteMask(nextStates));
+//            System.out.println(integerToTuple.toString());
+//            System.out.println(integerToTuple.size());
         }
         return newState;
     }
 
-    public boolean isFinalDet(Integer state) {
-        Set<Integer> states = integerToSet.get(state);
-        for (Integer s : states) {
-            if (cea.isFinal(s)) {
-                return true;
+    private void addToFinals(Set<Integer> stateSet, Integer state) {
+        for (Integer i : stateSet) {
+            if (cea.isFinal(i)) {
+                finalStates.add(state);
+                return;
             }
         }
-        return false;
     }
 
-    public boolean isFinalMAX(Integer state) {
-        Set<Integer> states = integerToTuple.get(state).T;
-        for (Integer s : states) {
-            if (cea.isFinal(s)) {
-                return true;
-            }
-        }
-        return false;
+
+    public boolean isFinal(Integer state) {
+        return finalStates.contains(state);
     }
 
     private Set<Integer> blackTransitionSet(Set<Integer> states, BitSet vector) {

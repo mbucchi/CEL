@@ -1,3 +1,4 @@
+import cel.event.EventSchema;
 import cel.query.ConsumptionPolicy;
 import cel.query.Query;
 import cel.query.SelectionStrategy;
@@ -11,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -22,8 +24,11 @@ public class NaiveTest {
     static long initialMem = 0;
     static long compileTime = 0;
     static long enumTime = 0;
+    static long totalTime = 0;
+    static long eventParsingTime = 0;
 
     public static void main(String[] args) throws Exception {
+        totalTime = System.nanoTime();
         compileTime = System.nanoTime();
         initialMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 
@@ -72,6 +77,11 @@ public class NaiveTest {
             engine.setDiscardPartials(true);
         }
 
+        Map<String, EventSchema> events = new HashMap<>();
+        for (EventSchema ev : q.getPatternCEA().getEventSchemas()) {
+            events.put(ev.getName(), ev);
+        }
+
         engine.setMatchCallback(NaiveTest::matchTriggered);
 
         System.out.println(q.getPatternCEA().toString());
@@ -84,8 +94,10 @@ public class NaiveTest {
             Event e;
 
             while ((line = stream.readLine()) != null) {
-                e = EventParser.parseEvent(line, q.getPatternCEA().getEventSchemas());
+                long start = System.nanoTime();
+                e = EventParser.parseEvent(line, events);
                 assert e != null;
+                eventParsingTime += System.nanoTime() - start;
 //                System.out.println(e.toString());
                 BitSet vector = (bvg.getBitVector(e));
                 engine.newValue(e, vector);
@@ -100,7 +112,9 @@ public class NaiveTest {
         }
 
         totalMatches = totalMatches > 0 ? totalMatches : 1;
+        System.out.println("Total time: " + ((double) (System.nanoTime() - totalTime) / 1000000000));
         System.out.println("Query compilation time: " + ((double) compileTime / 1000000000));
+        System.out.println("Event parsing time: " + ((double) eventParsingTime / 1000000000));
         System.out.println("Total outputs: " + outputs);
         System.out.println("Total execution time: " + engine.getExecutionTime());
         System.out.println("Total enumeration time: " + ((double) enumTime / 1000000000));

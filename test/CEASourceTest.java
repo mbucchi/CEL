@@ -1,3 +1,4 @@
+import cel.event.EventSchema;
 import cel.query.Query;
 import cel.runtime.BitVectorGenerator;
 import cel.runtime.cea.ExecutableCEA;
@@ -9,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.Map;
 
 public class CEASourceTest {
@@ -36,6 +38,12 @@ public class CEASourceTest {
         BitVectorGenerator bvg = (BitVectorGenerator) binaries.get("cel.runtime.BVG").getConstructor().newInstance();
         ExecutableCEA cea = (ExecutableCEA) binaries.get("cel.runtime.cea.CEA").getConstructor().newInstance();
         System.out.println(q.getPatternCEA().toString());
+
+        Map<String, EventSchema> events = new HashMap<>();
+        for (EventSchema ev : q.getPatternCEA().getEventSchemas()) {
+            events.put(ev.getName(), ev);
+        }
+
         try {
             FileReader file = new FileReader(args[1]);
             BufferedReader stream = new BufferedReader(file);
@@ -44,7 +52,7 @@ public class CEASourceTest {
             Event e;
 
             while ((line = stream.readLine()) != null) {
-                e = EventParser.parseEvent(line, q.getPatternCEA().getEventSchemas());
+                e = EventParser.parseEvent(line, events);
                 assert e != null;
 //                System.out.println(e.toString());
                 BitSet vector = (bvg.getBitVector(e));

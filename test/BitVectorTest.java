@@ -1,3 +1,4 @@
+import cel.event.EventSchema;
 import cel.query.Query;
 import cel.runtime.BitVectorGenerator;
 import cel.runtime.event.Event;
@@ -7,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 public class BitVectorTest {
@@ -29,6 +31,12 @@ public class BitVectorTest {
         }
 
         BitVectorGenerator bvg = (BitVectorGenerator) binaries.get("cel.runtime.BVG").getConstructor().newInstance();
+
+        Map<String, EventSchema> events = new HashMap<>();
+        for (EventSchema ev : q.getPatternCEA().getEventSchemas()) {
+            events.put(ev.getName(), ev);
+        }
+
         try {
             FileReader file = new FileReader(args[1]);
             BufferedReader stream = new BufferedReader(file);
@@ -37,7 +45,7 @@ public class BitVectorTest {
             Event e;
 
             while ((line = stream.readLine()) != null) {
-                e = EventParser.parseEvent(line, q.getPatternCEA().getEventSchemas());
+                e = EventParser.parseEvent(line, events);
                 assert e != null;
                 System.out.println(e.toString());
                 System.out.println(bvg.getBitVector(e));

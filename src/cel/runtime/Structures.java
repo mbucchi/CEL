@@ -316,6 +316,6 @@ class LASTTuple {
 
     @Override
     public final String toString(){
-        return "LASTTuple(T=" + T + ", U=" + U + ")";
+        return "LASTTuple(T=" + T + ", U=" + U + ", S=" + S + ")";
     }
 }

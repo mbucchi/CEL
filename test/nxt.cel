@@ -1,0 +1,13 @@
+DECLARE EVENT T(id int, value int)
+DECLARE EVENT H(id int, value int)
+
+DECLARE STREAM S(T, H)
+
+SELECT LAST *
+FROM S
+WHERE (T ; H)
+FILTER T[value > 40]
+AND H[value <= 25]
+AND T[id = 0]
+AND H[id = 0]
+CONSUME BY NONE

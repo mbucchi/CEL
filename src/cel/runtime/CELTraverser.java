@@ -284,11 +284,10 @@ public class CELTraverser {
             Integer nextState = getStateName(newTup);
             knownWhiteTransitions.get(state).put(vector, nextState);
             ret.add(nextState);
-            addToFinals(newTB, nextState);
+            addToFinals(newTW, nextState);
         }
         return ret;
     }
-
 
     private Integer getStateName(Set<Integer> nextStates) {
         Integer newState = setToInteger.get(nextStates);
@@ -353,7 +352,7 @@ public class CELTraverser {
             knownWhiteTransitions.add(new HashMap<>());
             //            blackMasks.add(getBlackMask(nextStates));
             //            whiteMasks.add(getWhiteMask(nextStates));
-            //            System.out.println(integerToTuple.toString());
+//                        System.out.println(integerToLASTTuple.toString());
             //            System.out.println(integerToTuple.size());
         }
         return newState;

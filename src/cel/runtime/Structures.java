@@ -240,3 +240,82 @@ class DetNode {
         return "DetNode(T=" + T + ")";
     }
 }
+
+class NXTTuple {
+    public final Set<Integer> T;
+    final Set<Integer> U;
+    boolean isFinal;
+
+    NXTTuple(Set<Integer> T, Set<Integer> U){
+        this.T = new HashSet<>();
+        if (T != null) {
+            this.T.addAll(T);
+        }
+
+        this.U = new HashSet<>();
+        if (U != null) {
+            this.U.addAll(U);
+        }
+    }
+
+    @Override
+    public final int hashCode(){
+        return 31 + this.T.hashCode() + 17 * this.U.hashCode();
+    }
+
+    @Override
+    public final boolean equals(final Object obj){
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        final NXTTuple other = (NXTTuple) obj;
+        return T.equals(other.T) && U.equals(other.U);
+    }
+
+    @Override
+    public final String toString(){
+        return "NXTTuple(T=" + T + ", U=" + U + ")";
+    }
+}
+
+class LASTTuple {
+    public final Set<Integer> T;
+    final Set<Integer> U;
+    final Set<Integer> S;
+    boolean isFinal;
+
+    LASTTuple(Set<Integer> T, Set<Integer> U, Set<Integer> S) {
+        this.T = new HashSet<>();
+        if (T != null) {
+            this.T.addAll(T);
+        }
+
+        this.U = new HashSet<>();
+        if (U != null) {
+            this.U.addAll(U);
+        }
+        this.S = new HashSet<>();
+        if (S != null) {
+            this.S.addAll(S);
+        }
+    }
+
+    @Override
+    public final int hashCode(){
+        return Objects.hash(T, U, S);
+    }
+
+    @Override
+    public final boolean equals(final Object obj){
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        final LASTTuple other = (LASTTuple) obj;
+        return (T.equals(other.T)) && U.equals(other.U) && S.equals(other.S);
+    }
+
+    @Override
+    public final String toString(){
+        return "LASTTuple(T=" + T + ", U=" + U + ")";
+    }
+}

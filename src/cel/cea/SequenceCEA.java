@@ -1,8 +1,5 @@
 package cel.cea;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-
 import static java.util.stream.Collectors.toList;
 
 public class SequenceCEA extends CEA {
@@ -11,8 +8,7 @@ public class SequenceCEA extends CEA {
         // TODO : copy transitions instead of just moving them
         initState = 0;
         nStates = first.nStates + second.nStates - 1;
-        finalStates = new HashSet<>();
-        finalStates.add(nStates - 1);
+        finalState = nStates - 1;
 
         // add all first CEA transitions
         transitions.addAll(first.transitions);
@@ -22,7 +18,7 @@ public class SequenceCEA extends CEA {
         transitions.addAll(
                 second.transitions
                         .stream()
-                        .map( transition -> transition.displaceTransition(toDisplace) )
+                        .map(transition -> transition.displaceTransition(toDisplace))
                         .collect(toList())
         );
 

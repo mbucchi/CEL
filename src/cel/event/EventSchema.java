@@ -4,7 +4,10 @@ import cel.event.errors.EventException;
 import cel.event.errors.NoSuchLabelException;
 import cel.values.ValueType;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 
 public class EventSchema {
@@ -41,7 +44,7 @@ public class EventSchema {
 
     private static void ensureUnique(String name) throws EventException {
         if (allSchemas.keySet().contains(name)) {
-            throw new EventException("Event of name `" + name + "` has already been declared");
+            throw new EventException("event of name `" + name + "` has already been declared");
         }
     }
 
@@ -51,7 +54,7 @@ public class EventSchema {
 
         if (intersection.size() > 0) {
             String restricted = String.join("`, `", intersection);
-            throw new EventException("Event of name `" + evName + "` " +
+            throw new EventException("event of name `" + evName + "` " +
                     "declares attributes with restricted names " +
                     "(`" + restricted + "`)");
         }
@@ -92,8 +95,7 @@ public class EventSchema {
     public Label getNameLabel() {
         try {
             return Label.get(name);
-        }
-        catch (NoSuchLabelException exc) {
+        } catch (NoSuchLabelException exc) {
             return Label.forName(name, Set.of(this));
         }
     }

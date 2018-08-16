@@ -24,7 +24,7 @@ public class StringCleaner {
     }
 
     public static String tryRemoveQuotes(String string) {
-        if (hasQuotes(string)){
+        if (hasQuotes(string)) {
             return removeQuotes(string);
         }
         return string;

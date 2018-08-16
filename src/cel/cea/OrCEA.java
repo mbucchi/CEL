@@ -4,12 +4,6 @@ import cel.cea.predicate.Predicate;
 import cel.cea.transition.Transition;
 import cel.cea.transition.TransitionType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import static java.util.stream.Collectors.toList;
 
 public class OrCEA extends CEA {
@@ -18,9 +12,7 @@ public class OrCEA extends CEA {
         // TODO : remove minimization
         nStates = left.nStates + right.nStates + 2;
         initState = 0;
-        int finalState = nStates - 1;
-        finalStates = new HashSet<>();
-        finalStates.add(finalState);
+        finalState = nStates - 1;
 
         // copy all transitions from left CEA, displacing them one state
         int toDisplaceLeft = 1;
@@ -48,7 +40,7 @@ public class OrCEA extends CEA {
         transitions.addAll(
                 left.transitions
                         .stream()
-                        .filter(transition ->  left.finalStates.contains(transition.getToState()))
+                        .filter(transition ->  transition.getToState() == left.finalState)
                         .filter(transition -> transition.getType() == TransitionType.BLACK)
                         .map(transition -> transition.displaceTransition(toDisplaceLeft)
                                 .replaceToState(finalState))
@@ -79,7 +71,7 @@ public class OrCEA extends CEA {
         transitions.addAll(
                 right.transitions
                         .stream()
-                        .filter(transition -> right.finalStates.contains(transition.getToState()))
+                        .filter(transition -> transition.getToState() == right.finalState)
                         .filter(transition -> transition.getType() == TransitionType.BLACK)
                         .map(transition -> transition.displaceTransition(toDisplaceRight)
                                 .replaceToState(finalState))

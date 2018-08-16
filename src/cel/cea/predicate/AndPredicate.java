@@ -1,11 +1,6 @@
 package cel.cea.predicate;
 
 
-import cel.event.EventSchema;
-import cel.stream.StreamSchema;
-
-import java.util.*;
-
 public class AndPredicate extends Predicate {
 
 

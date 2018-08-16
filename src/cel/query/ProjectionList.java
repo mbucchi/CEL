@@ -27,7 +27,7 @@ public class ProjectionList {
     public boolean containsAny(Collection<Label> labels) {
         if (matchAll) return true;
         for (Label label : labels) {
-            if (this.labels.contains(label)){
+            if (this.labels.contains(label)) {
                 return true;
             }
         }

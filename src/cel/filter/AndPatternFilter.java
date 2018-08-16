@@ -16,8 +16,8 @@ public class AndPatternFilter implements PatternFilter {
     @Override
     public CEA applyToCEA(CEA cea) {
         // In case they are over the same label, they can be pushed down together
-        if (left instanceof EventFilter && right instanceof EventFilter){
-            if (((EventFilter) left).label.equals(((EventFilter) right).label)){
+        if (left instanceof EventFilter && right instanceof EventFilter) {
+            if (((EventFilter) left).label.equals(((EventFilter) right).label)) {
                 Label label = ((EventFilter) left).label;
                 AndEventFilter newAndFilter = new AndEventFilter(label, (EventFilter) left, (EventFilter) right);
                 return newAndFilter.applyToCEA(cea);

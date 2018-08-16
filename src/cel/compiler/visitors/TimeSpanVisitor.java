@@ -13,15 +13,15 @@ public class TimeSpanVisitor extends CELBaseVisitor<Long> {
         }
         long totalSeconds = 0;
 
-        if (ctx.seconds() != null){
+        if (ctx.seconds() != null) {
             totalSeconds += Long.parseLong(ctx.seconds().number().getText());
         }
 
-        if (ctx.minutes() != null){
+        if (ctx.minutes() != null) {
             totalSeconds += Long.parseLong(ctx.minutes().number().getText()) * 60;
         }
 
-        if (ctx.hours() != null){
+        if (ctx.hours() != null) {
             totalSeconds += Long.parseLong(ctx.hours().number().getText()) * 3600;
         }
 

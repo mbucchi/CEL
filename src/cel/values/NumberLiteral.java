@@ -4,12 +4,12 @@ public class NumberLiteral extends Literal {
 
     private double value;
 
-    private NumberLiteral(double value){
+    private NumberLiteral(double value) {
         super(ValueType.NUMERIC);
         this.value = value;
     }
 
-    public NumberLiteral(String number){
+    public NumberLiteral(String number) {
         this(Double.parseDouble(number));
     }
 

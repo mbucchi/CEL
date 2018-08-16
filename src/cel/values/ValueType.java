@@ -11,14 +11,16 @@ public enum ValueType {
     DOUBLE(Set.of(double.class)),
     STRING(Set.of(String.class));
 
-    public static EnumSet<ValueType> ANY(){
+    public static EnumSet<ValueType> ANY() {
         return EnumSet.allOf(ValueType.class);
     }
 
     private Set<Class> validDataTypes;
-    ValueType(Set<Class> validDataTypes){
+
+    ValueType(Set<Class> validDataTypes) {
         this.validDataTypes = validDataTypes;
     }
+
     public boolean validForDataType(Class dataType) {
         return validDataTypes.contains(dataType);
     }
@@ -27,8 +29,8 @@ public enum ValueType {
         return new HashSet<>(validDataTypes);
     }
 
-    public static ValueType getValueFor(String dataType){
-        switch (dataType){
+    public static ValueType getValueFor(String dataType) {
+        switch (dataType) {
             case "double":
                 return DOUBLE;
             case "int":
@@ -42,7 +44,7 @@ public enum ValueType {
         }
     }
 
-    public boolean interoperableWith(ValueType valueType){
+    public boolean interoperableWith(ValueType valueType) {
         Set<Class> dataTypes = new HashSet<>(validDataTypes);
         dataTypes.retainAll(valueType.validDataTypes);
         return dataTypes.size() > 0;
@@ -51,7 +53,7 @@ public enum ValueType {
     public EnumSet<ValueType> getEnumSet() {
         EnumSet<ValueType> enumSet = EnumSet.noneOf(ValueType.class);
         for (ValueType valueType : ValueType.values()) {
-            if (this.interoperableWith(valueType)){
+            if (this.interoperableWith(valueType)) {
                 enumSet.add(valueType);
             }
         }

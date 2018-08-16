@@ -24,7 +24,7 @@ public abstract class EventFilter implements PatternFilter, FilterComparable {
         return attributes;
     }
 
-    EventFilter(Label label){
+    EventFilter(Label label) {
         this.label = label;
         valueTypes = ValueType.ANY();
         attributes = new HashSet<>();
@@ -32,8 +32,8 @@ public abstract class EventFilter implements PatternFilter, FilterComparable {
 
     @Override
     public CEA applyToCEA(CEA cea) {
-        for (Transition transition : cea.getTransitions()){
-            if (transition.overLabel(label) && transition.isBlack()){
+        for (Transition transition : cea.getTransitions()) {
+            if (transition.overLabel(label) && transition.isBlack()) {
                 applyToTransition(transition);
             }
         }

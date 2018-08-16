@@ -1,10 +1,5 @@
 package cel.cea.predicate;
 
-import cel.event.EventSchema;
-import cel.stream.StreamSchema;
-
-import java.util.Collection;
-
 public class OrPredicate extends Predicate {
 
     public OrPredicate() {

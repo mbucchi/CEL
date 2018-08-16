@@ -2,7 +2,7 @@ package cel.values.operations;
 
 import cel.values.Value;
 
-abstract class BinaryOperation extends Operation {
+public abstract class BinaryOperation extends Operation {
 
     Value lhs, rhs;
 
@@ -10,5 +10,13 @@ abstract class BinaryOperation extends Operation {
         super(lhs, rhs);
         this.lhs = lhs;
         this.rhs = rhs;
+    }
+
+    public Value getRhs() {
+        return rhs;
+    }
+
+    public Value getLhs() {
+        return lhs;
     }
 }

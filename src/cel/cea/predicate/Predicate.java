@@ -1,13 +1,15 @@
 package cel.cea.predicate;
 
-import cel.event.Event;
 import cel.event.EventSchema;
 import cel.event.Label;
 import cel.filter.AndEventFilter;
 import cel.filter.EventFilter;
 import cel.stream.StreamSchema;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Predicate {
 
@@ -67,11 +69,15 @@ public class Predicate {
         this.addPredicates(predicates);
     }
 
+    public boolean isNegated() {
+        return negated;
+    }
+
     public EventSchema getEventSchema() {
         return eventSchema;
     }
 
-    private StreamSchema getStreamSchema() {
+    public StreamSchema getStreamSchema() {
         return streamSchema;
     }
 
@@ -86,7 +92,7 @@ public class Predicate {
     public void addFilter(EventFilter filter) {
         if (!satisfiable) return;
 //        if (validForAttributeTypes(filter)){
-        if (predicates.size() > 0) {
+        if (hasChildren()) {
             for (Predicate p : predicates) {
                 p.addFilter(filter);
             }
@@ -103,7 +109,7 @@ public class Predicate {
         if (!satisfiable) {
             return;
         }
-        if (predicates.size() > 0) {
+        if (hasChildren()) {
             for (Predicate predicate : predicates) {
                 if (useless(predicate, p)) {
                     return;
@@ -178,6 +184,10 @@ public class Predicate {
         }
     }
 
+    public boolean hasChildren() {
+        return predicates.size() > 0;
+    }
+
     public ArrayList<Predicate> getPredicates() {
         return predicates;
     }
@@ -186,7 +196,7 @@ public class Predicate {
         labelSet.add(label);
     }
 
-    public boolean containsLabel(Label label){
+    public boolean containsLabel(Label label) {
         return labelSet.contains(label);
     }
 
@@ -199,11 +209,11 @@ public class Predicate {
         return newPredicate;
     }
 
-    public boolean overStream(StreamSchema streamSchema){
+    public boolean overStream(StreamSchema streamSchema) {
         return this.streamSchema == null || this.streamSchema.equals(streamSchema);
     }
 
-    public boolean overEvent(EventSchema eventSchema){
+    public boolean overEvent(EventSchema eventSchema) {
         return this.eventSchema == null || this.eventSchema.equals(eventSchema);
     }
 
@@ -295,18 +305,7 @@ public class Predicate {
         return false;
     }
 
-    private ArrayList<EventFilter> removeRedundants(ArrayList<EventFilter> filters) {
-        for (int i = 0; i < filters.size(); i++) {
-            for (int j = i + 1; j < filters.size(); j++) {
-                if (filters.get(i).dominates(filters.get(j))) {
-                    filters.remove(j);
-                    }
-                }
-            }
-        return filters;
-    }
-
-    public boolean notRedundant(Collection<EventFilter> filters, EventFilter newFilter) {
+    private boolean notRedundant(Collection<EventFilter> filters, EventFilter newFilter) {
         /* checks if filters does not imply newFilter */
         for (EventFilter filter : filters) {
             if (filter.dominates(newFilter)) {
@@ -332,7 +331,7 @@ public class Predicate {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
-        if (predicates.size() > 0) {
+        if (hasChildren()) {
             if (negated) {
                 stringBuilder.append("NotMultiPredicate( ");
             } else {

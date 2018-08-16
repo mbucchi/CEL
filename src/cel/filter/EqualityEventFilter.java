@@ -6,7 +6,7 @@ import cel.values.Value;
 public class EqualityEventFilter extends AtomicEventFilter {
     public EqualityEventFilter(Label label, Value lhs, LogicalOperation logicalOperation, Value rhs) {
         super(label, lhs, logicalOperation, rhs);
-        if (logicalOperation != LogicalOperation.EQUALS && logicalOperation != LogicalOperation.NOT_EQUALS){
+        if (logicalOperation != LogicalOperation.EQUALS && logicalOperation != LogicalOperation.NOT_EQUALS) {
             throw new Error("Equality filters must be of type EQUALS or NOT EQUALS");
         }
     }

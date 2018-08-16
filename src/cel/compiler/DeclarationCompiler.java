@@ -23,20 +23,18 @@ public class DeclarationCompiler extends BaseCompiler<Void> {
 
     @Override
     Void compileContext(ParserRuleContext ctx) {
-        if (!(ctx instanceof CELParser.Cel_declarationContext)){
+        if (!(ctx instanceof CELParser.Cel_declarationContext)) {
             throw new Error("FATAL ERROR!");
         }
 
         CELParser.Cel_declarationContext declarationContext = (CELParser.Cel_declarationContext) ctx;
 
         // check what kind of declaration it is and compile it
-        if (declarationContext.event_declaration() != null){
+        if (declarationContext.event_declaration() != null) {
             compileEventDeclaration(declarationContext.event_declaration());
-        }
-        else if (declarationContext.stream_declaration() != null){
+        } else if (declarationContext.stream_declaration() != null) {
             compileStreamDeclaration(declarationContext.stream_declaration());
-        }
-        else {
+        } else {
             // This means someone has modified the grammar to implement another kind of declaration.
             // This method should be modified to include that kind of declaration.
             throw new UnknownStatementError("No knowledge on how to compile given declaration statement", ctx);
@@ -45,11 +43,11 @@ public class DeclarationCompiler extends BaseCompiler<Void> {
         return null;
     }
 
-    private void compileEventDeclaration(CELParser.Event_declarationContext tree){
+    private void compileEventDeclaration(CELParser.Event_declarationContext tree) {
         tree.accept(new EventDeclarationVisitor());
     }
 
-    private void compileStreamDeclaration(CELParser.Stream_declarationContext tree){
+    private void compileStreamDeclaration(CELParser.Stream_declarationContext tree) {
         tree.accept(new StreamDeclarationVisitor());
     }
 }

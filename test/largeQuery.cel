@@ -1,0 +1,33 @@
+DECLARE EVENT T(temp double, id int)
+DECLARE EVENT H(income int, cost int, id int)
+DECLARE EVENT Q(id int)
+DECLARE EVENT S(id int)
+DECLARE EVENT F(id int)
+DECLARE EVENT A(id int, attr int)
+DECLARE EVENT B(id int, attr int)
+DECLARE EVENT C(id int, attr int)
+DECLARE EVENT D(id int)
+DECLARE EVENT O(id int, num double)
+DECLARE EVENT R(id int)
+
+DECLARE STREAM S1(T, H, Q, R, S)
+DECLARE STREAM S2(T, F, S, A)
+DECLARE STREAM S3(H, B, C, D)
+DECLARE STREAM S4(O)
+DECLARE STREAM S5(S, A, D, O)
+
+SELECT MAX *
+FROM S1, S2, S3, S4, S5
+WHERE ( ((T ; H + ; (O AS o2 ; R +) + ; T AS t2) +) OR (T + ; (A ; B ; C) AS abc + ; (F ; Q ; S) AS fqs) )  AS all_events
+FILTER
+    all_events[id NOT IN { 123, 125 }]
+    AND
+    ( t2[temp > 50 or temp < 20] OR H[income > 2 * cost] )
+    AND
+    o2[num != 3 * id]
+    AND
+    ( abc[attr > 100] OR fqs[id = 10])
+PARTITION BY
+    [id]
+WITHIN 10 hours 30 minutes
+CONSUME BY PARTITION

@@ -1,8 +1,8 @@
 package cel.cea;
 
 import cel.cea.transition.Transition;
-import cel.event.Label;
 import cel.event.EventSchema;
+import cel.event.Label;
 
 import java.util.*;
 
@@ -16,13 +16,10 @@ public class MinimizedCEA extends CEA {
         Set<Integer> reachableFromQ0 = reachableFrom.get(0);
         Set<Integer> usefulStates = new HashSet<>();
 
-        for (int q: reachableFromQ0){
+        for (int q : reachableFromQ0) {
             Set<Integer> reachableQ = reachableFrom.get(q);
-            for (Integer finalState : toMinimize.finalStates) {
-                if (reachableQ.contains(finalState)) {
-                    usefulStates.add(q);
-                    break;
-                }
+            if (reachableQ.contains(toMinimize.finalState)) {
+                usefulStates.add(q);
             }
         }
 
@@ -30,18 +27,15 @@ public class MinimizedCEA extends CEA {
         int[] newNames = new int[toMinimize.nStates];
         int newStateN = 0;
 
-        for (int q = 0; q < toMinimize.nStates; q++){
-            if (usefulStates.contains(q)){
+        for (int q = 0; q < toMinimize.nStates; q++) {
+            if (usefulStates.contains(q)) {
                 newNames[q] = newStateN++;
             }
         }
 
         // rename initial and final states
         int newInitState = newNames[toMinimize.initState];
-        Set<Integer> newFinalState = new HashSet<>();
-        for (Integer finalState : toMinimize.finalStates) {
-            newFinalState.add(newNames[finalState]);
-        }
+        int newFinalState = newNames[toMinimize.finalState];
 
         // rename useless transitions and rename the remaining ones
 
@@ -50,8 +44,8 @@ public class MinimizedCEA extends CEA {
         Set<EventSchema> newEventSchemas = new HashSet<>();
 
 
-        for (Transition transition: toMinimize.transitions){
-            if (usefulStates.contains(transition.getFromState()) && usefulStates.contains(transition.getToState())){
+        for (Transition transition : toMinimize.transitions) {
+            if (usefulStates.contains(transition.getFromState()) && usefulStates.contains(transition.getToState())) {
 
                 int newFromState = newNames[transition.getFromState()];
                 int newToState = newNames[transition.getToState()];
@@ -62,7 +56,9 @@ public class MinimizedCEA extends CEA {
 
                 newLabelSet.addAll(transition.getLabels());
                 EventSchema evSch = transition.getEventSchema();
-                newEventSchemas.add(evSch);
+                if (evSch != null) {
+                    newEventSchemas.add(evSch);
+                }
             }
         }
         // Sort transitions
@@ -72,33 +68,33 @@ public class MinimizedCEA extends CEA {
         // update automata
         nStates = newStateN;
         initState = newInitState;
-        finalStates = newFinalState;
+        finalState = newFinalState;
         transitions = newTransitions;
         labelSet = newLabelSet;
         eventSchemas = newEventSchemas;
     }
 
-    private static Map<Integer, Set<Integer>> createStatesReachableMap(CEA cea){
+    private static Map<Integer, Set<Integer>> createStatesReachableMap(CEA cea) {
 
         Map<Integer, Set<Integer>> reachableFrom = new HashMap<>();
-        for (int q = 0; q < cea.nStates; q++){
+        for (int q = 0; q < cea.nStates; q++) {
             Set<Integer> set = new HashSet<>();
             set.add(q);
             reachableFrom.put(q, set);
         }
 
-        for (Transition t: cea.transitions)
+        for (Transition t : cea.transitions)
             reachableFrom.get(t.getFromState()).add(t.getToState());
 
         boolean updated = true;
 
-        while (updated){
+        while (updated) {
             // try to add new reachable states for each state
             updated = false;
-            for (int p = 0; p < cea.nStates; p++){
+            for (int p = 0; p < cea.nStates; p++) {
                 Set<Integer> reachableP = reachableFrom.get(p);
                 Set<Integer> newReachable = new HashSet<>();
-                for (int q: reachableP){
+                for (int q : reachableP) {
                     newReachable.addAll(reachableFrom.get(q));
                 }
                 updated = updated || reachableP.addAll(newReachable);

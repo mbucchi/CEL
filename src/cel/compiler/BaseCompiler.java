@@ -26,10 +26,10 @@ public abstract class BaseCompiler<T> {
         if (lineNumber > lines.length)
             return "";
 
-        return lines[lineNumber-1];
+        return lines[lineNumber - 1];
     }
 
-    CELParser parse(String cmd){
+    CELParser parse(String cmd) {
         input = cmd;
         CharStream charStream = CharStreams.fromString(cmd);
         CELLexer CELLexer = new CELLexer(charStream);

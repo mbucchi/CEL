@@ -45,7 +45,7 @@ public class StreamSchema {
     private int streamID;
 
     private void ensureUnique(String name) throws StreamException {
-        if (allSchemas.keySet().contains(name)){
+        if (allSchemas.keySet().contains(name)) {
             throw new StreamException("Stream of name \"" + name + "\" has already been declared");
         }
     }
@@ -79,7 +79,7 @@ public class StreamSchema {
         return false;
     }
 
-    public boolean containsEvent(EventSchema e){
+    public boolean containsEvent(EventSchema e) {
         return containsEvent(e.getName());
     }
 

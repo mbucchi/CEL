@@ -3,7 +3,11 @@ package cel.cea;
 import cel.cea.transition.Transition;
 import cel.event.EventSchema;
 import cel.event.Label;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 
@@ -11,7 +15,7 @@ public class CEA {
 
     int nStates;
     int initState;
-    Set<Integer> finalStates;
+    int finalState;
     Collection<Transition> transitions;
     Set<Label> labelSet;
     Set<EventSchema> eventSchemas;
@@ -35,7 +39,7 @@ public class CEA {
         this();
         nStates = otherCea.nStates;
         initState = otherCea.initState;
-        finalStates = otherCea.finalStates;
+        finalState = otherCea.finalState;
 
         transitions.addAll(
                 otherCea.transitions
@@ -48,23 +52,31 @@ public class CEA {
         eventSchemas.addAll(otherCea.eventSchemas);
     }
 
-    CEA(int nStates, int initState, Set<Integer> finalStates){
+    CEA(int nStates, int initState, int finalState) {
         this();
         this.nStates = nStates;
         this.initState = initState;
-        this.finalStates = finalStates;
+        this.finalState = finalState;
     }
 
     public CEA copy() {
         return new CEA(this);
     }
 
+    public int getFinalState() {
+        return finalState;
+    }
+
     public Collection<Transition> getTransitions() {
         return new ArrayList<>(transitions);
     }
 
-    public Set<EventSchema> getEventSchemas(){
+    public Set<EventSchema> getEventSchemas() {
         return new HashSet<>(eventSchemas);
+    }
+
+    public int getnStates() {
+        return nStates;
     }
 
     @Override
@@ -72,10 +84,10 @@ public class CEA {
         StringBuilder stringBuilder = new StringBuilder("CEA(\n")
                 .append("  nStates=").append(nStates).append(",\n")
                 .append("  initState=").append(initState).append(",\n")
-                .append("  finalStates=").append(finalStates.toString()).append(",\n")
+                .append("  finalState=").append(finalState).append(",\n")
                 .append("  transitions=[");
 
-        if (transitions.size() > 0){
+        if (transitions.size() > 0) {
             stringBuilder.append("\n    ");
         }
 
@@ -83,7 +95,7 @@ public class CEA {
 
 
         int i;
-        for (i=0; i<transitions.size()-1; i++){
+        for (i = 0; i < transitions.size() - 1; i++) {
             Transition transition = transitionArray[i];
             stringBuilder.append(transition).append(",\n    ");
         }

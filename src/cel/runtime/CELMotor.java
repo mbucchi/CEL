@@ -25,33 +25,37 @@ public class CELMotor {
     private CompoundStatementCompiler compoundStatementCompiler;
     private List<CeaExecutor> ceaExecutorList;
 
-    public CELMotor(){
+    public CELMotor() {
         declarationCompiler = new DeclarationCompiler();
         queryCompiler = new QueryCompiler();
         compoundStatementCompiler = new CompoundStatementCompiler(declarationCompiler, queryCompiler);
         ceaExecutorList = new ArrayList<>();
     }
 
-    public void executeDeclaration(String statement){
+    public void executeDeclaration(String statement) {
         try {
             // Parse and compile
             declarationCompiler.compile(statement);
-        }
-        catch (ParseCancellationException exc){
+        } catch (ParseCancellationException exc) {
             throw new ParseError("Can't parse the given string as a correct CEL declaration statement.");
         }
     }
 
-    public QueryResult executeQuery(String query){
+    public QueryResult executeQuery(String query) {
 
         try {
             // try to parse and compile given the already declared events and streams
+<<<<<<< HEAD
             Query compiledQuery = queryCompiler.compile(query);
             CeaExecutor ceaExecutor = new NaiveCeaExecutor(compiledQuery.getPatternCEA());
             ceaExecutorList.add(ceaExecutor);
             return new QueryResult(ceaExecutor);
         }
         catch (ParseCancellationException exc) {
+=======
+            queryCompiler.compile(query);
+        } catch (ParseCancellationException exc) {
+>>>>>>> 3d52c04d9775010f385f155b0e3ab0c8728cbb7d
             throw new ParseError("Can't parse the given string as a correct CEL query statement.");
         }
     }
@@ -65,14 +69,12 @@ public class CELMotor {
             for (Query query : queries) {
                 System.out.println(query.getPatternCEA().toString());
             }
-        }
-        catch (CompilerError err) {
+        } catch (CompilerError err) {
             System.err.println(err);
         }
     }
 
-    public void sendEvent(String streamName, String eventName, Object... args){
+    public void sendEvent(String streamName, String eventName, Object... args) {
 
     }
-
 }

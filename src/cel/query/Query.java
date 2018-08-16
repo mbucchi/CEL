@@ -1,13 +1,14 @@
 package cel.query;
+
 import cel.cea.CEA;
 import cel.cea.MinimizedCEA;
-import cel.cea.ProjectionCEA;
-import cel.cea.DeterministicCEA;
 import cel.stream.StreamSchema;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+//import cel.cea.DeterministicCEA;
 
 public class Query {
     private SelectionStrategy selectionStrategy;
@@ -53,7 +54,7 @@ public class Query {
                  CEA patternCEA,
                  Collection<Partition> partitions,
                  TimeWindow timeWindow,
-                 ConsumptionPolicy consumptionPolicy){
+                 ConsumptionPolicy consumptionPolicy) {
 
         this.selectionStrategy = selectionStrategy;
         this.projectionList = projectionList;
@@ -70,9 +71,13 @@ public class Query {
 
         // Remove useless states and transitions
         patternCEA = new MinimizedCEA(patternCEA);
-        System.out.println(patternCEA.toString());
-        patternCEA = new DeterministicCEA(patternCEA);
-        //
+//        patternCEA = new DeterministicCEA(patternCEA);
+//        CEATraverser test = new CEATraverser(patternCEA);
+//        BitVectorSourceGenerator test = new BitVectorSourceGenerator(patternCEA);
+//        System.out.println(test.makeSourceCode());
+//        for (EventSchema ev : patternCEA.getEventSchemas()) {
+//            System.out.println(EventSourceGenerator.createEventSource(ev));
+//        }
 //        patternCEA = new ProjectionCEA(patternCEA, projectionList);
 //        projectionList = ProjectionList.ALL_EVENTS;
 

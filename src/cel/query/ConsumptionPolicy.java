@@ -5,7 +5,7 @@ public enum ConsumptionPolicy {
     PARTITION,
     NONE;
 
-    public static ConsumptionPolicy getDefault(){
+    public static ConsumptionPolicy getDefault() {
         return ANY;
     }
 }

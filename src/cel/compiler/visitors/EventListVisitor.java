@@ -13,24 +13,24 @@ import java.util.Map;
 
 class EventListVisitor extends CELBaseVisitor<Collection<EventSchema>> {
 
-    public Collection<EventSchema> visitEvent_list(CELParser.Event_listContext ctx){
+    public Collection<EventSchema> visitEvent_list(CELParser.Event_listContext ctx) {
 
         Map<String, EventSchema> eventNames = new HashMap<>();
 
         for (CELParser.Event_nameContext event : ctx.event_name()) {
             String eventName = StringCleaner.tryRemoveQuotes(event.getText());
 
-            // Event is declared more than once in the stream declaration
+            // event is declared more than once in the stream declaration
             if (eventNames.containsKey(eventName)) {
-                throw new DeclarationError("Event `" + eventName +
+                throw new DeclarationError("event `" + eventName +
                         "` is referenced more than once within stream declaration", event);
             }
 
             EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
 
-            // Event has not been declared
-            if (eventSchema == null){
-                throw new NameError("Event `" + eventName + "` is not defined", event);
+            // event has not been declared
+            if (eventSchema == null) {
+                throw new NameError("event `" + eventName + "` is not defined", event);
             }
             eventNames.put(eventName, eventSchema);
         }

@@ -4,11 +4,11 @@ import cel.compiler.errors.TypeError;
 import cel.compiler.errors.UnknownStatementError;
 import cel.compiler.errors.ValueError;
 import cel.event.Label;
+import cel.filter.*;
+import cel.parser.CELBaseVisitor;
 import cel.parser.CELParser;
 import cel.parser.utils.StringCleaner;
 import cel.values.*;
-import cel.filter.*;
-import cel.parser.CELBaseVisitor;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.Collection;
@@ -18,7 +18,7 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
 
     private Label label;
 
-    BoolExprVisitor(Label label){
+    BoolExprVisitor(Label label) {
         this.label = label;
     }
 
@@ -53,12 +53,12 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
     }
 
 
-    private Collection<Literal> parseNumberSeq(CELParser.Number_seqContext ctx){
-        if (ctx instanceof CELParser.Number_listContext){
+    private Collection<Literal> parseNumberSeq(CELParser.Number_seqContext ctx) {
+        if (ctx instanceof CELParser.Number_listContext) {
             // parse all numbers as number constants
             return ((CELParser.Number_listContext) ctx).number()
                     .stream()
-                    .map(numberContext -> (Literal)new NumberLiteral(numberContext.getText()))
+                    .map(numberContext -> (Literal) new NumberLiteral(numberContext.getText()))
                     .collect(Collectors.toList());
         }
         // TODO: range containment filters
@@ -68,12 +68,12 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
         throw new UnknownStatementError("This type of number sequence has not been implemented yet", ctx);
     }
 
-    private Collection<Literal> parseStringSeq(CELParser.String_seqContext ctx){
-            // parse all numbers as number constants
-            return ctx.string()
-                    .stream()
-                    .map(stringContext -> (Literal)new StringLiteral(stringContext.getText()))
-                    .collect(Collectors.toList());
+    private Collection<Literal> parseStringSeq(CELParser.String_seqContext ctx) {
+        // parse all numbers as number constants
+        return ctx.string()
+                .stream()
+                .map(stringContext -> (Literal) new StringLiteral(stringContext.getText()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -98,8 +98,7 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
                     parseNumberSeq(ctx.value_seq().number_seq()));
 
             eventFilter = filter.translateToEventFilter();
-        }
-        else if (ctx.value_seq().string_seq() != null) {
+        } else if (ctx.value_seq().string_seq() != null) {
             if (!attribute.getTypes().contains(ValueType.STRING)) {
                 throw new TypeError("Attribute `" + attribute.getName() +
                         "` is not comparable with string values", ctx);
@@ -112,8 +111,7 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
                     parseStringSeq(ctx.value_seq().string_seq()));
 
             eventFilter = filter.translateToEventFilter();
-        }
-        else {
+        } else {
             throw new UnknownStatementError("Unknown sequence type", ctx);
         }
 
@@ -132,17 +130,13 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
 
         if (ctx.GE() != null) {
             logicalOperation = LogicalOperation.GREATER;
-        }
-        else if (ctx.GEQ() != null) {
+        } else if (ctx.GEQ() != null) {
             logicalOperation = LogicalOperation.GREATER_EQUALS;
-        }
-        else if (ctx.LEQ() != null) {
+        } else if (ctx.LEQ() != null) {
             logicalOperation = LogicalOperation.LESS_EQUALS;
-        }
-        else if (ctx.LE() != null) {
+        } else if (ctx.LE() != null) {
             logicalOperation = LogicalOperation.LESS;
-        }
-        else {
+        } else {
             throw new UnknownStatementError("Unknown inequality type", ctx);
         }
         EventFilter eventFilter = new InequalityEventFilter(label, lhs, logicalOperation, rhs);
@@ -170,14 +164,13 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
 
         if (ctx.EQ() != null) {
             logicalOperation = LogicalOperation.EQUALS;
-        }
-        else if (ctx.NEQ() != null) {
+        } else if (ctx.NEQ() != null) {
             logicalOperation = LogicalOperation.NOT_EQUALS;
-        }
-        else {
+        } else {
             throw new UnknownStatementError("Unknown inequality type", ctx);
         }
-        EventFilter eventFilter = new EqualityEventFilter(label, left, logicalOperation, right);;
+        EventFilter eventFilter = new EqualityEventFilter(label, left, logicalOperation, right);
+        ;
         ensureValidity(eventFilter, ctx);
         return eventFilter;
     }
@@ -190,11 +183,10 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
         CELParser.String_literalContext left = ctx.string_literal(0);
         CELParser.String_literalContext right = ctx.string_literal(1);
 
-        if (left.attribute_name() != null){
+        if (left.attribute_name() != null) {
             attribute = getAttributeForName(left.attribute_name());
             stringLiteral = new StringLiteral(right.getText());
-        }
-        else {
+        } else {
             stringLiteral = new StringLiteral(left.getText());
             attribute = getAttributeForName(right.attribute_name());
         }
@@ -202,15 +194,14 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
         LogicalOperation logicalOperation;
         if (ctx.EQ() != null) {
             logicalOperation = LogicalOperation.EQUALS;
-        }
-        else if (ctx.NEQ() != null) {
+        } else if (ctx.NEQ() != null) {
             logicalOperation = LogicalOperation.NOT_EQUALS;
-        }
-        else {
+        } else {
             throw new UnknownStatementError("Unknown inequality type", ctx);
         }
 
-        EventFilter eventFilter = new EqualityEventFilter(label, attribute, logicalOperation, stringLiteral);;
+        EventFilter eventFilter = new EqualityEventFilter(label, attribute, logicalOperation, stringLiteral);
+        ;
         ensureValidity(eventFilter, ctx);
         return eventFilter;
     }
@@ -222,9 +213,9 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
         return new LikeEventFilter(label, attribute, regex);
     }
 
-    private Attribute getAttributeForName(CELParser.Attribute_nameContext ctx){
+    private Attribute getAttributeForName(CELParser.Attribute_nameContext ctx) {
         String attributeName = StringCleaner.tryRemoveQuotes(ctx.getText());
-        if (!label.getAttributes().containsKey(attributeName)){
+        if (!label.getAttributes().containsKey(attributeName)) {
             throw new ValueError("Attribute `" + attributeName + "` is not defined on label " + label.getName(),
                     ctx);
         }

@@ -13,11 +13,11 @@ public class QueryResult {
         this.ceaExecutor = ceaExecutor;
     }
 
-    public void setMatchCallback(Consumer<Object> callback){
+    public void setMatchCallback(Consumer<Object> callback) {
 
     }
 
-    public void stop(){
+    public void stop() {
 
     }
 

@@ -8,7 +8,7 @@ public class Negation extends UnaryOperation {
     public Negation(Value inner) throws IncompatibleValueType {
         super(inner);
         // negation is only valid over numeric types
-        if (!interoperableWith(ValueType.NUMERIC)){
+        if (!interoperableWith(ValueType.NUMERIC)) {
             throw new IncompatibleValueType();
         }
     }

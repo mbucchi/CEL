@@ -1,24 +1,24 @@
 package cel.compiler.visitors;
 
 import cel.cea.*;
-import cel.compiler.errors.UnknownStatementError;
-import cel.event.Label;
 import cel.compiler.errors.NameError;
+import cel.compiler.errors.UnknownStatementError;
+import cel.event.EventSchema;
+import cel.event.Label;
 import cel.filter.PatternFilter;
 import cel.parser.CELBaseVisitor;
 import cel.parser.CELParser;
-import cel.event.EventSchema;
 import cel.parser.utils.StringCleaner;
 import cel.stream.StreamSchema;
 
-import java.util.*;
+import java.util.Collection;
 
 public class PatternVisitor extends CELBaseVisitor<CEA> {
 
     private Collection<String> definedStreams;
     private Collection<String> definedEvents;
 
-    public PatternVisitor(Collection<String> definedStreams, Collection<String> definedEvents){
+    public PatternVisitor(Collection<String> definedStreams, Collection<String> definedEvents) {
         this.definedStreams = definedStreams;
         this.definedEvents = definedEvents;
     }
@@ -44,10 +44,9 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
 
         // binary could be either `OR` or `;`.
 
-        if (ctx.K_OR() != null){
+        if (ctx.K_OR() != null) {
             return new OrCEA(left, right);
-        }
-        else if (ctx.SEMICOLON() != null){
+        } else if (ctx.SEMICOLON() != null) {
             return new SequenceCEA(left, right);
         } else {
             throw new UnknownStatementError("Binary operator unknown", ctx);
@@ -80,45 +79,44 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
     @Override
     public CEA visitEvent_cel_pattern(CELParser.Event_cel_patternContext ctx) {
 
-        // Event can either be named by itself or within the scope of a stream.
+        // event can either be named by itself or within the scope of a stream.
         // First check which is the case and deal with each of them separately
         String eventName = StringCleaner.tryRemoveQuotes(ctx.s_event_name().event_name().getText());
 
         // Check if a stream is defined
-        if (ctx.s_event_name().stream_name() != null){
+        if (ctx.s_event_name().stream_name() != null) {
             String streamName = StringCleaner.tryRemoveQuotes(ctx.s_event_name().stream_name().getText());
 
-            if (!definedStreams.contains(streamName)){
+            if (!definedStreams.contains(streamName)) {
                 throw new NameError("Stream `" + streamName + "` is not defined", ctx.s_event_name().stream_name());
             }
             StreamSchema streamSchema = StreamSchema.getSchemaFor(streamName);
 
-            if (!streamSchema.containsEvent(eventName)){
-                throw new NameError("Event `" + eventName + "` is not defined within stream `" + streamName + "`",
+            if (!streamSchema.containsEvent(eventName)) {
+                throw new NameError("event `" + eventName + "` is not defined within stream `" + streamName + "`",
                         ctx.s_event_name().event_name());
             }
 
             // Create a selection CEA that filters for the given stream
             EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
 
-            if (eventSchema == null){
-                throw new NameError("Event `" + eventName + "` is not defined", ctx.s_event_name().event_name());
+            if (eventSchema == null) {
+                throw new NameError("event `" + eventName + "` is not defined", ctx.s_event_name().event_name());
             }
             return new SelectionCEA(streamSchema, eventSchema);
-        }
-        else {
+        } else {
             // no stream is defined, just check that the event is declared within the scope of the
             // query
             if (!definedEvents.contains(eventName)) {
-                throw new NameError("Event `" + eventName + "` is not defined within any of the query streams",
-                       ctx.s_event_name());
+                throw new NameError("event `" + eventName + "` is not defined within any of the query streams",
+                        ctx.s_event_name());
             }
 
             // Create a selection CEA with no filters
             EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
 
-            if (eventSchema == null){
-                throw new NameError("Event `" + eventName + "` is not defined", ctx.s_event_name());
+            if (eventSchema == null) {
+                throw new NameError("event `" + eventName + "` is not defined", ctx.s_event_name());
             }
             return new SelectionCEA(eventSchema);
         }

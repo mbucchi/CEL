@@ -1,7 +1,7 @@
 package cel.queryExecution;
 
 import cel.cea.CEA;
-import cel.predicate.Predicate;
+import cel.cea.predicate.Predicate;
 import cel.cea.transition.Transition;
 import cel.event.Event;
 

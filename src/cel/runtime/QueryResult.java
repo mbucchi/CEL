@@ -9,6 +9,8 @@ public class QueryResult {
     private Consumer<Object> callback;
     private CeaExecutor ceaExecutor;
 
+    QueryResult(){}
+
     QueryResult(CeaExecutor ceaExecutor){
         this.ceaExecutor = ceaExecutor;
     }

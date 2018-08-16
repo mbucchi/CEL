@@ -45,19 +45,11 @@ public class CELMotor {
 
         try {
             // try to parse and compile given the already declared events and streams
-<<<<<<< HEAD
-            Query compiledQuery = queryCompiler.compile(query);
-            CeaExecutor ceaExecutor = new NaiveCeaExecutor(compiledQuery.getPatternCEA());
-            ceaExecutorList.add(ceaExecutor);
-            return new QueryResult(ceaExecutor);
-        }
-        catch (ParseCancellationException exc) {
-=======
             queryCompiler.compile(query);
         } catch (ParseCancellationException exc) {
->>>>>>> 3d52c04d9775010f385f155b0e3ab0c8728cbb7d
             throw new ParseError("Can't parse the given string as a correct CEL query statement.");
         }
+        return new QueryResult();
     }
 
     public void executeFromFile(String path) throws IOException {

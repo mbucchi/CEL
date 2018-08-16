@@ -4,10 +4,7 @@ import cel.cea.transition.Transition;
 import cel.event.EventSchema;
 import cel.event.Label;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 
@@ -91,8 +88,8 @@ public class CEA {
             stringBuilder.append("\n    ");
         }
 
-        Transition[] transitionArray = transitions.toArray(new Transition[0]);
-
+        Transition[] transitionArray = transitions.toArray(new Transition[0]) ;
+        Arrays.sort(transitionArray, Transition::compareTo);
 
         int i;
         for (i = 0; i < transitions.size() - 1; i++) {

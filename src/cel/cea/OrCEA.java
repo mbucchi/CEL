@@ -41,8 +41,13 @@ public class OrCEA extends CEA {
                         .stream()
                         .filter(transition ->  transition.getToState() == left.finalState)
                         .filter(transition -> transition.getType() == TransitionType.BLACK)
-                        .map(transition -> transition.displaceTransition(toDisplaceLeft)
-                                .replaceToState(finalState))
+                        .map(transition -> {
+                            Transition newT = transition.displaceTransition(toDisplaceLeft)
+                                    .replaceToState(finalState);
+                            if(transition.getFromState() == left.initState)
+                                return newT.replaceFromState(initState);
+                            return newT;
+                        })
                         .collect(toList())
         );
 
@@ -72,8 +77,13 @@ public class OrCEA extends CEA {
                         .stream()
                         .filter(transition -> transition.getToState() == right.finalState)
                         .filter(transition -> transition.getType() == TransitionType.BLACK)
-                        .map(transition -> transition.displaceTransition(toDisplaceRight)
-                                .replaceToState(finalState))
+                        .map(transition ->  {
+                            Transition newT = transition.displaceTransition(toDisplaceRight)
+                                    .replaceToState(finalState);
+                            if(transition.getFromState() == right.initState)
+                                return newT.replaceFromState(initState);
+                            return newT;
+                        })
                         .collect(toList())
         );
 

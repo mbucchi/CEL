@@ -64,8 +64,8 @@ class CELTraverser {
         integerToSet.add(start);
         setToInteger.put(start, 0);
 
-        blackMasks.add(getBlackMask(start));
-        whiteMasks.add(getWhiteMask(start));
+//        blackMasks.add(getBlackMask(start));
+//        whiteMasks.add(getWhiteMask(start));
     }
 
     void initMAX() {
@@ -80,8 +80,8 @@ class CELTraverser {
         integerToMAXTuple.add(maxStart);
         MAXTupleToInteger.put(maxStart, 0);
 
-        blackMasks.add(getBlackMask(start));
-        whiteMasks.add(getWhiteMask(start));
+//        blackMasks.add(getBlackMask(maxStart));
+//        whiteMasks.add(getWhiteMask(maxStart));
     }
 
     void initNEXT() {
@@ -96,8 +96,8 @@ class CELTraverser {
         integerToNEXTTuple.add(nextStart);
         NEXTTupleToInteger.put(nextStart, 0);
 
-        blackMasks.add(getBlackMask(start));
-        whiteMasks.add(getWhiteMask(start));
+//        blackMasks.add(getBlackMask(nextStart));
+//        whiteMasks.add(getWhiteMask(nextStart));
     }
 
     void initLAST() {
@@ -112,68 +112,77 @@ class CELTraverser {
         integerToLASTTuple.add(lastStart);
         LASTTupleToInteger.put(lastStart, 0);
 
-        blackMasks.add(getBlackMask(start));
-        whiteMasks.add(getWhiteMask(start));
+//        blackMasks.add(getBlackMask(lastStart));
+//        whiteMasks.add(getWhiteMask(lastStart));
     }
 
     private void checkInit() {
 //        if (initialized) {
-//            throw
+//            throw new DoubleInitializationError("Traverser already initialized");
 //        }
         initialized = true;
     }
 
+    /**
+     *  Returns a list of length 2 where the first Integer represents the next
+     *  state with a black transition and the second Integer represents the
+     *  next state with a white transition.
+     */
+
     List<Integer> nextStateALL(Integer state, BitSet vector) {
         List<Integer> ret = new ArrayList<>(2);
-        Set<Integer> states = integerToSet.get(state);
-
-        Integer toState = knownBlackTransitions.get(state).getOrDefault(vector, null);
+        /* If we know the black transition, then we must also know the white transition. */
+        Integer toState = knownBlackTransitions.get(state).get(vector);
         if (toState != null) {
             ret.add(toState);
-        } else {
-            Set<Integer> nextStates = new HashSet<>();
-            for (Integer s : states) {
-                nextStates.addAll(cea.blackTransition(s, vector));
-            }
-
-            Integer nextState = getStateName(nextStates);
-
-            if (nextState == finalStates.size()) {
-                addToFinals(nextStates);
-            }
-
-            if (nextStates.isEmpty()) {
-                knownBlackTransitions.get(state).put(vector, REJECT);
-                ret.add(REJECT);
-            } else {
-                knownBlackTransitions.get(state).put(vector, nextState);
-                ret.add(nextState);
-            }
+            ret.add(knownWhiteTransitions.get(state).get(vector));
+            return ret;
         }
 
-        toState = knownWhiteTransitions.get(state).get(vector);
-        if (toState != null) {
-            ret.add(toState);
+        Set<Integer> states = integerToSet.get(state);
+
+        Set<Integer> nextStates = new HashSet<>();
+        for (Integer s : states) {
+            nextStates.addAll(cea.blackTransition(s, vector));
+        }
+
+        Integer nextState = getStateName(nextStates);
+
+        /* State numbers are sequential, therefore it is impossible for nextState to be
+         * greater than finalStates.size(). If they are equal, then it is a new state
+         * and we add it to the finalStates list. */
+        if (nextState == finalStates.size()) {
+            addToFinals(nextStates);
+        }
+
+        /* HashMaps of a given state are added to both knownBlackTransitions and
+         * knownWhiteTransitions on state creation, therefore for the sake of efficiency,
+         * we assume that they always exist. */
+        if (nextStates.isEmpty()) {
+            knownBlackTransitions.get(state).put(vector, REJECT);
+            ret.add(REJECT);
         } else {
+            knownBlackTransitions.get(state).put(vector, nextState);
+            ret.add(nextState);
+        }
 
-            Set<Integer> nextStates = new HashSet<>();
-            for (Integer s : states) {
-                nextStates.addAll(cea.whiteTransition(s, vector));
-            }
+        nextStates = new HashSet<>();
+        for (Integer s : states) {
+            nextStates.addAll(cea.whiteTransition(s, vector));
+        }
 
-            Integer nextState = getStateName(nextStates);
+        nextState = getStateName(nextStates);
 
-            if (nextState == finalStates.size()) {
-                addToFinals(nextStates);
-            }
+        if (nextState == finalStates.size()) {
+            addToFinals(nextStates);
+        }
 
-            if (nextStates.isEmpty()) {
-                knownWhiteTransitions.get(state).put(vector, REJECT);
-                ret.add(REJECT);
-            } else {
-                knownWhiteTransitions.get(state).put(vector, nextState);
-                ret.add(nextState);
-            }
+        if (nextStates.isEmpty()) {
+            knownWhiteTransitions.get(state).put(vector, REJECT);
+            ret.add(REJECT);
+        } else {
+            knownWhiteTransitions.get(state).put(vector, nextState);
+            ret.add(nextState);
         }
 
         return ret;
@@ -297,8 +306,6 @@ class CELTraverser {
 
         LASTTuple tuple = integerToLASTTuple.get(state);
 
-        /* read the paper appendix */
-
         Set<Integer> TB = blackTransitionSet(tuple.T, vector);
         Set<Integer> UB = blackTransitionSet(tuple.U, vector);
         Set<Integer> SB = blackTransitionSet(tuple.S, vector);
@@ -359,18 +366,16 @@ class CELTraverser {
             integerToSet.add(nextStates);
             knownBlackTransitions.add(new HashMap<>());
             knownWhiteTransitions.add(new HashMap<>());
-            blackMasks.add(getBlackMask(nextStates));
-            whiteMasks.add(getWhiteMask(nextStates));
+//            blackMasks.add(getBlackMask(nextStates));
+//            whiteMasks.add(getWhiteMask(nextStates));
 //            System.out.println(integerToSet.toString());
         }
         return newState;
     }
 
     private Integer getStateName(MaxTuple nextStates) {
-        Integer newState;
-        if (MAXTupleToInteger.containsKey(nextStates)) {
-            newState = MAXTupleToInteger.get(nextStates);
-        } else {
+        Integer newState = MAXTupleToInteger.get(nextStates);
+        if (newState == null) {
             newState = ++newStateNumber;
             MAXTupleToInteger.put(nextStates, newState);
             integerToMAXTuple.add(nextStates);
@@ -385,10 +390,8 @@ class CELTraverser {
     }
 
     private Integer getStateName(NEXTTuple nextStates) {
-        Integer newState;
-        if (NEXTTupleToInteger.containsKey(nextStates)) {
-            newState = NEXTTupleToInteger.get(nextStates);
-        } else {
+        Integer newState = NEXTTupleToInteger.get(nextStates);
+        if (newState == null) {
             newState = ++newStateNumber;
             NEXTTupleToInteger.put(nextStates, newState);
             integerToNEXTTuple.add(nextStates);
@@ -403,10 +406,8 @@ class CELTraverser {
     }
 
     private Integer getStateName(LASTTuple nextStates) {
-        Integer newState;
-        if (LASTTupleToInteger.containsKey(nextStates)) {
-            newState = LASTTupleToInteger.get(nextStates);
-        } else {
+        Integer newState = LASTTupleToInteger.get(nextStates);
+        if (newState == null) {
             newState = ++newStateNumber;
             LASTTupleToInteger.put(nextStates, newState);
             integerToLASTTuple.add(nextStates);
@@ -420,9 +421,9 @@ class CELTraverser {
         return newState;
     }
 
-    private void addToFinals(Set<Integer> stateSet) {
-        for (Integer i : stateSet) {
-            if (cea.isFinal(i)) {
+    private void addToFinals(Set<Integer> states) {
+        for (Integer state : states) {
+            if (cea.isFinal(state)) {
                 finalStates.add(true);
                 return;
             }
@@ -453,6 +454,8 @@ class CELTraverser {
 
         return ret;
     }
+
+    /* methods below are currently unused */
 
     private BitSet getBlackMask(Set<Integer> states) {
         BitSet mask = new BitSet();

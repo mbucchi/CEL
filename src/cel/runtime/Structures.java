@@ -177,8 +177,8 @@ class Order extends LinkedList<LinkedList<Integer>> {
 }
 
 class MaxTuple {
-    public final Set<Integer> T;
-    final Set<Integer> U;
+    public final Set<Integer> T; /* represents actual states */
+    final Set<Integer> U; /* represents states that are ahead */
     boolean isFinal;
 
     MaxTuple(Set<Integer> T, Set<Integer> U){
@@ -242,9 +242,9 @@ class DetNode {
 }
 
 class NEXTTuple {
-    public final Set<Integer> T;
-    final Set<Integer> U;
-    boolean isFinal;
+    public final Set<Integer> T; /* represents actual states */
+    final Set<Integer> U; /* represents states that are ahead */
+
 
     NEXTTuple(Set<Integer> T, Set<Integer> U){
         this.T = new HashSet<>();
@@ -279,10 +279,9 @@ class NEXTTuple {
 }
 
 class LASTTuple {
-    public final Set<Integer> T;
-    final Set<Integer> U;
-    final Set<Integer> S;
-    boolean isFinal;
+    public final Set<Integer> T; /* represents actual states */
+    final Set<Integer> U; /* represents states that are ahead */
+    final Set<Integer> S; /* represents states that are behind */
 
     LASTTuple(Set<Integer> T, Set<Integer> U, Set<Integer> S) {
         this.T = new HashSet<>();
@@ -301,12 +300,12 @@ class LASTTuple {
     }
 
     @Override
-    public final int hashCode(){
+    public final int hashCode() {
         return Objects.hash(T, U, S);
     }
 
     @Override
-    public final boolean equals(final Object obj){
+    public final boolean equals(final Object obj) {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
@@ -315,7 +314,7 @@ class LASTTuple {
     }
 
     @Override
-    public final String toString(){
+    public final String toString() {
         return "LASTTuple(T=" + T + ", U=" + U + ", S=" + S + ")";
     }
 }

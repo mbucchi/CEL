@@ -117,7 +117,7 @@ public class NewTest {
         System.out.println("Parsing time: " + ((double) EventParser.parseTime / 1000000000));
         System.out.println("Other parsing time: " + ((double) EventParser.otherTime / 1000000000));
         System.out.println("Total outputs: " + outputs);
-        System.out.println("Total execution time: " + engine.getExecutionTime());
+        System.out.println("------ Total execution time: " + engine.getExecutionTime() + " ------");
         System.out.println("Total enumeration time: " + ((double) enumTime / 1000000000));
         System.out.println("Average memory usage before match: " + (totalMem / totalMatches) + " Bytes.");
     }

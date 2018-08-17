@@ -15,7 +15,7 @@ public class EventParser {
     public static Event parseEvent(String line, Map<String, EventSchema> events) {
         long t = System.nanoTime();
         String values[] = line.substring(0, line.length() - 1).split("\\(");
-//        String values[] = line.split("[()]");
+//        String values[] = line.split("[()]"); /* This is 3-5 times slower compared to the code above */
         String name = values[0];
         values = values[1].split(",");
 
@@ -60,7 +60,7 @@ public class EventParser {
         attrs[1] = (long) idx.getAndIncrement();
         /* timestamp */
         attrs[2] = System.currentTimeMillis();
-        /* type */
+        /* type (currently unused) */
         attrs[3] = 4;
     }
 }

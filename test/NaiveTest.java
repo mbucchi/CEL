@@ -56,7 +56,7 @@ public class NaiveTest {
 
         compileTime = System.nanoTime() - compileTime;
 
-        NaiveEngine engine = new NaiveEngine(cea);
+        OldEngine engine = new OldEngine(cea);
         SelectionStrategy sel = q.getSelectionStrategy();
 
         if (sel.equals(SelectionStrategy.ALL)) {

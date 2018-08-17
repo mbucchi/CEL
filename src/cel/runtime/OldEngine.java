@@ -14,7 +14,7 @@ enum Semantic {
     STRICT
 }
 
-public class NaiveEngine {
+public class OldEngine {
     // used for normal execution
     private LinkedList<Integer> active_states;
     private ExtensibleList[] states;
@@ -43,7 +43,7 @@ public class NaiveEngine {
 
     private ExecutableCEA cea;
 
-    public NaiveEngine(ExecutableCEA cea){
+    public OldEngine(ExecutableCEA cea){
         this.stateN = cea.getNStates();
         this.q0 = 0;
         this.cea = cea;
@@ -327,7 +327,6 @@ public class NaiveEngine {
 //        if (match) enumerate();
 //        i++;
 //    }
-
 
     private Set<Integer> blackTransitionSet(Set<Integer> stateSet, BitSet b) {
         Set<Integer> newStateSet = new HashSet<>();

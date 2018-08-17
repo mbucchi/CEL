@@ -1,7 +1,7 @@
 import sys
 import random
 
-with open ("python.stream", "w") as tf:
+with open ("basicMaxTest.stream", "w") as tf:
     for i in range (0, int(sys.argv[1])):
         tf.write("H(id=")
         tf.write(str(random.choice([1, 2, 3, 4])))

@@ -59,15 +59,15 @@ public class NewTest {
         SelectionStrategy sel = q.getSelectionStrategy();
 
         if (sel.equals(SelectionStrategy.ALL)) {
-            engine.setANY();
+            engine.initALL();
         } else if (sel.equals(SelectionStrategy.MAX)) {
-            engine.setMAX();
+            engine.initMAX();
         } else if (sel.equals(SelectionStrategy.LAST)) {
-            engine.setLAST();
+            engine.initLAST();
         } else if (sel.equals(SelectionStrategy.NEXT)) {
-            engine.setNXT();
+            engine.initNEXT();
         } else if (sel.equals(SelectionStrategy.STRICT)) {
-            engine.setSTRICT();
+            engine.initSTRICT();
         }
 
         if (q.getConsumptionPolicy().equals(ConsumptionPolicy.NONE)) {

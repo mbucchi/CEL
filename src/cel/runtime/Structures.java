@@ -11,7 +11,7 @@ class LLNode<T> {
 class Node {
     ExtensibleList next = null;
     int i;
-    Long totalMatches = 1l;
+    Long totalMatches = 1L;
     private Iterator<Node> it;
 
     private Node(){
@@ -20,7 +20,7 @@ class Node {
 
     static Node Empty = new Node();
 
-    Node(int i, ExtensibleList next){
+    Node(int i, ExtensibleList next) {
         this.i = i;
         this.next = next;
         if (next != null && next.totalMatches > 0){
@@ -152,10 +152,10 @@ class Order extends LinkedList<LinkedList<Integer>> {
     private boolean[] state_is_present;
     private LinkedList<Integer> states;
 
-    Order(int stateN){
+    Order(int stateN) {
         super();
         state_is_present = new boolean[stateN];
-        states = new LinkedList<Integer>();
+        states = new LinkedList<>();
     }
 
     public boolean add(LinkedList<Integer> new_states){
@@ -241,12 +241,12 @@ class DetNode {
     }
 }
 
-class NXTTuple {
+class NEXTTuple {
     public final Set<Integer> T;
     final Set<Integer> U;
     boolean isFinal;
 
-    NXTTuple(Set<Integer> T, Set<Integer> U){
+    NEXTTuple(Set<Integer> T, Set<Integer> U){
         this.T = new HashSet<>();
         if (T != null) {
             this.T.addAll(T);
@@ -268,13 +268,13 @@ class NXTTuple {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        final NXTTuple other = (NXTTuple) obj;
+        final NEXTTuple other = (NEXTTuple) obj;
         return T.equals(other.T) && U.equals(other.U);
     }
 
     @Override
     public final String toString(){
-        return "NXTTuple(T=" + T + ", U=" + U + ")";
+        return "NEXTTuple(T=" + T + ", U=" + U + ")";
     }
 }
 

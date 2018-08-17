@@ -3,7 +3,7 @@ DECLARE EVENT H(id int, value int)
 
 DECLARE STREAM S(T, H)
 
-SELECT NEXT *
+SELECT LAST *
 FROM S
 WHERE (T ; H)
 FILTER T[value > 40]

@@ -11,14 +11,6 @@ public class NewEngine {
     private LinkedList<Integer> active_states;
     Map<Integer, ExtensibleList> states;      // represents list_q /forall q \in Q
 
-    // used for NXT and LAST execution
-    private Order order;
-    private NXTNode[] node_states;
-
-    // used for MAX execution
-    private Map<MaxTuple, ExtensibleList> stateListMax;
-    private Map<DetNode, ExtensibleList> stateListDet;
-
     private boolean discardPartials = true;
 
     private int i = 1;
@@ -29,23 +21,18 @@ public class NewEngine {
 
     private Consumer<MatchGrouping> sendMatch;
 
-    private final int stateN;
     private final int q0;
-
-    private ExecutableCEA cea;
     private CELTraverser celT;
 
-    public NewEngine(ExecutableCEA cea){
-        this.stateN = cea.getNStates();
+    public NewEngine(ExecutableCEA cea) {
         this.q0 = 0;
-        this.cea = cea;
         this.celT = new CELTraverser(cea);
-        restartMachine();
+        restartEngine();
     }
 
-    public void setDiscardPartials(boolean discard){
+    public void setDiscardPartials(boolean discard) {
         discardPartials = discard;
-        restartMachine();
+//        restartEngine();
     }
 
     public void setMatchCallback(Consumer<MatchGrouping> callback){
@@ -56,27 +43,32 @@ public class NewEngine {
         return ((double)totalTime) / 1000000000;
     }
 
-    public void setANY(){
+    public void initALL() {
         semantic = Semantic.ANY;
+        celT.initALL();
     }
 
-    public void setMAX(){
+    public void initMAX() {
         semantic = Semantic.MAX;
+        celT.initMAX();
     }
 
-    public void setLAST(){
+    public void initLAST() {
         semantic = Semantic.LAST;
+        celT.initLAST();
+
     }
 
-    public void setNXT(){
+    public void initNEXT() {
         semantic = Semantic.NXT;
+        celT.initNEXT();
     }
 
-    public void setSTRICT(){
-        semantic = Semantic.STRICT;
+    public void initSTRICT() {
+//        semantic = Semantic.STRICT;
     }
 
-    public void newValue(Event e, BitSet b){
+    public void newValue(Event e, BitSet b) {
         if (semantic == Semantic.ANY) {
             newValueANY(e, b);
         }
@@ -84,7 +76,7 @@ public class NewEngine {
             newValueMAX(e, b);
         }
         else if (semantic == Semantic.NXT){
-            newValueNXT(e, b);
+            newValueNEXT(e, b);
         }
         else if (semantic == Semantic.LAST){
             newValueLAST(e, b);
@@ -94,7 +86,7 @@ public class NewEngine {
 //        }
     }
 
-    private void restartMachine(){
+    private void restartEngine() {
         usefulValues = new Hashtable<>();
         ExtensibleList ex = new ExtensibleList();
         ex.add(Node.Empty);
@@ -104,25 +96,6 @@ public class NewEngine {
 
         active_states = new LinkedList<>();
         active_states.add(q0);
-
-        order = new Order(stateN);
-        node_states = new NXTNode[stateN];
-        node_states[q0] = NXTNode.Empty;
-        LinkedList<Integer> I = new LinkedList<>();
-        I.add(q0);
-        order.add(I);
-
-        stateListMax = new HashMap<>();
-        MaxTuple maxI = new MaxTuple(new HashSet<>(I), new HashSet<>());
-        ExtensibleList maxStart = new ExtensibleList();
-        maxStart.add(Node.Empty);
-        stateListMax.put(maxI, maxStart);
-
-        stateListDet = new HashMap<>();
-        DetNode detI = new DetNode(new HashSet<>(I));
-        ExtensibleList detStart = new ExtensibleList();
-        detStart.add(Node.Empty);
-        stateListDet.put(detI, detStart);
     }
 
     private void newValueANY(Event e, BitSet b) {
@@ -131,108 +104,13 @@ public class NewEngine {
         LinkedList<Integer> new_states = new LinkedList<>(); // to keep up with active states
         Set<Integer> added_states = new HashSet<>();                // so that we dont add a state twice to the active list
         Map<Integer, ExtensibleList> _states = new HashMap<>();      // represents list_q /forall q \in Q
-        ExtensibleList ex;
         boolean match = false;
         // System.out.println(active_states.toString());
         for (int p : active_states){                              //  \forall p \in Q such that list_p is not empty
-            List<Integer> nextStates = celT.nextStateDet(p, b);
+            List<Integer> nextStates = celT.nextStateALL(p, b);
             Integer q_b = nextStates.get(0);
             Integer q_w = nextStates.get(1);
-
-            if (q_b != -1) {
-                usefulValues.put(i, e);
-                // black transition update. Including a lazy initialization
-                // of new_list_q if it had not been initialized
-                if (!added_states.contains(q_b)) {
-                    added_states.add(q_b);
-                    new_states.add(q_b);
-                }
-
-                ex = _states.get(q_b);
-                if (ex == null) {
-                    ex = new ExtensibleList();
-                    _states.put(q_b, ex);
-                }
-                ex.add(new Node(i, states.get(p)));
-
-                if (celT.isFinal(q_b)) {
-                    match = true;
-                }
-            }
-
-            if (q_w != -1) {
-                if (!added_states.contains(q_w)){
-                    added_states.add(q_w);
-                    new_states.add(q_w);
-                }
-
-                ex = _states.get(q_w);
-                if (ex == null) {
-                    ex = new ExtensibleList();
-                    _states.put(q_w, ex);
-                }
-                ex.extend(states.get(p));
-            }
-        }
-
-        states = _states;                                           // update the state of the machine
-        active_states = new_states;
-
-        totalTime += System.nanoTime() - startTime;
-
-        if (match) enumerate();
-        i++;
-    }
-
-    private void newValueNXT(Event e, BitSet b) {
-        long startTime = System.nanoTime();
-
-        LinkedList<Integer> new_states = new LinkedList<>(); // to keep up with active states
-        Set<Integer> added_states = new HashSet<>();                // so that we dont add a state twice to the active list
-        Map<Integer, ExtensibleList> _states = new HashMap<>();      // represents list_q /forall q \in Q
-        ExtensibleList ex;
-        boolean match = false;
-        // System.out.println(active_states.toString());
-        for (int p : active_states){                              //  \forall p \in Q such that list_p is not empty
-            List<Integer> nextStates = celT.nextStateNXT(p, b);
-            Integer q_b = nextStates.get(0);
-            Integer q_w = nextStates.get(1);
-
-            if (q_b != -1) {
-                usefulValues.put(i, e);
-                // black transition update. Including a lazy initialization
-                // of new_list_q if it had not been initialized
-                if (!added_states.contains(q_b)) {
-                    added_states.add(q_b);
-                    new_states.add(q_b);
-                }
-
-                ex = _states.get(q_b);
-                if (ex == null) {
-                    ex = new ExtensibleList();
-                    _states.put(q_b, ex);
-                }
-                ex.add(new Node(i, states.get(p)));
-
-                if (celT.isFinal(q_b)) {
-                    match = true;
-                }
-            }
-
-            if (q_w != -1) {
-                if (!added_states.contains(q_w)){
-                    added_states.add(q_w);
-                    new_states.add(q_w);
-                }
-
-                ex = _states.get(q_w);
-                if (ex == null) {
-                    ex = new ExtensibleList();
-                    _states.put(q_w, ex);
-                }
-                ex.extend(states.get(p));
-            }
-
+            match = isMatch(e, new_states, added_states, _states, match, p, q_b, q_w);
         }
 
         states = _states;                                           // update the state of the machine
@@ -246,59 +124,48 @@ public class NewEngine {
         i++;
     }
 
+    private void newValueNEXT(Event e, BitSet b) {
+        long startTime = System.nanoTime();
+
+        LinkedList<Integer> new_states = new LinkedList<>();
+        Set<Integer> added_states = new HashSet<>();
+        Map<Integer, ExtensibleList> _states = new HashMap<>();
+        boolean match = false;
+        // System.out.println(active_states.toString());
+        for (int p : active_states){
+            List<Integer> nextStates = celT.nextStateNEXT(p, b);
+            Integer q_b = nextStates.get(0);
+            Integer q_w = nextStates.get(1);
+            match = isMatch(e, new_states, added_states, _states, match, p, q_b, q_w);
+        }
+
+        states = _states;
+        active_states = new_states;
+
+        totalTime += System.nanoTime() - startTime;
+
+        if (match) {
+            enumerate();
+        }
+        i++;
+    }
+
     private void newValueLAST(Event e, BitSet b) {
         long startTime = System.nanoTime();
 
-        LinkedList<Integer> new_states = new LinkedList<>(); // to keep up with active states
-        Set<Integer> added_states = new HashSet<>();                // so that we dont add a state twice to the active list
-        Map<Integer, ExtensibleList> _states = new HashMap<>();      // represents list_q /forall q \in Q
-        ExtensibleList ex;
+        LinkedList<Integer> new_states = new LinkedList<>();
+        Set<Integer> added_states = new HashSet<>();
+        Map<Integer, ExtensibleList> _states = new HashMap<>();
         boolean match = false;
         // System.out.println(active_states.toString());
-        for (int p : active_states){                              //  \forall p \in Q such that list_p is not empty
+        for (int p : active_states){
             List<Integer> nextStates = celT.nextStateLAST(p, b);
             Integer q_b = nextStates.get(0);
             Integer q_w = nextStates.get(1);
-
-            if (q_b != -1) {
-                usefulValues.put(i, e);
-                // black transition update. Including a lazy initialization
-                // of new_list_q if it had not been initialized
-                if (!added_states.contains(q_b)) {
-                    added_states.add(q_b);
-                    new_states.add(q_b);
-                }
-
-                ex = _states.get(q_b);
-                if (ex == null) {
-                    ex = new ExtensibleList();
-                    _states.put(q_b, ex);
-                }
-                ex.add(new Node(i, states.get(p)));
-
-                if (celT.isFinal(q_b)) {
-                    match = true;
-                }
-            }
-
-            if (q_w != -1) {
-                if (!added_states.contains(q_w)){
-                    added_states.add(q_w);
-                    new_states.add(q_w);
-                }
-
-                ex = _states.get(q_w);
-                if (ex == null) {
-                    ex = new ExtensibleList();
-                    _states.put(q_w, ex);
-                }
-                ex.extend(states.get(p));
-            }
-
-
+            match = isMatch(e, new_states, added_states, _states, match, p, q_b, q_w);
         }
 
-        states = _states;                                           // update the state of the machine
+        states = _states;
         active_states = new_states;
 
         totalTime += System.nanoTime() - startTime;
@@ -359,53 +226,19 @@ public class NewEngine {
 //    }
 
     private void newValueMAX(Event e, BitSet b) {
+
         long startTime = System.nanoTime();
 
         LinkedList<Integer> new_states = new LinkedList<>(); // to keep up with active states
         Set<Integer> added_states = new HashSet<>();                // so that we dont add a state twice to the active list
         Map<Integer, ExtensibleList> _states = new HashMap<>();      // represents list_q /forall q \in Q
-        ExtensibleList ex;
         boolean match = false;
         // System.out.println(active_states.toString());
         for (int p : active_states){                              //  \forall p \in Q such that list_p is not empty
             List<Integer> nextStates = celT.nextStateMAX(p, b);
             Integer q_b = nextStates.get(0);
             Integer q_w = nextStates.get(1);
-
-            if (q_b != -1) {
-                usefulValues.put(i, e);
-                // black transition update. Including a lazy initialization
-                // of new_list_q if it had not been initialized
-                if (!added_states.contains(q_b)) {
-                    added_states.add(q_b);
-                    new_states.add(q_b);
-                }
-
-                ex = _states.get(q_b);
-                if (ex == null) {
-                    ex = new ExtensibleList();
-                    _states.put(q_b, ex);
-                }
-                ex.add(new Node(i, states.get(p)));
-
-                if (celT.isFinal(q_b)) {
-                    match = true;
-                }
-            }
-
-            if (q_w != -1) {
-                if (!added_states.contains(q_w)){
-                    added_states.add(q_w);
-                    new_states.add(q_w);
-                }
-
-                ex = _states.get(q_w);
-                if (ex == null) {
-                    ex = new ExtensibleList();
-                    _states.put(q_w, ex);
-                }
-                ex.extend(states.get(p));
-            }
+            match = isMatch(e, new_states, added_states, _states, match, p, q_b, q_w);
         }
 
         states = _states;                                           // update the state of the machine
@@ -413,10 +246,52 @@ public class NewEngine {
 
         totalTime += System.nanoTime() - startTime;
 
-        if (match) enumerate();
+        if (match) {
+            enumerate();
+        }
         i++;
     }
 
+    private boolean isMatch(Event e, LinkedList<Integer> new_states, Set<Integer> added_states,
+                            Map<Integer, ExtensibleList> _states, boolean match, int p, Integer q_b,
+                            Integer q_w) {
+        ExtensibleList ex;
+        if (q_b != -1) {
+            usefulValues.put(i, e);
+            // black transition update. Including a lazy initialization
+            // of new_list_q if it had not been initialized
+            if (!added_states.contains(q_b)) {
+                added_states.add(q_b);
+                new_states.add(q_b);
+            }
+
+            ex = _states.get(q_b);
+            if (ex == null) {
+                ex = new ExtensibleList();
+                _states.put(q_b, ex);
+            }
+            ex.add(new Node(i, states.get(p)));
+
+            if (celT.isFinal(q_b)) {
+                match = true;
+            }
+        }
+
+        if (q_w != -1) {
+            if (!added_states.contains(q_w)) {
+                added_states.add(q_w);
+                new_states.add(q_w);
+            }
+
+            ex = _states.get(q_w);
+            if (ex == null) {
+                ex = new ExtensibleList();
+                _states.put(q_w, ex);
+            }
+            ex.extend(states.get(p));
+        }
+        return match;
+    }
 
     private void enumerate() {
         if (sendMatch != null) {
@@ -429,7 +304,7 @@ public class NewEngine {
             sendMatch.accept(m);
         }
         if (discardPartials) {
-            restartMachine();
+            restartEngine();
         }
     }
 

@@ -19,8 +19,14 @@ import java.util.Set;
 class MathExprVisitor extends CELBaseVisitor<Value> {
 
     private Label label;
+    private boolean checkValidity;
+
+    MathExprVisitor(){
+        checkValidity = false;
+    }
 
     MathExprVisitor(Label label) {
+        checkValidity = true;
         this.label = label;
     }
 
@@ -32,6 +38,7 @@ class MathExprVisitor extends CELBaseVisitor<Value> {
     }
 
     private void ensureValidity(Value value, ParserRuleContext context) {
+        if (!checkValidity) return;
         for (Attribute attribute : value.getAttributes()) {
             Set<String> attributeNames = label.getAttributes().keySet();
             if (!attributeNames.contains(attribute.getName())) {

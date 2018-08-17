@@ -1,5 +1,4 @@
 import cel.query.Query;
-import cel.runtime.BitVectorGenerator;
 import cel.runtime.event.Event;
 import org.mdkt.compiler.InMemoryJavaCompiler;
 

@@ -28,10 +28,10 @@ public class StreamSchema {
         return allSchemas.get(streamName);
     }
 
-    public static StreamSchema getSchemaFor(String streamName) {
+    public static StreamSchema getSchemaFor(String streamName) throws StreamException {
         StreamSchema streamSchema = allSchemas.get(streamName);
         if (streamSchema == null) {
-            throw new Error("There is no existing schema for event of name \"" + streamName + "\"");
+            throw new StreamException("There is no existing schema for stream of name \"" + streamName + "\"");
         }
         return streamSchema;
     }

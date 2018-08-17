@@ -3,8 +3,12 @@ package cel.cea;
 import cel.cea.transition.Transition;
 import cel.event.EventSchema;
 import cel.event.Label;
+import cel.predicate.BitPredicate;
+import cel.predicate.BitPredicateFactory;
+import cel.predicate.Predicate;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -15,7 +19,7 @@ public class CEA {
     int finalState;
     Collection<Transition> transitions;
     Set<Label> labelSet;
-    Set<EventSchema> eventSchemas;
+//    Set<EventSchema> eventSchemas;
 
     public int getNumStates() {
         return nStates;
@@ -29,7 +33,7 @@ public class CEA {
     CEA() {
         transitions = new ArrayList<>();
         labelSet = new HashSet<>();
-        eventSchemas = new HashSet<>();
+//        eventSchemas = new HashSet<>();
     }
 
     CEA(CEA otherCea) {
@@ -46,7 +50,7 @@ public class CEA {
         );
 
         labelSet.addAll(otherCea.labelSet);
-        eventSchemas.addAll(otherCea.eventSchemas);
+//        eventSchemas.addAll(otherCea.eventSchemas);
     }
 
     CEA(int nStates, int initState, int finalState) {
@@ -68,9 +72,24 @@ public class CEA {
         return new ArrayList<>(transitions);
     }
 
-    public Set<EventSchema> getEventSchemas() {
-        return new HashSet<>(eventSchemas);
+    public CEA addPredicate(BitPredicate bitPredicate, Label label){
+        CEA newCea = copy();
+
+        if (!labelSet.contains(label)) return newCea;
+
+        newCea.transitions = transitions.stream()
+                .map(transition -> {
+                    if (transition.isBlack() && transition.overLabel(label))
+                        return transition.addPredicate(bitPredicate);
+                    return transition.copy();
+                })
+                .collect(Collectors.toList());
+        return newCea;
     }
+
+//    public Set<EventSchema> getEventSchemas() {
+//        return new HashSet<>(eventSchemas);
+//    }
 
     public int getnStates() {
         return nStates;
@@ -82,7 +101,22 @@ public class CEA {
                 .append("  nStates=").append(nStates).append(",\n")
                 .append("  initState=").append(initState).append(",\n")
                 .append("  finalState=").append(finalState).append(",\n")
-                .append("  transitions=[");
+                .append("  predicates=[");
+
+        List<String> strings =  BitPredicateFactory.getInstance().getStringDescription();
+        if (strings.size() > 0) {
+            stringBuilder.append("\n    ");
+        }
+        int i;
+        for (i = 0; i < strings.size() - 1; i++) {
+            stringBuilder.append(strings.get(i)).append(",\n    ");
+        }
+
+        if (strings.size() > 0) {
+            stringBuilder.append(strings.get(i)).append("\n  ");
+        }
+
+        stringBuilder.append("],\n  transitions=[");
 
         if (transitions.size() > 0) {
             stringBuilder.append("\n    ");
@@ -91,7 +125,6 @@ public class CEA {
         Transition[] transitionArray = transitions.toArray(new Transition[0]) ;
         Arrays.sort(transitionArray, Transition::compareTo);
 
-        int i;
         for (i = 0; i < transitions.size() - 1; i++) {
             Transition transition = transitionArray[i];
             stringBuilder.append(transition).append(",\n    ");

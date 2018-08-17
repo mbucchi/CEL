@@ -1,50 +1,61 @@
 package cel.cea.transition;
 
 import cel.event.Label;
-import cel.cea.predicate.Predicate;
-import cel.event.EventSchema;
-import cel.filter.EventFilter;
+import cel.predicate.BitPredicate;
 
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 public class Transition implements Comparable<Transition> {
 
     private int fromState;
     private int toState;
-    private Predicate predicate;
     private TransitionType transitionType;
-
+    private Set<Label> labels;
+    private BitPredicate bitPredicate;
 
     private Transition(Transition toCopy) {
         fromState = toCopy.fromState;
         toState = toCopy.toState;
-        predicate = toCopy.predicate.copy();
         transitionType = toCopy.transitionType;
+        labels = new HashSet<>(toCopy.labels);
+        bitPredicate = toCopy.bitPredicate.copy();
     }
 
-    public Transition(int fromState, TransitionType transitionType) {
-        this.fromState = fromState;
-        this.transitionType = transitionType;
-    }
+//    public Transition(int fromState, TransitionType transitionType) {
+//        this.fromState = fromState;
+//        this.transitionType = transitionType;
+//    }
 
-    public Transition(int fromState, int toState, Predicate predicate, TransitionType transitionType) {
+    public Transition(int fromState, int toState, BitPredicate bitPredicate, TransitionType transitionType) {
         this.fromState = fromState;
         this.toState = toState;
-        this.predicate = predicate.copy();
         this.transitionType = transitionType;
+        this.bitPredicate = bitPredicate;
+        labels = new HashSet<>();
+    }
+
+    public Transition(int fromState, int toState, BitPredicate bitPredicate, Label label, TransitionType transitionType) {
+        this(fromState, toState, bitPredicate, new HashSet<>(Set.of(label)), transitionType);
+        labels.add(label);
+    }
+
+
+    public Transition(int fromState, int toState, BitPredicate bitPredicate, Set<Label> labels, TransitionType transitionType) {
+        this(fromState, toState, bitPredicate, transitionType);
+        this.labels = new HashSet<>(labels);
     }
 
     public Transition displaceTransition(int nStates) {
-        return new Transition(fromState + nStates, toState + nStates, predicate, transitionType);
+        return new Transition(fromState + nStates, toState + nStates, bitPredicate, labels, transitionType);
     }
 
     public Transition replaceToState(int toState) {
-        return new Transition(fromState, toState, predicate, transitionType);
+        return new Transition(fromState, toState, bitPredicate, labels, transitionType);
     }
 
     public Transition replaceFromState(int fromState) {
-        return new Transition(fromState, toState, predicate, transitionType);
+        return new Transition(fromState, toState, bitPredicate, labels, transitionType);
     }
 
     public int getFromState() {
@@ -55,27 +66,16 @@ public class Transition implements Comparable<Transition> {
         return toState;
     }
 
-    public void setPredicate(Predicate p) {
-        predicate = p;
-    }
     public boolean overLabel(Label label) {
-        return predicate.containsLabel(label);
+        return labels.contains(label);
     }
 
     public boolean isBlack() {
         return transitionType == TransitionType.BLACK;
     }
 
-    public void addFilter(EventFilter filter) {
-        predicate.addFilter(filter);
-    }
-
-    public Collection<EventFilter> getFilters() {
-        return predicate.getFilterCollection();
-    }
-
     public void addLabel(Label label) {
-        predicate.addLabel(label);
+        labels.add(label);
     }
 
     public Transition copy() {
@@ -91,16 +91,17 @@ public class Transition implements Comparable<Transition> {
     }
 
     public Set<Label> getLabels() {
-        return predicate.getLabelSet();
+        return labels;
     }
 
-    public EventSchema getEventSchema() {
-        return predicate.getEventSchema();
+    public Transition addPredicate(BitPredicate bitPredicate){
+        Transition newTransition = copy();
+        newTransition.bitPredicate = this.bitPredicate.cojoin(bitPredicate);
+        return newTransition;
     }
-
-    public Predicate getPredicate() {
-        return predicate;
-    }
+//    public EventSchema getEventSchema() {
+//        return predicate.getEventSchema();
+//    }
 
     @Override
     public String toString() {
@@ -108,8 +109,24 @@ public class Transition implements Comparable<Transition> {
                 transitionType.getSymbol() + ", " +
                 fromState + ", " +
                 toState + ", " +
-                predicate.toString() +
+                bitPredicate.toString() +
                 ")";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Transition)) return false;
+        Transition other = (Transition)obj;
+        return (other.bitPredicate.equals(bitPredicate)
+                && other.fromState == fromState
+                && other.toState == toState
+                && other.transitionType == transitionType);
+    }
+
+    @Override
+    public int hashCode() {
+        return bitPredicate.hashCode() * 31 + transitionType.hashCode() * 17 + toState * 13 + fromState * 11;
     }
 
     @Override

@@ -35,6 +35,11 @@ public class NumberLiteral extends Literal {
     }
 
     @Override
+    public int hashCode() {
+        return Double.hashCode(value);
+    }
+
+    @Override
     public String toString() {
         return String.valueOf(value);
     }

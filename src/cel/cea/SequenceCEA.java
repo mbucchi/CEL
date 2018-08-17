@@ -5,7 +5,6 @@ import static java.util.stream.Collectors.toList;
 public class SequenceCEA extends CEA {
 
     public SequenceCEA(CEA first, CEA second) {
-        // TODO : copy transitions instead of just moving them
         initState = 0;
         nStates = first.nStates + second.nStates - 1;
         finalState = nStates - 1;
@@ -15,10 +14,13 @@ public class SequenceCEA extends CEA {
 
         // displace the second CEA transitions and add them
         int toDisplace = first.nStates - 1;
+
+        // TODO: do not assume the last state is final
         transitions.addAll(
                 second.transitions
                         .stream()
                         .map(transition -> transition.displaceTransition(toDisplace))
+                        //map from state = finalstate
                         .collect(toList())
         );
 
@@ -27,7 +29,7 @@ public class SequenceCEA extends CEA {
         labelSet.addAll(second.labelSet);
 
         // add all the corresponding eventSchemas
-        eventSchemas.addAll(first.eventSchemas);
-        eventSchemas.addAll(second.eventSchemas);
+//        eventSchemas.addAll(first.eventSchemas);
+//        eventSchemas.addAll(second.eventSchemas);
     }
 }

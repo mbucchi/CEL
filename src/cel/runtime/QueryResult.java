@@ -1,18 +1,18 @@
 package cel.runtime;
 
-import cel.queryExecution.CeaExecutor;
+import cel.queryExecution.CELExecutor;
 
 import java.util.function.Consumer;
 
 public class QueryResult {
 
     private Consumer<Object> callback;
-    private CeaExecutor ceaExecutor;
+    private CELExecutor celExecutor;
 
     QueryResult(){}
 
-    QueryResult(CeaExecutor ceaExecutor){
-        this.ceaExecutor = ceaExecutor;
+    QueryResult(CELExecutor celExecutor){
+        this.celExecutor = celExecutor;
     }
 
     public void setMatchCallback(Consumer<Object> callback) {

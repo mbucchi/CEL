@@ -70,6 +70,7 @@ public class Query {
     private void runOptimizations() {
 
         // Remove useless states and transitions
+        System.out.println(patternCEA);
         patternCEA = new MinimizedCEA(patternCEA);
 //        patternCEA = new DeterministicCEA(patternCEA);
 //        CEATraverser test = new CEATraverser(patternCEA);

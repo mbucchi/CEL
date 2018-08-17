@@ -1,4 +1,4 @@
-package cel.filter;
+package cel.predicate;
 
 public enum LogicalOperation {
     EQUALS("=="),
@@ -17,6 +17,14 @@ public enum LogicalOperation {
 
     LogicalOperation(String symbol) {
         this.symbol = symbol;
+    }
+
+    boolean isEqualityOperation(){
+        return this == EQUALS || this == NOT_EQUALS;
+    }
+
+    boolean isInequalityOperation(){
+        return this == LESS || this == LESS_EQUALS || this == GREATER || this == GREATER_EQUALS;
     }
 
     LogicalOperation negate() {

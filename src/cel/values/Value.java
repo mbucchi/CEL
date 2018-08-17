@@ -40,6 +40,8 @@ public abstract class Value {
 
     public abstract boolean greaterThan(Value otherValue);
 
+    public abstract int hashCode();
+
     public boolean interoperableWith(ValueType valueType) {
         for (ValueType myValueType : valueTypes) {
             if (myValueType.interoperableWith(valueType)) return true;

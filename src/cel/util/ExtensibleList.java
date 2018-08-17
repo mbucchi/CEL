@@ -13,11 +13,11 @@ public class ExtensibleList<T> implements Iterable<T> {
         first = last = null;
     }
 
-    public ExtensibleList(T value){
+    ExtensibleList(T value){
         first = last = new LNode<>(value);
     }
 
-    void add(T element){
+    public void add(T element){
         LNode<T> newNode = new LNode<>(element);
         if (first != null){
             newNode.setNext(first);

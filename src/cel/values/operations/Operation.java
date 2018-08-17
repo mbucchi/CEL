@@ -20,6 +20,11 @@ public abstract class Operation extends Value {
     public abstract String toString();
 
     @Override
+    public int hashCode() {
+        return toString().hashCode();
+    }
+
+    @Override
     public boolean equals(Object obj) {
         return this == obj;
     }

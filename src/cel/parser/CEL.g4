@@ -101,19 +101,19 @@ consumption_policy
 
 filter
  : '(' filter ')'                                       # par_filter
- | event_name '[' bool_expr ']'                         # event_filter
+ | event_name '[' predicate ']'                         # event_filter
  | filter K_AND filter                                  # and_filter
  | filter K_OR filter                                   # or_filter
  ;
 
-bool_expr
- : '(' bool_expr ')'                                           # par_bool_expr
- | K_NOT bool_expr                                             # not_expr
+predicate
+ : '(' predicate ')'                                           # par_predicate
+ | K_NOT predicate                                             # not_expr
  | math_expr ( LE | LEQ | GE | GEQ ) math_expr                 # inequality_expr
  | math_expr ( EQ | NEQ ) math_expr                            # equality_math_expr
  | string_literal ( EQ | NEQ ) string_literal                  # equality_string_expr
- | bool_expr K_AND bool_expr                                   # and_expr
- | bool_expr K_OR bool_expr                                    # or_expr
+ | predicate K_AND predicate                                   # and_expr
+ | predicate K_OR predicate                                    # or_expr
  | attribute_name K_LIKE string                                # regex_expr
  | attribute_name ( K_IN | K_NOT K_IN ) value_seq              # containment_expr
  ;

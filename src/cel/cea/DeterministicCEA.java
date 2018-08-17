@@ -1,5 +1,5 @@
 package cel.cea;
-import cel.cea.predicate.Predicate;
+import cel.predicate.Predicate;
 import cel.cea.transition.Transition;
 import cel.cea.transition.TransitionType;
 

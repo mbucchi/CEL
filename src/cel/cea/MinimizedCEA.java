@@ -55,10 +55,10 @@ public class MinimizedCEA extends CEA {
                 newTransitions.add(newTransition);
 
                 newLabelSet.addAll(transition.getLabels());
-                EventSchema evSch = transition.getEventSchema();
-                if (evSch != null) {
-                    newEventSchemas.add(evSch);
-                }
+//                EventSchema evSch = transition.getEventSchema();
+//                if (evSch != null) {
+//                    newEventSchemas.add(evSch);
+//                }
             }
         }
         // Sort transitions
@@ -71,7 +71,7 @@ public class MinimizedCEA extends CEA {
         finalState = newFinalState;
         transitions = newTransitions;
         labelSet = newLabelSet;
-        eventSchemas = newEventSchemas;
+//        eventSchemas = newEventSchemas;
     }
 
     private static Map<Integer, Set<Integer>> createStatesReachableMap(CEA cea) {

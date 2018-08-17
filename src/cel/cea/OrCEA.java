@@ -1,14 +1,18 @@
 package cel.cea;
 
-import cel.cea.predicate.Predicate;
+import cel.predicate.BitPredicate;
+import cel.predicate.Predicate;
 import cel.cea.transition.Transition;
 import cel.cea.transition.TransitionType;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+
 import static java.util.stream.Collectors.toList;
 
 public class OrCEA extends CEA {
 
     public OrCEA(CEA left, CEA right) {
-        // TODO : remove minimization
         nStates = left.nStates + right.nStates + 2;
         initState = 0;
         finalState = nStates - 1;
@@ -41,13 +45,21 @@ public class OrCEA extends CEA {
                         .stream()
                         .filter(transition ->  transition.getToState() == left.finalState)
                         .filter(transition -> transition.getType() == TransitionType.BLACK)
-                        .map(transition -> {
-                            Transition newT = transition.displaceTransition(toDisplaceLeft)
-                                    .replaceToState(finalState);
-                            if(transition.getFromState() == left.initState)
-                                return newT.replaceFromState(initState);
-                            return newT;
-                        })
+                        .map(transition ->  transition.displaceTransition(toDisplaceLeft)
+                                    .replaceToState(finalState))
+                        .collect(toList())
+        );
+
+        // copy all black transitions init-final in left CEA and alter them to lead to
+        // the new init-final states
+        transitions.addAll(
+                left.transitions
+                        .stream()
+                        .filter(transition -> transition.getType() == TransitionType.BLACK)
+                        .filter(transition ->  transition.getFromState() == left.initState)
+                        .filter(transition ->  transition.getToState() == left.finalState)
+                        .map(transition ->  transition.replaceFromState(initState)
+                                .replaceToState(finalState))
                         .collect(toList())
         );
 
@@ -67,7 +79,7 @@ public class OrCEA extends CEA {
                         .filter(transition -> transition.getFromState() == right.initState)
                         .filter(transition -> transition.getType() == TransitionType.BLACK)
                         .map(transition -> transition.displaceTransition(toDisplaceRight)
-                                .replaceFromState(0))
+                                .replaceFromState(initState))
                         .collect(toList())
         );
 
@@ -77,25 +89,36 @@ public class OrCEA extends CEA {
                         .stream()
                         .filter(transition -> transition.getToState() == right.finalState)
                         .filter(transition -> transition.getType() == TransitionType.BLACK)
-                        .map(transition ->  {
-                            Transition newT = transition.displaceTransition(toDisplaceRight)
-                                    .replaceToState(finalState);
-                            if(transition.getFromState() == right.initState)
-                                return newT.replaceFromState(initState);
-                            return newT;
-                        })
+                        .map(transition -> transition.displaceTransition(toDisplaceRight)
+                                    .replaceToState(finalState))
+                        .collect(toList())
+        );
+
+        // copy all black transitions init-final in right CEA and alter them to lead to
+        // the new init-final states
+        transitions.addAll(
+                right.transitions
+                        .stream()
+                        .filter(transition -> transition.getType() == TransitionType.BLACK)
+                        .filter(transition ->  transition.getFromState() == right.initState)
+                        .filter(transition ->  transition.getToState() == right.finalState)
+                        .map(transition ->  transition.replaceFromState(initState)
+                                .replaceToState(finalState))
                         .collect(toList())
         );
 
         // add the missing white transition
-        transitions.add(new Transition(0, 0, Predicate.TRUE_PREDICATE, TransitionType.WHITE));
+        transitions.add(new Transition(0, 0, BitPredicate.getTruePredicate(), TransitionType.WHITE));
 
         // add all the corresponding labels
         labelSet.addAll(left.labelSet);
         labelSet.addAll(right.labelSet);
 
+        //remove duplicate states
+        transitions = new ArrayList<>(new HashSet<>(transitions));
+
         // add all the corresponding eventSchemas
-        eventSchemas.addAll(left.eventSchemas);
-        eventSchemas.addAll(right.eventSchemas);
+//        eventSchemas.addAll(left.eventSchemas);
+//        eventSchemas.addAll(right.eventSchemas);
     }
 }

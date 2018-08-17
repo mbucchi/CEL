@@ -4,50 +4,50 @@ import cel.compiler.errors.TypeError;
 import cel.compiler.errors.UnknownStatementError;
 import cel.compiler.errors.ValueError;
 import cel.event.Label;
-import cel.filter.*;
 import cel.parser.CELBaseVisitor;
 import cel.parser.CELParser;
 import cel.parser.utils.StringCleaner;
+import cel.predicate.*;
 import cel.values.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
+class PredicateVisitor extends CELBaseVisitor<AtomicPredicate> {
 
     private Label label;
 
-    BoolExprVisitor(Label label) {
+    PredicateVisitor(Label label) {
         this.label = label;
     }
 
-    private void ensureValidity(EventFilter eventFilter, ParserRuleContext context) {
-        if (eventFilter.isConstant()) {
+    private void ensureValidity(AtomicPredicate atomicPredicate, ParserRuleContext context) {
+        if (atomicPredicate.isConstant()) {
             throw new ValueError("Expression must have at least one attribute", context);
         }
 
-        if (eventFilter.notApplicable()) {
-            throw new TypeError("Filter is always false", context);
-        }
+//        if (atomicPredicate.notApplicable()) {
+//            throw new TypeError("Filter is always false", context);
+//        }
     }
 
     @Override
-    public EventFilter visitNot_expr(CELParser.Not_exprContext ctx) {
-        EventFilter innerFilter = ctx.bool_expr().accept(this);
-        return innerFilter.negate();
+    public AtomicPredicate visitNot_expr(CELParser.Not_exprContext ctx) {
+        AtomicPredicate innerPredicate = ctx.bool_expr().accept(this);
+        return innerPredicate.negate();
     }
 
 
     @Override
-    public EventFilter visitAnd_expr(CELParser.And_exprContext ctx) {
-        EventFilter left = ctx.bool_expr(0).accept(this);
-        EventFilter right = ctx.bool_expr(1).accept(this);
-        return new AndEventFilter(label, left, right);
+    public AtomicPredicate visitAnd_expr(CELParser.And_exprContext ctx) {
+        AtomicPredicate left = ctx.bool_expr(0).accept(this);
+        AtomicPredicate right = ctx.bool_expr(1).accept(this);
+        return new AndPredicate(left, right);
     }
 
     @Override
-    public EventFilter visitPar_bool_expr(CELParser.Par_bool_exprContext ctx) {
+    public AtomicPredicate visitPar_bool_expr(CELParser.Par_bool_exprContext ctx) {
         // just ignore parenthesis
         return ctx.bool_expr().accept(this);
     }
@@ -77,11 +77,11 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
     }
 
     @Override
-    public EventFilter visitContainment_expr(CELParser.Containment_exprContext ctx) {
-        LogicalOperation logicalOperation = ctx.K_NOT() == null ? LogicalOperation.IN : LogicalOperation.NOT_IN;
+    public AtomicPredicate visitContainment_expr(CELParser.Containment_exprContext ctx) {
+        boolean negated = ctx.K_NOT() != null;
         Attribute attribute = getAttributeForName(ctx.attribute_name());
 
-        EventFilter eventFilter;
+        AtomicPredicate predicate;
 
         if (ctx.value_seq().number_seq() != null) {
 
@@ -90,38 +90,36 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
                         "` is not comparable with numeric values", ctx);
             }
 
-            ContainmentEventFilter filter = new ContainmentEventFilter(
-                    label,
+            predicate = new ContainmentPredicate(
                     attribute,
-                    ValueType.NUMERIC,
-                    logicalOperation,
-                    parseNumberSeq(ctx.value_seq().number_seq()));
+                    parseNumberSeq(ctx.value_seq().number_seq()))
+                    .toAtomicPredicate();
 
-            eventFilter = filter.translateToEventFilter();
         } else if (ctx.value_seq().string_seq() != null) {
             if (!attribute.getTypes().contains(ValueType.STRING)) {
                 throw new TypeError("Attribute `" + attribute.getName() +
                         "` is not comparable with string values", ctx);
             }
-            ContainmentEventFilter filter = new ContainmentEventFilter(
-                    label,
+            predicate = new ContainmentPredicate(
                     attribute,
-                    ValueType.STRING,
-                    logicalOperation,
-                    parseStringSeq(ctx.value_seq().string_seq()));
+                    parseStringSeq(ctx.value_seq().string_seq()))
+                    .toAtomicPredicate();
 
-            eventFilter = filter.translateToEventFilter();
         } else {
             throw new UnknownStatementError("Unknown sequence type", ctx);
         }
 
-        ensureValidity(eventFilter, ctx);
-        return eventFilter;
+        if (negated){
+            predicate = predicate.negate();
+        }
+
+        ensureValidity(predicate, ctx);
+        return predicate;
     }
 
 
     @Override
-    public EventFilter visitInequality_expr(CELParser.Inequality_exprContext ctx) {
+    public AtomicPredicate visitInequality_expr(CELParser.Inequality_exprContext ctx) {
         MathExprVisitor mathExprVisitor = new MathExprVisitor(label);
 
         Value lhs = ctx.math_expr(0).accept(mathExprVisitor);
@@ -139,22 +137,22 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
         } else {
             throw new UnknownStatementError("Unknown inequality type", ctx);
         }
-        EventFilter eventFilter = new InequalityEventFilter(label, lhs, logicalOperation, rhs);
-        ensureValidity(eventFilter, ctx);
-        return eventFilter;
+        AtomicPredicate predicate = new InequalityPredicate(lhs, logicalOperation, rhs);
+        ensureValidity(predicate, ctx);
+        return predicate;
     }
 
 
     @Override
-    public EventFilter visitOr_expr(CELParser.Or_exprContext ctx) {
-        EventFilter left = ctx.bool_expr(0).accept(this);
-        EventFilter right = ctx.bool_expr(1).accept(this);
-        return new OrEventFilter(label, left, right);
+    public AtomicPredicate visitOr_expr(CELParser.Or_exprContext ctx) {
+        AtomicPredicate left = ctx.bool_expr(0).accept(this);
+        AtomicPredicate right = ctx.bool_expr(1).accept(this);
+        return new OrPredicate(left, right);
     }
 
 
     @Override
-    public EventFilter visitEquality_math_expr(CELParser.Equality_math_exprContext ctx) {
+    public AtomicPredicate visitEquality_math_expr(CELParser.Equality_math_exprContext ctx) {
 
         MathExprVisitor visitor = new MathExprVisitor(label);
 
@@ -169,14 +167,14 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
         } else {
             throw new UnknownStatementError("Unknown inequality type", ctx);
         }
-        EventFilter eventFilter = new EqualityEventFilter(label, left, logicalOperation, right);
+        AtomicPredicate predicate = new EqualityPredicate(left, logicalOperation, right);
         ;
-        ensureValidity(eventFilter, ctx);
-        return eventFilter;
+        ensureValidity(predicate, ctx);
+        return predicate;
     }
 
     @Override
-    public EventFilter visitEquality_string_expr(CELParser.Equality_string_exprContext ctx) {
+    public AtomicPredicate visitEquality_string_expr(CELParser.Equality_string_exprContext ctx) {
         Attribute attribute;
         StringLiteral stringLiteral;
 
@@ -200,17 +198,17 @@ class BoolExprVisitor extends CELBaseVisitor<EventFilter> {
             throw new UnknownStatementError("Unknown inequality type", ctx);
         }
 
-        EventFilter eventFilter = new EqualityEventFilter(label, attribute, logicalOperation, stringLiteral);
-        ;
-        ensureValidity(eventFilter, ctx);
-        return eventFilter;
+        AtomicPredicate predicate = new EqualityPredicate(attribute, logicalOperation, stringLiteral);
+
+        ensureValidity(predicate, ctx);
+        return predicate;
     }
 
     @Override
-    public EventFilter visitRegex_expr(CELParser.Regex_exprContext ctx) {
+    public AtomicPredicate visitRegex_expr(CELParser.Regex_exprContext ctx) {
         Attribute attribute = getAttributeForName(ctx.attribute_name());
         StringLiteral regex = new StringLiteral(ctx.string().getText());
-        return new LikeEventFilter(label, attribute, regex);
+        return new LikePredicate(attribute, regex);
     }
 
     private Attribute getAttributeForName(CELParser.Attribute_nameContext ctx) {

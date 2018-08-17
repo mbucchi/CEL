@@ -5,22 +5,29 @@ import cel.compiler.errors.NameError;
 import cel.compiler.errors.UnknownStatementError;
 import cel.event.EventSchema;
 import cel.event.Label;
-import cel.filter.PatternFilter;
+import cel.event.errors.EventException;
+import cel.filter.Filter;
 import cel.parser.CELBaseVisitor;
 import cel.parser.CELParser;
 import cel.parser.utils.StringCleaner;
 import cel.stream.StreamSchema;
+import cel.stream.errors.StreamException;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class PatternVisitor extends CELBaseVisitor<CEA> {
 
     private Collection<String> definedStreams;
     private Collection<String> definedEvents;
 
+    private Set<EventSchema> eventSchemas;
+
     public PatternVisitor(Collection<String> definedStreams, Collection<String> definedEvents) {
         this.definedStreams = definedStreams;
         this.definedEvents = definedEvents;
+        eventSchemas = new HashSet<>();
     }
 
 
@@ -34,13 +41,18 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
 
     @Override
     public CEA visitBinary_cel_pattern(CELParser.Binary_cel_patternContext ctx) {
-        // the context remains the same, no need for creating a new visitor
-        PatternVisitor newVisitor = this;
+        PatternVisitor visitorLeft = new PatternVisitor(definedStreams, definedEvents);
+        PatternVisitor visitorRight = new PatternVisitor(definedStreams, definedEvents);
 
         // get the left and right patterns
 
-        CEA left = ctx.cel_pattern(0).accept(newVisitor);
-        CEA right = ctx.cel_pattern(1).accept(newVisitor);
+        CEA left = ctx.cel_pattern(0).accept(visitorLeft);
+        CEA right = ctx.cel_pattern(1).accept(visitorRight);
+
+        // add the newly found event schemas
+
+        eventSchemas.addAll(visitorLeft.eventSchemas);
+        eventSchemas.addAll(visitorRight.eventSchemas);
 
         // binary could be either `OR` or `;`.
 
@@ -71,7 +83,7 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
         CEA inner = ctx.cel_pattern().accept(newVisitor);
 
         String newLabel = StringCleaner.tryRemoveQuotes(ctx.event_name().getText());
-        Label label = Label.forName(newLabel, inner.getEventSchemas());
+        Label label = Label.forName(newLabel, eventSchemas);
 
         return new AssignCEA(inner, label);
     }
@@ -86,23 +98,32 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
         // Check if a stream is defined
         if (ctx.s_event_name().stream_name() != null) {
             String streamName = StringCleaner.tryRemoveQuotes(ctx.s_event_name().stream_name().getText());
+            StreamSchema streamSchema;
+            EventSchema eventSchema;
 
-            if (!definedStreams.contains(streamName)) {
-                throw new NameError("Stream `" + streamName + "` is not defined", ctx.s_event_name().stream_name());
+            try {
+                streamSchema = StreamSchema.getSchemaFor(streamName);
             }
-            StreamSchema streamSchema = StreamSchema.getSchemaFor(streamName);
+            catch (StreamException e) {
+                throw new NameError("Stream `" + streamName + "` is not defined", ctx.s_event_name().stream_name());
 
+            }
             if (!streamSchema.containsEvent(eventName)) {
                 throw new NameError("event `" + eventName + "` is not defined within stream `" + streamName + "`",
                         ctx.s_event_name().event_name());
             }
 
             // Create a selection CEA that filters for the given stream
-            EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
-
-            if (eventSchema == null) {
+            try{
+                eventSchema = EventSchema.getSchemaFor(eventName);
+            }
+            catch (EventException e){
                 throw new NameError("event `" + eventName + "` is not defined", ctx.s_event_name().event_name());
             }
+
+            // Add the newly found schema to the set of visited schemas
+            eventSchemas.add(eventSchema);
+
             return new SelectionCEA(streamSchema, eventSchema);
         } else {
             // no stream is defined, just check that the event is declared within the scope of the
@@ -113,11 +134,17 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
             }
 
             // Create a selection CEA with no filters
-            EventSchema eventSchema = EventSchema.tryGetSchemaFor(eventName);
-
-            if (eventSchema == null) {
-                throw new NameError("event `" + eventName + "` is not defined", ctx.s_event_name());
+            EventSchema eventSchema;
+            try{
+                eventSchema = EventSchema.getSchemaFor(eventName);
             }
+            catch (EventException e){
+                throw new NameError("event `" + eventName + "` is not defined", ctx.s_event_name().event_name());
+            }
+
+            // Add the newly found schema to the set of visited schemas
+            eventSchemas.add(eventSchema);
+
             return new SelectionCEA(eventSchema);
         }
     }
@@ -131,7 +158,7 @@ public class PatternVisitor extends CELBaseVisitor<CEA> {
         // Push down the old_filter over the cel_pattern node
 
         CEA cea = ctx.cel_pattern().accept(this);
-        PatternFilter patternFilter = ctx.filter().accept(new FilterVisitor());
+        Filter patternFilter = ctx.filter().accept(new FilterVisitor());
         return patternFilter.applyToCEA(cea);
     }
 

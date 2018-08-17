@@ -5,8 +5,7 @@ import cel.compiler.DeclarationCompiler;
 import cel.compiler.QueryCompiler;
 import cel.compiler.errors.CompilerError;
 import cel.query.Query;
-import cel.queryExecution.CeaExecutor;
-import cel.queryExecution.NaiveCeaExecutor;
+import cel.queryExecution.CELExecutor;
 import cel.runtime.errors.ParseError;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
@@ -23,13 +22,13 @@ public class CELMotor {
     private DeclarationCompiler declarationCompiler;
     private QueryCompiler queryCompiler;
     private CompoundStatementCompiler compoundStatementCompiler;
-    private List<CeaExecutor> ceaExecutorList;
+    private List<CELExecutor> celExecutors;
 
     public CELMotor() {
         declarationCompiler = new DeclarationCompiler();
         queryCompiler = new QueryCompiler();
         compoundStatementCompiler = new CompoundStatementCompiler(declarationCompiler, queryCompiler);
-        ceaExecutorList = new ArrayList<>();
+        celExecutors = new ArrayList<>();
     }
 
     public void executeDeclaration(String statement) {

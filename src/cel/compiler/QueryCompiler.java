@@ -4,6 +4,7 @@ import cel.cea.CEA;
 import cel.compiler.errors.NameError;
 import cel.compiler.errors.UnknownStatementError;
 import cel.compiler.errors.ValueError;
+import cel.compiler.visitors.FirstPassVisitor;
 import cel.compiler.visitors.PatternVisitor;
 import cel.compiler.visitors.TimeSpanVisitor;
 import cel.event.EventSchema;
@@ -11,6 +12,7 @@ import cel.event.Label;
 import cel.event.errors.NoSuchLabelException;
 import cel.parser.CELParser;
 import cel.parser.utils.StringCleaner;
+import cel.predicate.BitPredicateFactory;
 import cel.query.*;
 import cel.stream.StreamSchema;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -40,6 +42,11 @@ public class QueryCompiler extends BaseCompiler<Query> {
 
         CELParser.Cel_queryContext queryContext = (CELParser.Cel_queryContext) ctx;
 
+        // initiate bit predicate factory
+        FirstPassVisitor firstPassVisitor = new FirstPassVisitor();
+        queryContext.accept(firstPassVisitor);
+        BitPredicateFactory.create(firstPassVisitor.getStreamSchemas(), firstPassVisitor.getEventSchemas(), firstPassVisitor.getnAtomicPredicates());
+
         SelectionStrategy selectionStrategy = parseSelectionStrategy(queryContext.selection_strategy());
 
         // projected values
@@ -53,7 +60,7 @@ public class QueryCompiler extends BaseCompiler<Query> {
         CEA patternCEA = queryContext.cel_pattern().accept(new PatternVisitor(definedStreams.keySet(), definedEvents));
 
         // partitions
-        Collection<Partition> partitions = parsePartitionList(queryContext.partition_list(), patternCEA.getEventSchemas());
+        Collection<Partition> partitions = parsePartitionList(queryContext.partition_list(), firstPassVisitor.getEventSchemas());
 
         // time window
         TimeWindow timeWindow = parseTimeWindow(queryContext.time_window());
@@ -175,7 +182,7 @@ public class QueryCompiler extends BaseCompiler<Query> {
 
     private Collection<String> getEventsForStreams(Collection<String> streamNames) {
         return streamNames.stream()
-                .map(streamName -> StreamSchema.getSchemaFor(streamName).getEvents())
+                .map(streamName -> StreamSchema.tryGetSchemaFor(streamName).getEvents())
                 .flatMap(Collection::stream)
                 .map(EventSchema::getName)
                 .collect(Collectors.toSet());

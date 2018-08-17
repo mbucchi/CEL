@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.toList;
 public class KleeneCEA extends CEA {
 
     public KleeneCEA(CEA inner) {
+        // copying inner automaton
         super(inner);
 
         // copy all transitions that go to finalState and add them to initState as well

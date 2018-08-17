@@ -1,113 +1,46 @@
 package cel.predicate;
 
+
+import cel.event.EventSchema;
+
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class AndPredicate extends CompoundPredicate {
+public class AndPredicate extends AtomicPredicate {
 
-    private AndPredicate(AndPredicate toCopy) {
-        super(toCopy);
+    private Collection<AtomicPredicate> predicates;
+
+    private AndPredicate(){
+        predicates = new ArrayList<>();
     }
 
-    public AndPredicate(Collection<Predicate> predicates) {
-        super(new ArrayList<>(predicates));
+    public AndPredicate(AtomicPredicate left, AtomicPredicate right) {
+        this();
+        predicates.add(left);
+        predicates.add(right);
     }
 
-    @Override
-    public Predicate copy() {
-        return new AndPredicate(this);
-    }
-
-    @Override
-    protected boolean implies(Predicate other) {
-        // TODO
-        return this.equals(other);
+    public AndPredicate(Collection<AtomicPredicate> predicates) {
+        this();
+        this.predicates.addAll(predicates);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof Predicate)) return false;
-        // TODO
-        return false;
+    public AtomicPredicate negate() {
+        Collection<AtomicPredicate> negated = predicates.stream().map(AtomicPredicate::negate).collect(Collectors.toList());
+        return new OrPredicate(negated);
     }
 
     @Override
-    public Predicate flatten() {
-        Collection<Predicate> flattened = predicates.stream()
-                // first flatten all inside predicates
-                .map(Predicate::flatten)
-                // then flatten predicates that are of type AND
-                .flatMap(predicate -> {
-                    if (predicate instanceof AndPredicate){
-                        return ((AndPredicate)predicate).predicates.stream();
-                    }
-                    return Stream.of(predicate);
-                })
-                // Remove all tautologies
-                .filter(predicate -> predicate != getTruePredicate())
-                .collect(Collectors.toList());
-
-        List<Predicate> useful = getUseful(flattened);
-
-        if (useful.size() == 0){
-            return getTruePredicate();
-        }
-        if (useful.contains(getFalsePredicate())){
-            return getFalsePredicate();
-        }
-        if (useful.size() == 1){
-            return useful.get(0);
-        }
-
-        Predicate predicate = new AndPredicate(useful);
-        if (predicate.isSatisfiable()) {
-            return predicate;
-        }
-
-        return getFalsePredicate();
-    }
-
-
-    @Override
-    public Predicate negate() {
-        Collection<Predicate> negatedPredicates = predicates.stream().map(Predicate::negate).collect(Collectors.toList());
-        return new OrPredicate(negatedPredicates);
+    public boolean isConstant() {
+        return predicates.stream().allMatch(AtomicPredicate::isConstant);
     }
 
     @Override
-    public boolean isSatisfiable() {
-        return predicates.stream().allMatch(p1 -> p1.consistentWith(predicates));
-    }
-
-    @Override
-    public boolean inconsistentWith(Predicate other) {
-        return predicates.stream().anyMatch(other::inconsistentWith);
-    }
-
-    @Override
-    boolean consistentWith(Collection<Predicate> predicates) {
-        if (!isSatisfiable()) return false;
-
-        return this.predicates.stream().allMatch(
-                p1 -> p1.consistentWith(predicates)
-        );
-    }
-
-    @Override
-    String innerToString() {
-        StringBuilder stringBuilder = new StringBuilder("[");
-        int n = 0;
-
-        for ( Predicate p : predicates ) {
-            if (n > 0) stringBuilder.append(" AND ");
-            stringBuilder.append(p.innerToString());
-            n += 1;
-        }
-        return stringBuilder.append("]").toString();
-    }
+    public String toString() {
+        return String.join(" and ", predicates.stream()
+                .map(predicate -> "(" + predicate.toString() + ")")
+                .collect(Collectors.toList()));    }
 
 }

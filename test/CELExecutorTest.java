@@ -1,5 +1,4 @@
 import cel.query.Query;
-import cel.runtime.BitVectorGenerator;
 import cel.runtime.CELExecutor;
 import cel.runtime.cea.ExecutableCEA;
 import cel.runtime.event.Event;

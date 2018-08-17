@@ -36,6 +36,12 @@ public class StringLiteral extends Literal {
     }
 
     @Override
+    public int hashCode() {
+        // to differentiate from attributes hash
+        return ("STRING[" + value + "]").hashCode();
+    }
+
+    @Override
     public String toString() {
         return "\"" + value + "\"";
     }

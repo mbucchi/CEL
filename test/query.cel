@@ -1,11 +1,13 @@
 DECLARE EVENT T(temp double, id int)
+DECLARE EVENT T2()
 DECLARE EVENT H(income int, cost int, id int)
 DECLARE STREAM S(T, H)
-DECLARE STREAM S2(T)
+DECLARE STREAM S2(T, T2)
 
 SELECT MAX *
 FROM S, S2
 WHERE ( S>T ; H + ; T AS t2 ) AS all_events
+--WHERE H+ OR H+
 FILTER
     all_events[id NOT IN { 123, 125 }]
     AND

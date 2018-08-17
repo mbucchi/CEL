@@ -13,7 +13,7 @@ public class MatchNodeList extends ExtensibleList<MatchNode> {
 
 
     @Override
-    void add(MatchNode element) {
+    public void add(MatchNode element) {
         super.add(element);
         totalMatches += element.getTotalMatches();
     }

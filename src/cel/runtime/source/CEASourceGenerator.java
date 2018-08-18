@@ -42,6 +42,7 @@ public class CEASourceGenerator {
         src.append(makeWhiteTransitions());
         src.append(makeIsFinal());
         src.append(makeGetNStates());
+        src.append(makeGetInitState());
         src.append(makeANDMaskGetter());
         src.append("}");
         System.out.println(src.toString());
@@ -250,6 +251,15 @@ public class CEASourceGenerator {
         return ret.toString();
     }
 
+    private String makeGetInitState() {
+        StringBuilder ret = new StringBuilder();
+        ret.append(indent(1)).append("public Integer getInitState() {\n");
+        ret.append(indent(2)).append("return ").append(cea.getInitState()).append(";\n");
+        ret.append(indent(1)).append("}\n\n");
+
+        return ret.toString();
+    }
+
     private String makeANDMaskGetter() {
         StringBuilder ret = new StringBuilder();
         StringBuilder black = new StringBuilder();
@@ -261,17 +271,28 @@ public class CEASourceGenerator {
         black.append(indent(2)).append("BitSet ret = new BitSet();\n");
         white.append(indent(2)).append("BitSet ret = new BitSet();\n");
 
+        boolean first = true;
+
         for (Integer i = 0; i < cea.getnStates(); i++) {
-            black.append(indent(2)).append("if (state.equals(").append(i).append(")) {\n");
-            white.append(indent(2)).append("if (state.equals(").append(i).append(")) {\n");
+            if (first) {
+                first = false;
+                black.append(indent(2)).append("if (state.equals(").append(i).append(")) {\n");
+                white.append(indent(2)).append("if (state.equals(").append(i).append(")) {\n");
+            } else {
+                black.append(" else if (state.equals(").append(i).append(")) {\n");
+                white.append(" else if (state.equals(").append(i).append(")) {\n");
+            }
 
             makeANDMask(black, i, blackTransitionList);
             makeANDMask(white, i, whiteTransitionList);
 
-            black.append(indent(2)).append("}\n");
-            white.append(indent(2)).append("}\n");
+            black.append(indent(2)).append("}");
+            white.append(indent(2)).append("}");
         }
 
+        black.append("\n");
+        white.append("\n");
+        
         black.append(indent(2)).append("return ret;\n");
         white.append(indent(2)).append("return ret;\n");
         black.append(indent(1)).append("}\n");
@@ -288,6 +309,9 @@ public class CEASourceGenerator {
     private void makeANDMask(StringBuilder ret, Integer i, List<List<BitMapTransition>> transitionList) {
         if (!transitionList.get(i).isEmpty()) {
             for (BitMapTransition t : transitionList.get(i)) {
+                if (t.getANDMask().isEmpty()) {
+                    continue;
+                }
                 ret.append(indent(3)).append("ret.or(bitSet");
                 for (Long l : t.getANDMask().toLongArray()) {
                     makeBitSetName(ret, l);

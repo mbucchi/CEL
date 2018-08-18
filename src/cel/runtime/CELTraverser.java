@@ -66,7 +66,11 @@ class CELTraverser {
         start.add(INITIAL);
 
         integerToSet.add(start);
-        setToInteger.put(start, INITIAL);
+
+        /* Has to be 0 no matter what the initial state is because it
+         * represents the first index in an ArrayList.
+         */
+        setToInteger.put(start, 0);
 
 //        blackMasks.add(getBlackMask(start));
 //        whiteMasks.add(getWhiteMask(start));
@@ -82,7 +86,7 @@ class CELTraverser {
 
         MaxTuple maxStart = new MaxTuple(start, null);
         integerToMAXTuple.add(maxStart);
-        MAXTupleToInteger.put(maxStart, INITIAL);
+        MAXTupleToInteger.put(maxStart, 0);
 
 //        blackMasks.add(getBlackMask(maxStart));
 //        whiteMasks.add(getWhiteMask(maxStart));
@@ -98,7 +102,7 @@ class CELTraverser {
 
         NEXTTuple nextStart = new NEXTTuple(start, null);
         integerToNEXTTuple.add(nextStart);
-        NEXTTupleToInteger.put(nextStart, INITIAL);
+        NEXTTupleToInteger.put(nextStart, 0);
 
 //        blackMasks.add(getBlackMask(nextStart));
 //        whiteMasks.add(getWhiteMask(nextStart));
@@ -114,7 +118,7 @@ class CELTraverser {
 
         LASTTuple lastStart = new LASTTuple(start, null, null);
         integerToLASTTuple.add(lastStart);
-        LASTTupleToInteger.put(lastStart, INITIAL);
+        LASTTupleToInteger.put(lastStart, 0);
 
 //        blackMasks.add(getBlackMask(lastStart));
 //        whiteMasks.add(getWhiteMask(lastStart));
